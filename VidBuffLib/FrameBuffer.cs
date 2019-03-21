@@ -6,13 +6,13 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Emgu.CV.Structure;
 
 namespace VidBuffLib
 {
     public class FrameBuffer : Buffer
     {
-        protected double fps;
-        protected double sleepTimer = 0;
+        protected double fps, sleepTimer = 0;
 
         public FrameBuffer(VideoCapture stream, int width = 640, int height = 360) : base(stream, width, height)
         {
@@ -32,12 +32,17 @@ namespace VidBuffLib
             while (frame != null && isRunning)
             {
                 DateTime startTime = DateTime.Now;
-                frame = this.ProcessFrame(frame);
 
-                lastFrame = frame;
+                using (frame)
+                {
+                    var asdf = frame.ToImage<Bgr, Byte>();
+
+                    asdf = this.ProcessFrame(asdf);
+
+                    lastFrame = asdf;
+                }
 
                 frame = stream.QueryFrame();
-
                 Sleep(DateTime.Now - startTime);
             }
 
