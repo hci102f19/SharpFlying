@@ -17,16 +17,17 @@ namespace SharpFlying
             FrameBuffer frameBuffer = new FrameBuffer(capture);
             frameBuffer.Start();
 
-
             while (frameBuffer.isRunning)
             {
-                Mat frame = frameBuffer.GetLastFrame();
+                Mat frame = frameBuffer.PopLastFrame();
                 if (frame != null)
                 {
-                    CvInvoke.Imshow("frame", frame);
-                    CvInvoke.WaitKey(1);
+                    using (frame)
+                    {
+                        CvInvoke.Imshow("frame", frame);
+                        CvInvoke.WaitKey(1);
+                    }
                 }
-                Thread.Sleep((int)0.4 * 1000);
             }
         }
     }
