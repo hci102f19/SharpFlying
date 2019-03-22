@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Aardvark.Base;
+using Geometry.Exceptions;
 
 namespace Geometry.Base
 {
@@ -40,12 +41,13 @@ namespace Geometry.Base
 
         protected void Validate()
         {
-            var angle = Math.Round(Math.Abs(RadianToDegree(Math.Atan2(EndPoint.Y - StartPoint.Y, EndPoint.X - StartPoint.X))), 0);
+            var angle = Math.Round(
+                Math.Abs(RadianToDegree(Math.Atan2(EndPoint.Y - StartPoint.Y, EndPoint.X - StartPoint.X))), 0);
 
             if (180 - AngleThreshold <= angle || angle <= 0 + AngleThreshold)
-                throw new Exception("Angle Error");
+                throw new InvalidLineException("Angle Error");
             else if (90 - AngleThreshold <= angle || angle <= 90 + AngleThreshold)
-                throw new Exception("Angle Error");
+                throw new InvalidLineException("Angle Error");
         }
     }
 }
