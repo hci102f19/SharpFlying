@@ -78,10 +78,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="1b946788f58e474e883414e7d694adc0.mp4">
+    <Content Include="License-LGPL.txt" />
+    <Content Include="video.v2.mp4">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="License-LGPL.txt" />
   </ItemGroup>
   <ItemGroup>
     <WCFMetadata Include="Connected Services\" />

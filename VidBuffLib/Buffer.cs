@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Emgu.CV.Structure;
 
 namespace VidBuffLib
 {
@@ -17,7 +18,7 @@ namespace VidBuffLib
 
         protected int blur = 3;
 
-        protected Mat lastFrame = null;
+        protected Image<Bgr, Byte> lastFrame = null;
 
         public bool isRunning { get; protected set; } = true;
 
@@ -27,14 +28,14 @@ namespace VidBuffLib
             this.size = new Size(width, height);
         }
 
-        public Mat GetLastFrame()
+        public Image<Bgr, Byte> GetLastFrame()
         {
             return lastFrame;
         }
 
-        public Mat PopLastFrame()
+        public Image<Bgr, Byte> PopLastFrame()
         {
-            Mat tmpFrame = lastFrame;
+            Image<Bgr, Byte> tmpFrame = lastFrame;
             lastFrame = null;
 
             return tmpFrame;

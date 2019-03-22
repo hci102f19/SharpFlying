@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Emgu.CV;
+using Emgu.CV.Structure;
 using VidBuffLib;
 
 namespace SharpFlying
@@ -13,20 +14,17 @@ namespace SharpFlying
     {
         static void Main(string[] args)
         {
-            VideoCapture capture = new VideoCapture(@"./1b946788f58e474e883414e7d694adc0.mp4");
+            VideoCapture capture = new VideoCapture(@"./video.v2.mp4");
             FrameBuffer frameBuffer = new FrameBuffer(capture);
             frameBuffer.Start();
 
             while (frameBuffer.isRunning)
             {
-                Mat frame = frameBuffer.PopLastFrame();
+                Image<Bgr, Byte> frame = frameBuffer.PopLastFrame();
                 if (frame != null)
                 {
-                    using (frame)
-                    {
-                        CvInvoke.Imshow("frame", frame);
-                        CvInvoke.WaitKey(1);
-                    }
+                    CvInvoke.Imshow("frame", frame);
+                    CvInvoke.WaitKey(1);
                 }
             }
         }
