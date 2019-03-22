@@ -64,15 +64,18 @@
     <Compile Include="Base\Box.cs" />
     <Compile Include="Base\Line.cs" />
     <Compile Include="Base\Point.cs" />
+    <Compile Include="Exceptions\InvalidLineException.cs" />
+    <Compile Include="Exceptions\TooManyLinesException.cs" />
+    <Compile Include="Exceptions\TooManyPointsException.cs" />
     <Compile Include="Extended\Cluster.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
+    <None Include="packages.config">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Exceptions\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <Content Include="License-LGPL.txt" />
   </ItemGroup>

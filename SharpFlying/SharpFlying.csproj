@@ -87,6 +87,10 @@
     <WCFMetadata Include="Connected Services\" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\EdgyLib\EdgyLib.csproj">
+      <Project>{c1ad2c09-9ecb-4b7a-bed1-d3474180b0de}</Project>
+      <Name>EdgyLib</Name>
+    </ProjectReference>
     <ProjectReference Include="..\VidBuffLib\VidBuffLib.csproj">
       <Project>{129df76e-94fb-4098-809a-f2e58298c9c6}</Project>
       <Name>VidBuffLib</Name>
