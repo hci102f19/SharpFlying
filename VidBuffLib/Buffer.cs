@@ -41,7 +41,7 @@ namespace VidBuffLib
             return tmpFrame;
         }
 
-        protected Image<Bgr, Byte> ProcessFrame(Image<Bgr, Byte> mat)
+        protected Mat ProcessFrame(Mat mat)
         {
             CvInvoke.Resize(mat, mat, size);
             CvInvoke.GaussianBlur(mat, mat, new Size(blur, blur), 0);

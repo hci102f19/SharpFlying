@@ -17,12 +17,15 @@ namespace VidBuffLib
         public FrameBuffer(VideoCapture stream, int width = 640, int height = 360) : base(stream, width, height)
         {
             fps = stream.GetCaptureProperty(CapProp.Fps);
+            fps = 50;
             sleepTimer = 1 / fps;
         }
 
         protected void Sleep(TimeSpan executionTime)
         {
-            Thread.Sleep((int)(sleepTimer * 1000) - executionTime.Milliseconds);
+            int sleep = (int)(sleepTimer * 1000) - executionTime.Milliseconds;
+            if (sleep > 0)
+                Thread.Sleep(sleep);
         }
 
         protected override void Run()
@@ -35,11 +38,8 @@ namespace VidBuffLib
 
                 using (frame)
                 {
-                    var asdf = frame.ToImage<Bgr, Byte>();
-
-                    asdf = this.ProcessFrame(asdf);
-
-                    lastFrame = asdf;
+                    frame = this.ProcessFrame(frame);
+                    lastFrame = frame.ToImage<Bgr, Byte>();
                 }
 
                 frame = stream.QueryFrame();

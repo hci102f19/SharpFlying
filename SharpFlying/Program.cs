@@ -14,7 +14,7 @@ namespace SharpFlying
     {
         static void Main(string[] args)
         {
-            VideoCapture capture = new VideoCapture(@"./1b946788f58e474e883414e7d694adc0.mp4");
+            VideoCapture capture = new VideoCapture(@"./video.v2.mp4");
             FrameBuffer frameBuffer = new FrameBuffer(capture);
             frameBuffer.Start();
 
