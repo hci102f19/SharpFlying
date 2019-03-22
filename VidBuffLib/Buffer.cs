@@ -66,6 +66,5 @@ namespace VidBuffLib
         {
             throw new NotImplementedException();
         }
-
     }
 }
