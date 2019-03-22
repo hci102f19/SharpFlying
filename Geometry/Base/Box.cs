@@ -23,5 +23,6 @@ namespace Geometry.Base
         }
 
         public double Area => InternalBox.ComputeArea();
+        public Point Center => new Point(InternalBox.ComputeCentroid());
     }
 }

@@ -16,10 +16,6 @@ namespace Geometry.Extended
 
         protected int Modifier = 3;
 
-        public Cluster()
-        {
-        }
-
         public void AddPoint(Point point)
         {
             Points.Add(point);
@@ -49,6 +45,14 @@ namespace Geometry.Extended
             }
 
             return (double)ClusterDensity;
+        }
+
+        public Point GetMean()
+        {
+            return new Point(
+                Points.Average(point => point.X),
+                Points.Average(point => point.Y)
+            );
         }
     }
 }

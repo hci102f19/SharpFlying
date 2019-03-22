@@ -17,10 +17,16 @@ namespace Geometry.Base
 
         protected Cluster Cluster;
 
-        public Point(float x, float y)
+        public Point(double x, double y)
         {
             InternalPoint = new V2d(x, y);
         }
+
+        public Point(V2d point)
+        {
+            InternalPoint = point;
+        }
+
 
         public void SetCluster(Cluster cluster)
         {
