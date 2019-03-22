@@ -3,6 +3,7 @@ using Emgu.CV.CvEnum;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,7 +18,7 @@ namespace VidBuffLib
         public FrameBuffer(VideoCapture stream, int width = 640, int height = 360) : base(stream, width, height)
         {
             fps = stream.GetCaptureProperty(CapProp.Fps);
-            fps = 50;
+            
             sleepTimer = 1 / fps;
         }
 
@@ -35,14 +36,12 @@ namespace VidBuffLib
             while (frame != null && isRunning)
             {
                 DateTime startTime = DateTime.Now;
-
-                using (frame)
+                using (frame = ProcessFrame(frame))
                 {
-                    frame = this.ProcessFrame(frame);
-                    lastFrame = frame.ToImage<Bgr, Byte>();
+                    lastFrame = frame.Clone().ToImage<Bgr, byte>();
                 }
-
                 frame = stream.QueryFrame();
+                GC.Collect(1);
                 Sleep(DateTime.Now - startTime);
             }
 
