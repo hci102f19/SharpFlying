@@ -14,7 +14,6 @@ namespace Geometry.Base
         protected Line2d InternalLine;
         public V2d StartPoint;
         public V2d EndPoint;
-
         protected int AngleThreshold = 20;
 
         public Line(PointF point) : this(point.X, point.Y)
@@ -37,7 +36,7 @@ namespace Geometry.Base
 
             InternalLine = new Line2d(StartPoint, EndPoint);
 
-            Validate();
+            //Validate();
         }
 
         protected double RadianToDegree(double angle)
@@ -45,7 +44,7 @@ namespace Geometry.Base
             return angle * (180.0 / Math.PI);
         }
 
-        protected void Validate()
+        public bool Validate()
         {
             double angle = Math.Round(
                 Math.Abs(RadianToDegree(Math.Atan2(EndPoint.Y - StartPoint.Y, EndPoint.X - StartPoint.X))),
@@ -53,9 +52,12 @@ namespace Geometry.Base
             );
 
             if (180 - AngleThreshold <= angle || angle <= 0 + AngleThreshold)
-                throw new InvalidLineException("Line not within angle scope");
-            else if (90 - AngleThreshold <= angle && angle <= 90 + AngleThreshold)
-                throw new InvalidLineException("Line not within angle scope");
+                return false;
+              
+            if (90 - AngleThreshold <= angle && angle <= 90 + AngleThreshold)
+                return false;
+
+            return true; 
         }
 
         public Point Intersect(Line line)

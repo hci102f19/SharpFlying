@@ -104,10 +104,16 @@ namespace EdgyLib
             {
                 try
                 {
-                    lines.Add(new Line(vector[i]));
+                    var line = new Line(vector[i]);
+                    var res = line.Validate();
+                    if (res)
+                    {
+                        lines.Add(line);
+                    }
                 }
                 catch (InvalidLineException e)
                 {
+
                 }
             }
 
