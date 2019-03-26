@@ -11,6 +11,7 @@ using Emgu.CV.Structure;
 using Emgu.CV.Util;
 using Geometry.Dampening;
 using ServiceLib;
+using Geometry.Base;
 
 namespace EdgyLib
 {
@@ -31,7 +32,7 @@ namespace EdgyLib
 
         protected SFiltering filtering = new SFiltering();
 
-        public Image<Bgr, Byte> ProcessFrame(Image<Bgr, Byte> frame)
+        public void ProcessFrame(Image<Bgr, Byte> frame)
         {
             // Clear lines
             using (Mat edges = new Mat())
@@ -44,21 +45,21 @@ namespace EdgyLib
                 VectorOfPointF vector = new VectorOfPointF();
                 CvInvoke.HoughLines(edges, vector, 2, Math.PI / 180, HoughLinesTheta);
 
-                if (vector.Size > 0)
+                if (vector.Size == 0)
+                    return;
+
+                try
                 {
-                    try
-                    {
-                        CalculateTheta(vector.Size);
-                    }
-                    catch (TooManyLinesException e)
-                    {
-                        return null;
-                    }
+                    CalculateTheta(vector.Size);
+                }
+                catch (TooManyLinesException e) // Generic Exception TooManyException
+                {
+                    return;
                 }
 
+                List<Line> lines = new List<Line>();
 
                 //Calculate Cluster
-                return edges.ToImage<Bgr, byte>();
             }
         }
 
