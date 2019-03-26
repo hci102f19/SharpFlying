@@ -12,7 +12,7 @@ namespace Geometry.Dampening
     /// Small Filtering
     /// An Naïve approach to GPS smoothing
     /// </summary>
-    class SFiltering
+    public class SFiltering
     {
         protected double XMax;
         protected double YMax;
