@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Net.Mime;
 using System.Runtime.Versioning;
 using System.Text;
 using System.Threading.Tasks;
@@ -117,10 +118,12 @@ namespace EdgyLib
         {
             List<Point> intersections = new List<Point>();
 
-            foreach (Line inLine in lines)
+            for (int i = lines.Count - 1; i >= 0; i--)
             {
-                foreach (Line cmpLine in lines)
+                Line inLine = lines[i];
+                for (int j = lines.Count - 1; j >= 0; j--)
                 {
+                    Line cmpLine = lines[j];
                     if (inLine == cmpLine)
                         continue;
 
@@ -128,12 +131,27 @@ namespace EdgyLib
 
                     if (intersection != null && !intersections.Contains(intersection))
                         intersections.Add(intersection);
+
                 }
             }
 
+            //            foreach (Line inLine in lines)
+            //            {
+            //                foreach (Line cmpLine in lines)
+            //                {
+            //                    if (inLine == cmpLine)
+            //                        continue;
+            //
+            //                    Point intersection = inLine.Intersect(cmpLine);
+            //
+            //                    if (intersection != null && !intersections.Contains(intersection))
+            //                        intersections.Add(intersection);
+            //                }
+            //            }
+
             foreach (Point point in intersections)
             {
-                CvInvoke.Circle(frame, point.AsPoint(), 5, new MCvScalar(0, 0, 255), 2);
+                CvInvoke.Circle(frame, point.AsPoint(), 2, new MCvScalar(0, 0, 255), -1);
             }
         }
     }
