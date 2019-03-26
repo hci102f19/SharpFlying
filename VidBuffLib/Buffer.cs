@@ -20,6 +20,8 @@ namespace VidBuffLib
 
         protected Image<Bgr, Byte> lastFrame = null;
 
+        protected Stack<Image<Bgr, Byte>> Stack = new Stack<Image<Bgr, byte>>(1);
+
         public bool isRunning { get; protected set; } = true;
 
         public Buffer(VideoCapture stream, int width = 640, int height = 360)
@@ -30,15 +32,34 @@ namespace VidBuffLib
 
         public Image<Bgr, Byte> GetLastFrame()
         {
-            return lastFrame;
+            Retry:
+            while (Stack.Count == 0)
+            {
+                Thread.Yield();
+            }
+
+            if (Stack.Peek() == null)
+            {
+                Stack.Pop();
+                goto Retry;
+            }
+            return Stack.Peek();
         }
 
         public Image<Bgr, Byte> PopLastFrame()
         {
-            Image<Bgr, Byte> tmpFrame = lastFrame;
-            lastFrame = null;
+            Retry:
+            while (Stack.Count == 0)
+            {
+                Thread.Yield();
+            }
 
-            return tmpFrame;
+            if (Stack.Peek() == null)
+            {
+                Stack.Pop();
+                goto Retry;
+            }
+            return Stack.Pop();
         }
 
         protected Mat ProcessFrame(Mat mat)

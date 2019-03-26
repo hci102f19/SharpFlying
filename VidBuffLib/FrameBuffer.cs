@@ -14,7 +14,7 @@ namespace VidBuffLib
     public class FrameBuffer : Buffer
     {
         protected double fps, sleepTimer = 0;
-
+        
         public FrameBuffer(VideoCapture stream, int width = 640, int height = 360) : base(stream, width, height)
         {
             fps = stream.GetCaptureProperty(CapProp.Fps);
@@ -38,15 +38,23 @@ namespace VidBuffLib
                 DateTime startTime = DateTime.Now;
                 using (frame = ProcessFrame(frame))
                 {
-                    lastFrame = frame.Clone().ToImage<Bgr, byte>();
+                    if (Stack.Count > 0)
+                    {
+                        Stack.Pop();
+                        Stack.Push(frame.ToImage<Bgr, byte>());
+                    }
+                    else
+                    {
+                        Stack.Push(frame.ToImage<Bgr, byte>());
+                    }
                 }
                 frame = stream.QueryFrame();
-                GC.Collect(1);
+                
+
                 Sleep(DateTime.Now - startTime);
             }
 
             isRunning = false;
-            lastFrame = null;
         }
     }
 }
