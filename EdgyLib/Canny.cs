@@ -118,12 +118,10 @@ namespace EdgyLib
         {
             List<Point> intersections = new List<Point>();
 
-            for (int i = lines.Count - 1; i >= 0; i--)
+            foreach (Line inLine in lines)
             {
-                Line inLine = lines[i];
-                for (int j = lines.Count - 1; j >= 0; j--)
+                foreach (Line cmpLine in lines)
                 {
-                    Line cmpLine = lines[j];
                     if (inLine == cmpLine)
                         continue;
 
@@ -131,23 +129,8 @@ namespace EdgyLib
 
                     if (intersection != null && !intersections.Contains(intersection))
                         intersections.Add(intersection);
-
                 }
             }
-
-            //            foreach (Line inLine in lines)
-            //            {
-            //                foreach (Line cmpLine in lines)
-            //                {
-            //                    if (inLine == cmpLine)
-            //                        continue;
-            //
-            //                    Point intersection = inLine.Intersect(cmpLine);
-            //
-            //                    if (intersection != null && !intersections.Contains(intersection))
-            //                        intersections.Add(intersection);
-            //                }
-            //            }
 
             foreach (Point point in intersections)
             {
