@@ -23,13 +23,13 @@ namespace SharpFlying
 
             while (frameBuffer.isRunning)
             {
-                Image<Bgr, Byte> frame = frameBuffer.PopLastFrame();
-                if (frame != null)
+                using (var frame = frameBuffer.PopLastFrame())
                 {
-                    Image<Bgr, Byte> frame2 = canny.ProcessFrame(frame);
-
-                    CvInvoke.Imshow("frame", frame);
-                    CvInvoke.WaitKey(1);
+                    if (frame.Data != null)
+                    {
+                        CvInvoke.Imshow("frame", frame);
+                        CvInvoke.WaitKey(1);
+                    }
                 }
             }
         }
