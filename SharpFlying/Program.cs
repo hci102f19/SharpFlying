@@ -27,6 +27,7 @@ namespace SharpFlying
                 {
                     if (frame.Data != null)
                     {
+                        canny.ProcessFrame(frame);
                         CvInvoke.Imshow("frame", frame);
                         CvInvoke.WaitKey(1);
                     }

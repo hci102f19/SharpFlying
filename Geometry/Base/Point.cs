@@ -33,5 +33,10 @@ namespace Geometry.Base
             cluster.AddPoint(this);
             Cluster = cluster;
         }
+
+        public System.Drawing.Point AsPoint()
+        {
+            return new System.Drawing.Point((int)X, (int)Y);
+        }
     }
 }

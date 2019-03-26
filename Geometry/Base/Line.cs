@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,11 +11,16 @@ namespace Geometry.Base
 {
     public class Line
     {
-        protected Polygon2d InternalLine;
-        protected V2d StartPoint;
-        protected V2d EndPoint;
+        protected Line2d InternalLine;
+        public V2d StartPoint;
+        public V2d EndPoint;
 
         protected int AngleThreshold = 20;
+
+        public Line(PointF point) : this(point.X, point.Y)
+        {
+        }
+
 
         public Line(float rho, float theta)
         {
@@ -29,7 +35,7 @@ namespace Geometry.Base
             StartPoint = new V2d(x0 + 1000 * (-b), y0 + 1000 * a);
             EndPoint = new V2d(x0 - 1000 * (-b), y0 - 1000 * a);
 
-            InternalLine = new Polygon2d(StartPoint, EndPoint);
+            InternalLine = new Line2d(StartPoint, EndPoint);
 
             Validate();
         }
@@ -47,9 +53,21 @@ namespace Geometry.Base
             );
 
             if (180 - AngleThreshold <= angle || angle <= 0 + AngleThreshold)
-                throw new InvalidLineException("Angle Error");
-            else if (90 - AngleThreshold <= angle || angle <= 90 + AngleThreshold)
-                throw new InvalidLineException("Angle Error");
+                throw new InvalidLineException("Line not within angle scope");
+            else if (90 - AngleThreshold <= angle && angle <= 90 + AngleThreshold)
+                throw new InvalidLineException("Line not within angle scope");
+        }
+
+        public Point Intersect(Line line)
+        {
+            V2d intersection = new V2d();
+
+            InternalLine.Intersects(line.InternalLine, out intersection);
+
+            if (intersection.X.IsNaN() || intersection.Y.IsNaN())
+                return null;
+
+            return new Point(intersection);
         }
     }
 }
