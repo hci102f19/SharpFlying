@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using EdgyLib;
 using Emgu.CV;
 using Emgu.CV.Structure;
 using VidBuffLib;
@@ -18,11 +19,15 @@ namespace SharpFlying
             FrameBuffer frameBuffer = new FrameBuffer(capture);
             frameBuffer.Start();
 
+            Canny canny = new Canny();
+
             while (frameBuffer.isRunning)
             {
                 Image<Bgr, Byte> frame = frameBuffer.PopLastFrame();
                 if (frame != null)
                 {
+                    Image<Bgr, Byte> frame2 = canny.ProcessFrame(frame);
+
                     CvInvoke.Imshow("frame", frame);
                     CvInvoke.WaitKey(1);
                 }

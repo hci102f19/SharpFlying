@@ -4,11 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Geometry.Exceptions
+namespace EdgyLib.Exceptions
 {
     public class TooManyLinesException : Exception
     {
-        public TooManyLinesException(string message) : base(message)
+        public TooManyLinesException(string message = "TooManyLinesException") : base(message)
         {
         }
     }
