@@ -1,5 +1,6 @@
 ﻿using System;
 using Geometry.Base;
+using Geometry.Extended;
 using Geometry.Interfaces;
 
 namespace DBSCAN
@@ -13,5 +14,8 @@ namespace DBSCAN
         public bool Visited { get; set; }
 
         public ref readonly Point Point => ref Item.Point;
+
+        public double X => Item.X;
+        public double Y => Item.Y;
     }
 }

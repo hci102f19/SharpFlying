@@ -15,5 +15,8 @@ namespace Geometry.Extended
         public PointContainer(Point point) => _point = point;
 
         public ref readonly Point Point => ref _point;
+
+        public double X => _point.X;
+        public double Y => _point.Y;
     }
 }

@@ -115,7 +115,7 @@ namespace EdgyLib
 
         protected void Clustering(List<Line> lines, Image<Bgr, Byte> frame)
         {
-            List<PointContainer> intersections = new List<PointContainer>();
+            List<Point> intersections = new List<Point>();
 
             foreach (Line inLine in lines)
             {
@@ -126,9 +126,8 @@ namespace EdgyLib
 
                     Point intersection = inLine.Intersect(cmpLine);
 
-                    //if (intersection != null && !intersections.Contains(intersection))
-                    if (intersection != null)
-                        intersections.Add(new PointContainer(intersection));
+                    if (intersection != null && !intersections.Contains(intersection))
+                        intersections.Add(intersection);
                 }
             }
 
@@ -136,17 +135,18 @@ namespace EdgyLib
             if (intersections.Count > 0)
             {
                 var clusters = DBSCAN.DBSCAN.CalculateClusters(
-                    intersections,
+                    intersections.Select(p => new PointContainer(p)).ToList(),
                     epsilon: 20,
                     minimumPointsPerCluster: (int)Math.Round(0.1 * intersections.Count, 0)
                 );
+
                 Random r = new Random();
 
-                Cluster<PointContainer> bestCluster = clusters.Clusters.OrderByDescending(p => p.Objects.Count).First();
+                Cluster<PointContainer> bestCluster = clusters.Clusters.OrderByDescending(p => p.Points.Count).First();
 
                 MCvScalar Color = new MCvScalar(r.Next(0, 255), r.Next(0, 255), r.Next(0, 255));
 
-                foreach (var point in bestCluster.Objects)
+                foreach (var point in bestCluster.Points)
                 {
                     CvInvoke.Circle(frame, point.Point.AsPoint(), 2, Color, -1);
                 }

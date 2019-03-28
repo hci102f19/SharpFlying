@@ -4,19 +4,20 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Geometry.Base;
+using Geometry.Interfaces;
 
 namespace Geometry.Extended
 {
-    public class Cluster
+    public class Cluster<T> where T : IPointData
     {
-        protected List<Point> Points = new List<Point>();
+        public List<T> Points = new List<T>();
 
         public int ClusterSize { get; protected set; } = 0;
         protected double? ClusterDensity = null;
 
         protected int Modifier = 3;
 
-        public void AddPoint(Point point)
+        public void AddPoint(T point)
         {
             Points.Add(point);
             ClusterSize++;

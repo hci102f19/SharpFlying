@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Geometry.Extended;
 using Geometry.Interfaces;
 
 namespace DBSCAN
@@ -67,7 +68,7 @@ namespace DBSCAN
             where T : IPointData
         {
             var points = new List<T>() { point.Item };
-            var cluster = new Cluster<T>() { Objects = points };
+            var cluster = new Cluster<T>() { Points = points };
             point.Cluster = cluster;
 
             var queue = new Queue<PointInfo<T>>(neighborhood);

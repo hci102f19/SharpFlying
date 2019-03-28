@@ -16,8 +16,6 @@ namespace Geometry.Base
         public double X => InternalPoint.X;
         public double Y => InternalPoint.Y;
 
-        protected Cluster Cluster;
-
         public Point(V2d point) : this(point.X, point.Y)
         {
         }
@@ -26,12 +24,6 @@ namespace Geometry.Base
         public Point(double x, double y)
         {
             InternalPoint = new V2d(x, y);
-        }
-
-        public void SetCluster(Cluster cluster)
-        {
-            cluster.AddPoint(this);
-            Cluster = cluster;
         }
 
         public SDPoint AsPoint()

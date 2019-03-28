@@ -43,7 +43,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Cluster.cs" />
     <Compile Include="ClusterSet.cs" />
     <Compile Include="DBSCAN.cs" />
     <Compile Include="ISpatialIndex.cs" />
