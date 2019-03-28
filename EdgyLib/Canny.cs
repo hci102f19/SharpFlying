@@ -1,6 +1,7 @@
 ﻿using System;
 using DBSCAN;
 using System.Collections.Generic;
+using System.Linq;
 using EdgyLib.Exceptions;
 using Emgu.CV;
 using Emgu.CV.Structure;
@@ -141,21 +142,15 @@ namespace EdgyLib
                 );
                 Random r = new Random();
 
-                foreach (var claster in clusters.Clusters)
+                Cluster<PointContainer> bestCluster = clusters.Clusters.OrderByDescending(p => p.Objects.Count).First();
+
+                MCvScalar Color = new MCvScalar(r.Next(0, 255), r.Next(0, 255), r.Next(0, 255));
+
+                foreach (var point in bestCluster.Objects)
                 {
-                    MCvScalar Color = new MCvScalar(r.Next(0, 255), r.Next(0, 255), r.Next(0, 255));
-                    foreach (var c in claster.Objects)
-                    {
-                        CvInvoke.Circle(frame, c.Point.AsPoint(), 2, Color, -1);
-                    }
+                    CvInvoke.Circle(frame, point.Point.AsPoint(), 2, Color, -1);
                 }
             }
-
-
-            //            foreach (PointContainer pointContainer in intersections)
-            //            {
-            //                CvInvoke.Circle(frame, pointContainer.Point.AsPoint(), 2, new MCvScalar(0, 0, 255), -1);
-            //            }
         }
     }
 }
