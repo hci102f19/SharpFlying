@@ -142,21 +142,20 @@ namespace EdgyLib
                 );
 
                 Random r = new Random();
-                //todo: When moved into cluster, make cluster.Cluster.Count > 0 check
+                //todo: When moved into cluster, make cluster.Cluster.Count > 0 check 
                 try
                 {
                     Cluster bestCluster = clusters.Clusters.OrderByDescending(p => p.Points.Count).First();
-
                     MCvScalar Color = new MCvScalar(r.Next(0, 255), r.Next(0, 255), r.Next(0, 255));
 
+                    Console.WriteLine(bestCluster.GetMean());
                     filtering.Add(bestCluster.GetMean());
 
                     CvInvoke.Circle(frame, filtering.GetMean().AsPoint(), 2, Color, -1);
-
                 }
-                catch (Exception e)
+                catch (InvalidOperationException ex)
                 {
-                    Console.WriteLine(e);
+                    Console.WriteLine(ex);
                 }
             }
         }
