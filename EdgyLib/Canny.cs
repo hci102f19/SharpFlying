@@ -48,7 +48,7 @@ namespace EdgyLib
                 CalculateTheta(vector.Size);
 
                 // Check for too many lines
-                if (vector.Size > LineMax)
+                if (vector.Size < LineMax)
                     Clustering(GetLines(vector), frame);
             }
         }
@@ -83,16 +83,12 @@ namespace EdgyLib
             var lines = new List<Line>();
 
             for (var i = 0; i < vector.Size; i++)
-                try
-                {
-                    var line = new Line(vector[i]);
+            {
+                var line = new Line(vector[i]);
 
-                    if (line.IsValid())
-                        lines.Add(line);
-                }
-                catch (InvalidLineException e)
-                {
-                }
+                if (line.IsValid())
+                    lines.Add(line);
+            }
 
             return lines;
         }
