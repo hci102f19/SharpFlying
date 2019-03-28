@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Aardvark.Base;
 using Geometry.Extended;
+using SDPoint = System.Drawing.Point;
 
 namespace Geometry.Base
 {
@@ -17,16 +18,15 @@ namespace Geometry.Base
 
         protected Cluster Cluster;
 
+        public Point(V2d point) : this(point.X, point.Y)
+        {
+        }
+
+
         public Point(double x, double y)
         {
             InternalPoint = new V2d(x, y);
         }
-
-        public Point(V2d point)
-        {
-            InternalPoint = point;
-        }
-
 
         public void SetCluster(Cluster cluster)
         {
@@ -34,9 +34,9 @@ namespace Geometry.Base
             Cluster = cluster;
         }
 
-        public System.Drawing.Point AsPoint()
+        public SDPoint AsPoint()
         {
-            return new System.Drawing.Point((int)X, (int)Y);
+            return new SDPoint((int)X, (int)Y);
         }
     }
 }

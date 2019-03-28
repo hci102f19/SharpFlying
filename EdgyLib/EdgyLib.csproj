@@ -59,6 +59,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\DBSCAN\DBSCAN.csproj">
+      <Project>{2ea4c8cf-0950-467f-983f-bc5ab2e00b13}</Project>
+      <Name>DBSCAN</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Geometry\Geometry.csproj">
       <Project>{6d6fcc45-597e-49e2-934d-5ba6ecb217f3}</Project>
       <Name>Geometry</Name>

@@ -1,11 +1,6 @@
 ﻿using System;
+using DBSCAN;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Net.Mime;
-using System.Runtime.Versioning;
-using System.Text;
-using System.Threading.Tasks;
 using EdgyLib.Exceptions;
 using Emgu.CV;
 using Emgu.CV.Structure;
@@ -14,7 +9,7 @@ using Geometry.Dampening;
 using ServiceLib;
 using Geometry.Base;
 using Geometry.Exceptions;
-using Point = Geometry.Base.Point;
+using Geometry.Extended;
 
 namespace EdgyLib
 {
@@ -70,12 +65,12 @@ namespace EdgyLib
 
         protected void CalculateTheta(int lines)
         {
-            float modifier = 1f;
+            float modifier = 1;
             if (LastFrameCount != null)
             {
                 modifier = ((float)LastFrameCount / lines) * 2;
 
-                if (modifier <= 0)
+                if (modifier <= 1)
                     modifier = 1;
             }
 
@@ -119,7 +114,7 @@ namespace EdgyLib
 
         protected void Clustering(List<Line> lines, Image<Bgr, Byte> frame)
         {
-            List<Point> intersections = new List<Point>();
+            List<PointContainer> intersections = new List<PointContainer>();
 
             foreach (Line inLine in lines)
             {
@@ -130,15 +125,37 @@ namespace EdgyLib
 
                     Point intersection = inLine.Intersect(cmpLine);
 
-                    if (intersection != null && !intersections.Contains(intersection))
-                        intersections.Add(intersection);
+                    //if (intersection != null && !intersections.Contains(intersection))
+                    if (intersection != null)
+                        intersections.Add(new PointContainer(intersection));
                 }
             }
 
-            foreach (Point point in intersections)
+
+            if (intersections.Count > 0)
             {
-                CvInvoke.Circle(frame, point.AsPoint(), 2, new MCvScalar(0, 0, 255), -1);
+                var clusters = DBSCAN.DBSCAN.CalculateClusters(
+                    intersections,
+                    epsilon: 20,
+                    minimumPointsPerCluster: (int)Math.Round(0.1 * intersections.Count, 0)
+                );
+                Random r = new Random();
+
+                foreach (var claster in clusters.Clusters)
+                {
+                    MCvScalar Color = new MCvScalar(r.Next(0, 255), r.Next(0, 255), r.Next(0, 255));
+                    foreach (var c in claster.Objects)
+                    {
+                        CvInvoke.Circle(frame, c.Point.AsPoint(), 2, Color, -1);
+                    }
+                }
             }
+
+
+            //            foreach (PointContainer pointContainer in intersections)
+            //            {
+            //                CvInvoke.Circle(frame, pointContainer.Point.AsPoint(), 2, new MCvScalar(0, 0, 255), -1);
+            //            }
         }
     }
 }
