@@ -1,10 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Aardvark.Base;
-using Geometry.Extended;
 using SDPoint = System.Drawing.Point;
 
 namespace Geometry.Base
@@ -12,9 +7,6 @@ namespace Geometry.Base
     public class Point
     {
         protected V2d InternalPoint;
-
-        public double X => InternalPoint.X;
-        public double Y => InternalPoint.Y;
 
         public Point(V2d point) : this(point.X, point.Y)
         {
@@ -24,6 +16,9 @@ namespace Geometry.Base
         {
             InternalPoint = new V2d(x, y);
         }
+
+        public double X => InternalPoint.X;
+        public double Y => InternalPoint.Y;
 
         public double Distance(Point point)
         {
@@ -35,7 +30,7 @@ namespace Geometry.Base
 
         public SDPoint AsPoint()
         {
-            return new SDPoint((int)X, (int)Y);
+            return new SDPoint((int) X, (int) Y);
         }
     }
 }

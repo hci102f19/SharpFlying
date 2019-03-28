@@ -5,7 +5,10 @@ namespace DBSCAN
 {
     public class PointInfo
     {
-        public PointInfo(PointContainer item) => this.Item = item;
+        public PointInfo(PointContainer item)
+        {
+            Item = item;
+        }
 
         public PointContainer Item { get; }
         public Cluster Cluster { get; set; }

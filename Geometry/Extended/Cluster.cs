@@ -1,20 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Geometry.Base;
 
 namespace Geometry.Extended
 {
     public class Cluster
     {
+        protected double? ClusterDensity;
+
+        protected int Modifier = 3;
         public List<PointContainer> Points = new List<PointContainer>();
 
         public int ClusterSize { get; protected set; } = 0;
-        protected double? ClusterDensity = null;
-
-        protected int Modifier = 3;
 
         public Box GetBoundingBox()
         {
@@ -30,15 +28,15 @@ namespace Geometry.Extended
         {
             if (ClusterDensity == null)
             {
-                double area = GetBoundingBox().Area;
+                var area = GetBoundingBox().Area;
 
                 if (area > 0 && Math.Log(area) > 0)
-                    ClusterDensity = Math.Log((int)ClusterSize) * Modifier / Math.Log(area);
+                    ClusterDensity = Math.Log(ClusterSize) * Modifier / Math.Log(area);
                 else
                     ClusterDensity = 0;
             }
 
-            return (double)ClusterDensity;
+            return (double) ClusterDensity;
         }
 
         public Point GetMean()

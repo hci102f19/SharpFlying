@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Geometry.Extended;
 
 namespace DBSCAN
@@ -41,7 +39,6 @@ namespace DBSCAN
                 var candidates = index.Search(p.Point, epsilon);
 
                 if (candidates.Count >= minimumPointsPerCluster)
-                {
                     clusters.Add(
                         BuildCluster(
                             index,
@@ -49,7 +46,6 @@ namespace DBSCAN
                             candidates,
                             epsilon,
                             minimumPointsPerCluster));
-                }
             }
 
             return new ClusterSet
@@ -58,15 +54,16 @@ namespace DBSCAN
                 UnclusteredObjects = points
                     .Where(p => p.Cluster == null)
                     .Select(p => p.Item)
-                    .ToList(),
+                    .ToList()
             };
         }
 
-        private static Cluster BuildCluster(ListSpatialIndex index, PointInfo point, IReadOnlyList<PointInfo> neighborhood,
+        private static Cluster BuildCluster(ListSpatialIndex index, PointInfo point,
+            IReadOnlyList<PointInfo> neighborhood,
             double epsilon, int minimumPointsPerCluster)
         {
-            var points = new List<PointContainer>() { point.Item };
-            var cluster = new Cluster() { Points = points };
+            var points = new List<PointContainer> {point.Item};
+            var cluster = new Cluster {Points = points};
             point.Cluster = cluster;
 
             var queue = new Queue<PointInfo>(neighborhood);

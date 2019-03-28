@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using Geometry.Extended;
 
@@ -21,7 +20,6 @@ namespace DBSCAN
             if (!IsValid())
                 throw new Exception("Clusters is not available");
             return Clusters.OrderByDescending(p => p.Points.Count).First();
-
         }
     }
 }

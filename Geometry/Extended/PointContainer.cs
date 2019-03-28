@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Geometry.Base;
+﻿using Geometry.Base;
 
 namespace Geometry.Extended
 {
@@ -11,7 +6,10 @@ namespace Geometry.Extended
     {
         private readonly Point _point;
 
-        public PointContainer(Point point) => _point = point;
+        public PointContainer(Point point)
+        {
+            _point = point;
+        }
 
         public ref readonly Point Point => ref _point;
 

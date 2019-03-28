@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Geometry.Base;
-using Geometry.Extended;
 
 namespace DBSCAN
 {
@@ -21,7 +19,7 @@ namespace DBSCAN
 
         public ListSpatialIndex(IEnumerable<PointInfo> data, DistanceFunction distanceFunction)
         {
-            this._points = data.ToList();
+            _points = data.ToList();
             this.distanceFunction = distanceFunction;
         }
 
@@ -35,7 +33,10 @@ namespace DBSCAN
             return a.Distance(b) < epsilon;
         }
 
-        public IReadOnlyList<PointInfo> Search() => _points;
+        public IReadOnlyList<PointInfo> Search()
+        {
+            return _points;
+        }
 
         public IReadOnlyList<PointInfo> Search(in Point p, double epsilon)
         {

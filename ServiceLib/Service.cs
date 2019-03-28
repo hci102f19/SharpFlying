@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace ServiceLib
@@ -10,10 +7,7 @@ namespace ServiceLib
     {
         public void Start()
         {
-            Task.Factory.StartNew(() =>
-            {
-                Run();
-            });
+            Task.Factory.StartNew(() => { Run(); });
         }
 
         protected virtual void Run()

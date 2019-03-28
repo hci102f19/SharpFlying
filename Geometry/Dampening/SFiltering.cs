@@ -1,27 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Aardvark.Base;
 using Geometry.Base;
 
 namespace Geometry.Dampening
 {
     /// <summary>
-    /// Small Filtering
-    /// An Naïve approach to GPS smoothing
+    ///     Small Filtering
+    ///     An Naïve approach to GPS smoothing
     /// </summary>
     public class SFiltering
     {
-        protected double XMax;
-        protected double YMax;
-
-        protected int HistorySize = 6;
+        protected List<Point> CurrentPoints = new List<Point>();
         protected double DeviationMax = 0.1;
 
-        protected List<Point> CurrentPoints = new List<Point>();
+        protected int HistorySize = 6;
         protected List<Point> RejectedPoints = new List<Point>();
+        protected double XMax;
+        protected double YMax;
 
 
         public SFiltering(double xMax, double yMax)
@@ -37,11 +34,11 @@ namespace Geometry.Dampening
 
         protected bool Deviate(List<Point> points, Point point)
         {
-            Point percentPoint = PointToPercent(point);
+            var percentPoint = PointToPercent(point);
 
-            foreach (Point listPoint in points)
+            foreach (var listPoint in points)
             {
-                Point listPercentagePoint = PointToPercent(listPoint);
+                var listPercentagePoint = PointToPercent(listPoint);
                 if (Math.Abs(listPercentagePoint.X - percentPoint.X) >= DeviationMax ||
                     Math.Abs(listPercentagePoint.Y - percentPoint.Y) >= DeviationMax)
                     return true;
@@ -73,19 +70,16 @@ namespace Geometry.Dampening
         {
             if (point.X < 0 || point.X > XMax || point.Y < 0 || point.Y > YMax)
             {
-                return;
             }
             else if (!CurrentPoints.Any())
             {
                 CurrentPoints.Add(point);
-                return;
             }
             else if (!Deviate(CurrentPoints, point))
             {
                 RejectedPoints.Clear();
                 CurrentPoints = GetLastHistory(CurrentPoints);
                 CurrentPoints.Add(point);
-                return;
             }
             else
             {
