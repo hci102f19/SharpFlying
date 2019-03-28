@@ -45,25 +45,19 @@ namespace EdgyLib
                 if (vector.Size == 0)
                     return;
 
-                try
-                {
-                    CalculateTheta(vector.Size);
-                }
-                catch (TooManyLinesException e) // Generic Exception TooManyException
-                {
-                    return;
-                }
+                //Check for too many lines
+                if (CalculateTheta(vector.Size))
+                    Clustering(GetLines(vector), frame);
 
-                Clustering(GetLines(vector), frame);
             }
         }
 
-        protected void CalculateTheta(int lines)
+        protected bool CalculateTheta(int lines)
         {
             float modifier = 1;
             if (LastFrameCount != null)
             {
-                modifier = (float) LastFrameCount / lines * 2;
+                modifier = (float)LastFrameCount / lines * 2;
 
                 if (modifier <= 1)
                     modifier = 1;
@@ -71,19 +65,18 @@ namespace EdgyLib
 
             if (lines < LowerLineThreshold && HoughLinesTheta > ThetaModifier * modifier)
             {
-                HoughLinesTheta -= (int) Math.Round(ThetaModifier * modifier, 0);
+                HoughLinesTheta -= (int)Math.Round(ThetaModifier * modifier, 0);
                 Console.WriteLine("Not enough data, decreasing l_theta to " + HoughLinesTheta);
             }
             else if (lines > UpperLineThreshold)
             {
-                HoughLinesTheta += (int) Math.Round(ThetaModifier * modifier, 0);
+                HoughLinesTheta += (int)Math.Round(ThetaModifier * modifier, 0);
                 Console.WriteLine("Too much data, increasing l_theta to " + HoughLinesTheta);
             }
 
             LastFrameCount = lines;
 
-            if (LineMax < lines)
-                throw new TooManyLinesException();
+            return LineMax > lines;
         }
 
         protected List<Line> GetLines(VectorOfPointF vector)
@@ -110,16 +103,16 @@ namespace EdgyLib
             var intersections = new List<Point>();
 
             foreach (var inLine in lines)
-            foreach (var cmpLine in lines)
-            {
-                if (inLine == cmpLine)
-                    continue;
+                foreach (var cmpLine in lines)
+                {
+                    if (inLine == cmpLine)
+                        continue;
 
-                var intersection = inLine.Intersect(cmpLine);
+                    var intersection = inLine.Intersect(cmpLine);
 
-                if (intersection != null && !intersections.Contains(intersection))
-                    intersections.Add(intersection);
-            }
+                    if (intersection != null && !intersections.Contains(intersection))
+                        intersections.Add(intersection);
+                }
 
 
             if (intersections.Count > 0)
@@ -127,7 +120,7 @@ namespace EdgyLib
                 var clusters = DBSCAN.DBSCAN.CalculateClusters(
                     intersections.Select(p => new PointContainer(p)).ToList(),
                     20,
-                    (int) Math.Round(0.1 * intersections.Count, 0)
+                    (int)Math.Round(0.1 * intersections.Count, 0)
                 );
 
                 if (clusters.IsValid()) filtering.Add(clusters.GetBestCluster().GetMean());
