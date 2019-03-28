@@ -20,11 +20,12 @@ namespace DBSCAN
             return CalculateClusters(
                 new ListSpatialIndex(pointInfos),
                 epsilon,
-                minimumPointsPerCluster);
+                minimumPointsPerCluster
+            );
         }
 
         public static ClusterSet CalculateClusters(
-            ISpatialIndex index,
+            ListSpatialIndex index,
             double epsilon,
             int minimumPointsPerCluster)
         {
@@ -61,7 +62,8 @@ namespace DBSCAN
             };
         }
 
-        private static Cluster BuildCluster(ISpatialIndex index, PointInfo point, IReadOnlyList<PointInfo> neighborhood, double epsilon, int minimumPointsPerCluster)
+        private static Cluster BuildCluster(ListSpatialIndex index, PointInfo point, IReadOnlyList<PointInfo> neighborhood,
+            double epsilon, int minimumPointsPerCluster)
         {
             var points = new List<PointContainer>() { point.Item };
             var cluster = new Cluster() { Points = points };
@@ -89,6 +91,5 @@ namespace DBSCAN
 
             return cluster;
         }
-
     }
 }
