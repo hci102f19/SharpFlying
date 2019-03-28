@@ -143,13 +143,20 @@ namespace EdgyLib
 
                 Random r = new Random();
                 //todo: When moved into cluster, make cluster.Cluster.Count > 0 check 
-                Cluster<PointContainer> bestCluster = clusters.Clusters.OrderByDescending(p => p.Points.Count).First();
+                try
+                {
+                    Cluster<PointContainer> bestCluster = clusters.Clusters.OrderByDescending(p => p.Points.Count).First();
+                    MCvScalar Color = new MCvScalar(r.Next(0, 255), r.Next(0, 255), r.Next(0, 255));
 
-                MCvScalar Color = new MCvScalar(r.Next(0, 255), r.Next(0, 255), r.Next(0, 255));
+                    filtering.Add(bestCluster.GetMean());
 
-                filtering.Add(bestCluster.GetMean());
-
-                CvInvoke.Circle(frame, filtering.GetMean().AsPoint(), 2, Color, -1);
+                    CvInvoke.Circle(frame, filtering.GetMean().AsPoint(), 2, Color, -1);
+                }
+                catch (InvalidOperationException ex)
+                {
+                    frame.ToBitmap().Save("ERROR.png");
+                }
+              
                 //                foreach (var point in bestCluster.Points)
                 //                {
                 //                    CvInvoke.Circle(frame, point.Point.AsPoint(), 2, Color, -1);

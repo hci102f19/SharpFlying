@@ -32,34 +32,60 @@ namespace VidBuffLib
 
         public Image<Bgr, Byte> GetLastFrame()
         {
+            if (!isRunning)
+            {
+                return null;
+            }
             Retry:
             while (Stack.Count == 0 && isRunning)
             {
                 Thread.Yield();
             }
 
-            if (Stack.Peek() == null && isRunning)
+            if (Stack.Count> 0 && Stack.Peek() == null && isRunning)
             {
                 Stack.Pop();
                 goto Retry;
             }
-            return Stack.Peek();
+
+            if (isRunning)
+            {
+                return Stack.Peek();
+            }
+            else
+            {
+                return null;
+            }
+
         }
 
         public Image<Bgr, Byte> PopLastFrame()
         {
+            if (!isRunning)
+            {
+                return null;
+            }
             Retry:
             while (Stack.Count == 0 && isRunning)
             {
                 Thread.Yield();
             }
 
-            if (Stack.Peek() == null && isRunning)
+            if (Stack.Count > 0 && Stack.Peek() == null && isRunning)
             {
                 Stack.Pop();
                 goto Retry;
             }
-            return Stack.Pop();
+
+            if (isRunning)
+            {
+                return Stack.Pop();
+            }
+            else
+            {
+                return null;
+            }
+
         }
 
         protected Mat ProcessFrame(Mat mat)

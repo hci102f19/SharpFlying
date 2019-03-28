@@ -25,7 +25,7 @@ namespace SharpFlying
             {
                 using (Image<Bgr, Byte> frame = frameBuffer.PopLastFrame())
                 {
-                    if (frame.Data != null)
+                    if (frame != null)
                     {
                         canny.ProcessFrame(frame);
                         CvInvoke.Imshow("frame", frame);
