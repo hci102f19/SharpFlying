@@ -7,7 +7,7 @@ using Geometry.Extended;
 
 namespace DBSCAN
 {
-    public class ListSpatialIndex : ISpatialIndex
+    public class ListSpatialIndex
     {
         public delegate bool DistanceFunction(in Point a, in Point b, in double epsilon);
 

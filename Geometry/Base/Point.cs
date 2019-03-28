@@ -27,7 +27,10 @@ namespace Geometry.Base
 
         public double Distance(Point point)
         {
-            return Math.Sqrt(point.InternalPoint.X * InternalPoint.X + InternalPoint.Y * point.InternalPoint.Y);
+            var xDist = point.X - X;
+            var yDist = point.Y - Y;
+
+            return Math.Sqrt(xDist * xDist + yDist * yDist);
         }
 
         public SDPoint AsPoint()

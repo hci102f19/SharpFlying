@@ -45,7 +45,6 @@
   <ItemGroup>
     <Compile Include="ClusterSet.cs" />
     <Compile Include="DBSCAN.cs" />
-    <Compile Include="ISpatialIndex.cs" />
     <Compile Include="ListSpatialIndex.cs" />
     <Compile Include="PointInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
