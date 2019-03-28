@@ -67,9 +67,8 @@ namespace EdgyLib
 
                     int lines = vector.Size;
 
-                    Console.WriteLine(lines);
                     if (lines == 0)
-                        return;
+                        continue;
 
                     CalculateTheta(lines);
 
