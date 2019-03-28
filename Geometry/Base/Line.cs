@@ -14,6 +14,7 @@ namespace Geometry.Base
         protected Line2d InternalLine;
         public V2d StartPoint;
         public V2d EndPoint;
+
         protected int AngleThreshold = 20;
 
         public Line(PointF point) : this(point.X, point.Y)
@@ -23,8 +24,6 @@ namespace Geometry.Base
 
         public Line(float rho, float theta)
         {
-            //TODO: Check for rho is Nan
-
             double a = Math.Cos(theta);
             double b = Math.Sin(theta);
 
@@ -35,8 +34,6 @@ namespace Geometry.Base
             EndPoint = new V2d(x0 - 1000 * (-b), y0 - 1000 * a);
 
             InternalLine = new Line2d(StartPoint, EndPoint);
-
-            //Validate();
         }
 
         protected double RadianToDegree(double angle)
@@ -44,7 +41,7 @@ namespace Geometry.Base
             return angle * (180.0 / Math.PI);
         }
 
-        public bool Validate()
+        public bool IsValid()
         {
             double angle = Math.Round(
                 Math.Abs(RadianToDegree(Math.Atan2(EndPoint.Y - StartPoint.Y, EndPoint.X - StartPoint.X))),
@@ -53,18 +50,14 @@ namespace Geometry.Base
 
             if (180 - AngleThreshold <= angle || angle <= 0 + AngleThreshold)
                 return false;
-              
             if (90 - AngleThreshold <= angle && angle <= 90 + AngleThreshold)
                 return false;
-
-            return true; 
+            return true;
         }
 
         public Point Intersect(Line line)
         {
-            V2d intersection = new V2d();
-
-            InternalLine.Intersects(line.InternalLine, out intersection);
+            InternalLine.Intersects(line.InternalLine, out V2d intersection);
 
             if (intersection.X.IsNaN() || intersection.Y.IsNaN())
                 return null;

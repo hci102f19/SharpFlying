@@ -23,7 +23,7 @@ namespace SharpFlying
 
             while (frameBuffer.isRunning)
             {
-                using (var frame = frameBuffer.PopLastFrame())
+                using (Image<Bgr, Byte> frame = frameBuffer.PopLastFrame())
                 {
                     if (frame.Data != null)
                     {
