@@ -9,10 +9,10 @@ namespace DBSCAN
 {
     public class ListSpatialIndex<T> : ISpatialIndex<T> where T : IPointData
     {
-        public delegate double DistanceFunction(in Point a, in Point b);
+        public delegate bool DistanceFunction(in Point a, in Point b, in double epsilon);
 
-        private IReadOnlyList<T> list;
-        private DistanceFunction distanceFunction;
+        private readonly IReadOnlyList<T> _points;
+        private readonly DistanceFunction distanceFunction;
 
         public ListSpatialIndex(IEnumerable<T> data)
             : this(data, EuclideanDistance)
@@ -21,26 +21,28 @@ namespace DBSCAN
 
         public ListSpatialIndex(IEnumerable<T> data, DistanceFunction distanceFunction)
         {
-            this.list = data.ToList();
+            this._points = data.ToList();
             this.distanceFunction = distanceFunction;
         }
 
-        public static double EuclideanDistance(in Point a, in Point b)
+        public static bool EuclideanDistance(in Point a, in Point b, in double epsilon)
         {
             var xDist = b.X - a.X;
             var yDist = b.Y - a.Y;
-            return Math.Sqrt(xDist * xDist + yDist * yDist);
+            if (Math.Abs(xDist) > epsilon || Math.Abs(yDist) > epsilon)
+                return false;
+            return Math.Sqrt(xDist * xDist + yDist * yDist) < epsilon;
         }
 
-        public IReadOnlyList<T> Search() => list;
+        public IReadOnlyList<T> Search() => _points;
 
         public IReadOnlyList<T> Search(in Point p, double epsilon)
         {
-            var l = new List<T>();
-            foreach (var q in list)
-                if (distanceFunction(p, q.Point) < epsilon)
-                    l.Add(q);
-            return l;
+            var neighbours = new List<T>();
+            foreach (var point in _points)
+                if (distanceFunction(p, point.Point, epsilon))
+                    neighbours.Add(point);
+            return neighbours;
         }
     }
 }
