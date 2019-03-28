@@ -45,14 +45,15 @@ namespace EdgyLib
                 if (vector.Size == 0)
                     return;
 
-                //Check for too many lines
-                if (CalculateTheta(vector.Size))
-                    Clustering(GetLines(vector), frame);
+                CalculateTheta(vector.Size);
 
+                // Check for too many lines
+                if (vector.Size > LineMax)
+                    Clustering(GetLines(vector), frame);
             }
         }
 
-        protected bool CalculateTheta(int lines)
+        protected void CalculateTheta(int lines)
         {
             float modifier = 1;
             if (LastFrameCount != null)
@@ -75,8 +76,6 @@ namespace EdgyLib
             }
 
             LastFrameCount = lines;
-
-            return LineMax > lines;
         }
 
         protected List<Line> GetLines(VectorOfPointF vector)
