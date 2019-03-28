@@ -29,7 +29,8 @@ namespace EdgyLib
 
         protected int LineMax = 100;
 
-        protected SFiltering filtering = new SFiltering();
+        // TODO: Look into
+        protected SFiltering filtering = new SFiltering(640, 480);
 
         public void ProcessFrame(Image<Bgr, Byte> frame)
         {
@@ -146,10 +147,13 @@ namespace EdgyLib
 
                 MCvScalar Color = new MCvScalar(r.Next(0, 255), r.Next(0, 255), r.Next(0, 255));
 
-                foreach (var point in bestCluster.Points)
-                {
-                    CvInvoke.Circle(frame, point.Point.AsPoint(), 2, Color, -1);
-                }
+                filtering.Add(bestCluster.GetMean());
+
+                CvInvoke.Circle(frame, filtering.GetMean().AsPoint(), 2, Color, -1);
+                //                foreach (var point in bestCluster.Points)
+                //                {
+                //                    CvInvoke.Circle(frame, point.Point.AsPoint(), 2, Color, -1);
+                //                }
             }
         }
     }

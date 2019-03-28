@@ -17,12 +17,6 @@ namespace Geometry.Extended
 
         protected int Modifier = 3;
 
-        public void AddPoint(T point)
-        {
-            Points.Add(point);
-            ClusterSize++;
-        }
-
         public Box GetBoundingBox()
         {
             return new Box(

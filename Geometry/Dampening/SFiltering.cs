@@ -24,6 +24,12 @@ namespace Geometry.Dampening
         protected List<Point> RejectedPoints = new List<Point>();
 
 
+        public SFiltering(double xMax, double yMax)
+        {
+            XMax = xMax;
+            YMax = yMax;
+        }
+
         protected Point PointToPercent(Point point)
         {
             return new Point(point.X / XMax, point.Y / YMax);
@@ -46,10 +52,12 @@ namespace Geometry.Dampening
 
         public Point GetMean()
         {
-            return new Point(
-                CurrentPoints.Select(point => point.X).Average(),
-                CurrentPoints.Select(point => point.Y).Average()
-            );
+            if (CurrentPoints.Count > 0)
+                return new Point(
+                    CurrentPoints.Select(point => point.X).Average(),
+                    CurrentPoints.Select(point => point.Y).Average()
+                );
+            return new Point(0, 0);
         }
 
         protected List<Point> GetLastHistory(List<Point> points)
@@ -59,7 +67,6 @@ namespace Geometry.Dampening
             points.Reverse();
 
             return points;
-
         }
 
         public void Add(Point point)
