@@ -68,7 +68,6 @@
     <Compile Include="Base\Line.cs" />
     <Compile Include="Base\Point.cs" />
     <Compile Include="Dampening\SFiltering.cs" />
-    <Compile Include="Exceptions\InvalidLineException.cs" />
     <Compile Include="Extended\Cluster.cs" />
     <Compile Include="Extended\PointContainer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -78,9 +77,7 @@
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Containers\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <Content Include="License-LGPL.txt" />
   </ItemGroup>

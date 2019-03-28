@@ -7,7 +7,6 @@ using Emgu.CV.Structure;
 using Emgu.CV.Util;
 using Geometry.Base;
 using Geometry.Dampening;
-using Geometry.Exceptions;
 using Geometry.Extended;
 using ServiceLib;
 
