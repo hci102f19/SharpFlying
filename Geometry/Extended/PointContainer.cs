@@ -4,11 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Geometry.Base;
-using Geometry.Interfaces;
 
 namespace Geometry.Extended
 {
-    public class PointContainer : IPointData
+    public class PointContainer
     {
         private readonly Point _point;
 

@@ -3,37 +3,34 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Geometry.Extended;
-using Geometry.Interfaces;
 
 namespace DBSCAN
 {
     public static class DBSCAN
     {
-        public static ClusterSet<T> CalculateClusters<T>(
-            IList<T> data,
+        public static ClusterSet CalculateClusters(
+            IList<PointContainer> data,
             double epsilon,
             int minimumPointsPerCluster)
-            where T : IPointData
         {
             var pointInfos = data
-                .Select(p => new PointInfo<T>(p))
+                .Select(p => new PointInfo(p))
                 .ToList();
 
             return CalculateClusters(
-                new ListSpatialIndex<PointInfo<T>>(pointInfos),
+                new ListSpatialIndex(pointInfos),
                 epsilon,
                 minimumPointsPerCluster);
         }
 
-        public static ClusterSet<T> CalculateClusters<T>(
-            ISpatialIndex<PointInfo<T>> index,
+        public static ClusterSet CalculateClusters(
+            ISpatialIndex index,
             double epsilon,
             int minimumPointsPerCluster)
-            where T : IPointData
         {
             var points = index.Search().ToList();
 
-            var clusters = new List<Cluster<T>>();
+            var clusters = new List<Cluster>();
 
             foreach (var p in points)
             {
@@ -54,7 +51,7 @@ namespace DBSCAN
                 }
             }
 
-            return new ClusterSet<T>
+            return new ClusterSet
             {
                 Clusters = clusters,
                 UnclusteredObjects = points
@@ -64,14 +61,13 @@ namespace DBSCAN
             };
         }
 
-        private static Cluster<T> BuildCluster<T>(ISpatialIndex<PointInfo<T>> index, PointInfo<T> point, IReadOnlyList<PointInfo<T>> neighborhood, double epsilon, int minimumPointsPerCluster)
-            where T : IPointData
+        private static Cluster BuildCluster(ISpatialIndex index, PointInfo point, IReadOnlyList<PointInfo> neighborhood, double epsilon, int minimumPointsPerCluster)
         {
-            var points = new List<T>() { point.Item };
-            var cluster = new Cluster<T>() { Points = points };
+            var points = new List<PointContainer>() { point.Item };
+            var cluster = new Cluster() { Points = points };
             point.Cluster = cluster;
 
-            var queue = new Queue<PointInfo<T>>(neighborhood);
+            var queue = new Queue<PointInfo>(neighborhood);
             while (queue.Any())
             {
                 var newPoint = queue.Dequeue();

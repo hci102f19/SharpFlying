@@ -20,10 +20,14 @@ namespace Geometry.Base
         {
         }
 
-
         public Point(double x, double y)
         {
             InternalPoint = new V2d(x, y);
+        }
+
+        public double Distance(Point point)
+        {
+            return Math.Sqrt(point.InternalPoint.X * InternalPoint.X + InternalPoint.Y * point.InternalPoint.Y);
         }
 
         public SDPoint AsPoint()

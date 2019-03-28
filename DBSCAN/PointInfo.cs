@@ -1,16 +1,14 @@
-﻿using System;
-using Geometry.Base;
+﻿using Geometry.Base;
 using Geometry.Extended;
-using Geometry.Interfaces;
 
 namespace DBSCAN
 {
-    public class PointInfo<T> : IPointData where T : IPointData
+    public class PointInfo
     {
-        public PointInfo(T item) => this.Item = item;
+        public PointInfo(PointContainer item) => this.Item = item;
 
-        public T Item { get; }
-        public Cluster<T> Cluster { get; set; }
+        public PointContainer Item { get; }
+        public Cluster Cluster { get; set; }
         public bool Visited { get; set; }
 
         public ref readonly Point Point => ref Item.Point;

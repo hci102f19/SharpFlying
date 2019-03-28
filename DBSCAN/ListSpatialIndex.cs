@@ -3,23 +3,23 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Geometry.Base;
-using Geometry.Interfaces;
+using Geometry.Extended;
 
 namespace DBSCAN
 {
-    public class ListSpatialIndex<T> : ISpatialIndex<T> where T : IPointData
+    public class ListSpatialIndex : ISpatialIndex
     {
         public delegate bool DistanceFunction(in Point a, in Point b, in double epsilon);
 
-        private readonly IReadOnlyList<T> _points;
+        private readonly IReadOnlyList<PointInfo> _points;
         private readonly DistanceFunction distanceFunction;
 
-        public ListSpatialIndex(IEnumerable<T> data)
+        public ListSpatialIndex(IEnumerable<PointInfo> data)
             : this(data, EuclideanDistance)
         {
         }
 
-        public ListSpatialIndex(IEnumerable<T> data, DistanceFunction distanceFunction)
+        public ListSpatialIndex(IEnumerable<PointInfo> data, DistanceFunction distanceFunction)
         {
             this._points = data.ToList();
             this.distanceFunction = distanceFunction;
@@ -29,16 +29,17 @@ namespace DBSCAN
         {
             var xDist = b.X - a.X;
             var yDist = b.Y - a.Y;
+
             if (Math.Abs(xDist) > epsilon || Math.Abs(yDist) > epsilon)
                 return false;
-            return Math.Sqrt(xDist * xDist + yDist * yDist) < epsilon;
+            return a.Distance(b) < epsilon;
         }
 
-        public IReadOnlyList<T> Search() => _points;
+        public IReadOnlyList<PointInfo> Search() => _points;
 
-        public IReadOnlyList<T> Search(in Point p, double epsilon)
+        public IReadOnlyList<PointInfo> Search(in Point p, double epsilon)
         {
-            var neighbours = new List<T>();
+            var neighbours = new List<PointInfo>();
             foreach (var point in _points)
                 if (distanceFunction(p, point.Point, epsilon))
                     neighbours.Add(point);

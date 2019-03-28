@@ -3,13 +3,12 @@ using System.Collections.Generic;
 using System.Text;
 using Geometry.Base;
 using Geometry.Extended;
-using Geometry.Interfaces;
 
 namespace DBSCAN
 {
-    public class ClusterSet<T> where T : IPointData
+    public class ClusterSet
     {
-        public IList<Cluster<T>> Clusters { get; internal set; }
-        public IList<T> UnclusteredObjects { get; internal set; }
+        public IList<Cluster> Clusters { get; internal set; }
+        public IList<PointContainer> UnclusteredObjects { get; internal set; }
     }
 }

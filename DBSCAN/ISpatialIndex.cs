@@ -2,12 +2,13 @@
 using System.Collections.Generic;
 using System.Text;
 using Geometry.Base;
+using Geometry.Extended;
 
 namespace DBSCAN
 {
-    public interface ISpatialIndex<out T>
+    public interface ISpatialIndex
     {
-        IReadOnlyList<T> Search();
-        IReadOnlyList<T> Search(in Point p, double epsilon);
+        IReadOnlyList<PointInfo> Search();
+        IReadOnlyList<PointInfo> Search(in Point p, double epsilon);
     }
 }

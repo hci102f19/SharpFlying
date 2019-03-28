@@ -72,7 +72,6 @@
     <Compile Include="Exceptions\InvalidLineException.cs" />
     <Compile Include="Extended\Cluster.cs" />
     <Compile Include="Extended\PointContainer.cs" />
-    <Compile Include="Interfaces\IPointData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

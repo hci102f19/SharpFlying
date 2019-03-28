@@ -5,17 +5,16 @@ using System.Text;
 using System.Threading.Tasks;
 using Geometry.Base;
 using Geometry.Extended;
-using Geometry.Interfaces;
 
 namespace Geometry.Containers
 {
-    public class ClustersClusterContainer<T> where T : IPointData
+    public class ClustersClusterContainer
     {
-        protected List<Cluster<T>> Clusters = new List<Cluster<T>>();
+        protected List<Cluster> Clusters = new List<Cluster>();
 
-        public Cluster<T> GetCluster(int index)
+        public Cluster GetCluster(int index)
         {
-            return Clusters[index] ?? (Clusters[index] = new Cluster<T>());
+            return Clusters[index] ?? (Clusters[index] = new Cluster());
         }
 
         public Point BestClusterAsPoint()
