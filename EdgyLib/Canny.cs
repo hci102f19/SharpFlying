@@ -37,8 +37,6 @@ namespace EdgyLib
             // Clear lines
             using (Mat edges = new Mat())
             {
-                //TODO: Taf plz fix mem-leak :i
-
                 CvInvoke.Canny(frame, edges, CannyThreshold, CannyThreshold * CannyThresholdModifier, 3);
 
 
@@ -57,11 +55,7 @@ namespace EdgyLib
                     return;
                 }
 
-                List<Line> lines = GetLines(vector);
-
-
-                //Calculate Cluster
-                Clustering(lines, frame);
+                Clustering(GetLines(vector), frame);
             }
         }
 
@@ -135,19 +129,21 @@ namespace EdgyLib
 
             if (intersections.Count > 0)
             {
-                var clusters = DBSCAN.DBSCAN.CalculateClusters(
+                ClusterSet clusters = DBSCAN.DBSCAN.CalculateClusters(
                     intersections.Select(p => new PointContainer(p)).ToList(),
                     epsilon: 20,
                     minimumPointsPerCluster: (int)Math.Round(0.1 * intersections.Count, 0)
                 );
 
+                if (clusters.IsValid())
+                {
+                    filtering.Add(clusters.GetBestCluster().GetMean());
+                }
+
                 Random r = new Random();
-                Cluster bestCluster = clusters.Clusters.OrderByDescending(p => p.Points.Count).First();
-
-                filtering.Add(bestCluster.GetMean());
-
                 MCvScalar Color = new MCvScalar(r.Next(0, 255), r.Next(0, 255), r.Next(0, 255));
                 CvInvoke.Circle(frame, filtering.GetMean().AsPoint(), 2, Color, -1);
+
             }
         }
     }
