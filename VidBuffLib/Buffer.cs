@@ -33,12 +33,12 @@ namespace VidBuffLib
         public Image<Bgr, Byte> GetLastFrame()
         {
             Retry:
-            while (Stack.Count == 0)
+            while (Stack.Count == 0 && isRunning)
             {
                 Thread.Yield();
             }
 
-            if (Stack.Peek() == null)
+            if (Stack.Peek() == null && isRunning)
             {
                 Stack.Pop();
                 goto Retry;
@@ -49,12 +49,12 @@ namespace VidBuffLib
         public Image<Bgr, Byte> PopLastFrame()
         {
             Retry:
-            while (Stack.Count == 0)
+            while (Stack.Count == 0 && isRunning)
             {
                 Thread.Yield();
             }
 
-            if (Stack.Peek() == null)
+            if (Stack.Peek() == null && isRunning)
             {
                 Stack.Pop();
                 goto Retry;
