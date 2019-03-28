@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using EdgyLib.Exceptions;
+using System.Threading;
 using Emgu.CV;
 using Emgu.CV.Structure;
 using Emgu.CV.Util;
@@ -30,27 +30,58 @@ namespace EdgyLib
         protected int ThetaModifier = 5;
         protected int UpperLineThreshold = 75;
 
-        public void ProcessFrame(Image<Bgr, byte> frame)
+        protected Image<Bgr, byte> CurrentFrame = null;
+        protected bool IsRunning = true;
+
+        private static Random random = new Random();
+        protected String toBeReturned = "";
+
+        public override void Input(Image<Bgr, byte> frame)
         {
-            // Clear lines
-            using (var edges = new Mat())
+            if (CurrentFrame == null)
+                CurrentFrame = frame;
+        }
+
+
+        protected override void Run()
+        {
+            while (IsRunning)
             {
-                CvInvoke.Canny(frame, edges, CannyThreshold, CannyThreshold * CannyThresholdModifier, 3);
+                if (CurrentFrame == null)
+                {
+                    // TODO: Might be looked into
+                    Thread.Sleep(1);
+                    continue;
+                }
+
+                Image<Bgr, byte> frame = CurrentFrame;
+                CurrentFrame = null;
+
+                using (var edges = new Mat())
+                {
+                    CvInvoke.Canny(frame, edges, CannyThreshold, CannyThreshold * CannyThresholdModifier, 3);
 
 
-                var vector = new VectorOfPointF();
-                CvInvoke.HoughLines(edges, vector, 2, Math.PI / 180, HoughLinesTheta);
+                    var vector = new VectorOfPointF();
+                    CvInvoke.HoughLines(edges, vector, 2, Math.PI / 180, HoughLinesTheta);
 
-                int lines = vector.Size;
+                    int lines = vector.Size;
 
-                if (lines == 0)
-                    return;
+                    Console.WriteLine(lines);
+                    if (lines == 0)
+                        return;
 
-                CalculateTheta(lines);
+                    CalculateTheta(lines);
 
-                // Check for too many lines
-                if (lines < LineMax)
-                    Clustering(GetLines(vector), frame);
+                    // Check for too many lines
+                    if (lines < LineMax)
+                        Clustering(GetLines(vector), frame);
+
+                    const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+                    toBeReturned = new string(Enumerable.Repeat(chars, 8)
+                        .Select(s => s[random.Next(s.Length)]).ToArray());
+
+                }
             }
         }
 
@@ -125,6 +156,11 @@ namespace EdgyLib
                 var Color = new MCvScalar(r.Next(0, 255), r.Next(0, 255), r.Next(0, 255));
                 CvInvoke.Circle(frame, filtering.GetMean().AsPoint(), 2, Color, -1);
             }
+        }
+
+        public override string GetLatestResultKage()
+        {
+            return toBeReturned;
         }
     }
 }

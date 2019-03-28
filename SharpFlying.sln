@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Geometry", "Geometry\Geomet
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DBSCAN", "DBSCAN\DBSCAN.csproj", "{2EA4C8CF-0950-467F-983F-BC5AB2E00B13}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlightLib", "Flight\FlightLib.csproj", "{AEEB01C3-DF18-440C-82B5-B3F7A7643901}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +47,10 @@ Global
 		{2EA4C8CF-0950-467F-983F-BC5AB2E00B13}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2EA4C8CF-0950-467F-983F-BC5AB2E00B13}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2EA4C8CF-0950-467F-983F-BC5AB2E00B13}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AEEB01C3-DF18-440C-82B5-B3F7A7643901}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AEEB01C3-DF18-440C-82B5-B3F7A7643901}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AEEB01C3-DF18-440C-82B5-B3F7A7643901}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AEEB01C3-DF18-440C-82B5-B3F7A7643901}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
