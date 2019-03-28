@@ -42,13 +42,15 @@ namespace EdgyLib
                 var vector = new VectorOfPointF();
                 CvInvoke.HoughLines(edges, vector, 2, Math.PI / 180, HoughLinesTheta);
 
-                if (vector.Size == 0)
+                int lines = vector.Size;
+
+                if (lines == 0)
                     return;
 
-                CalculateTheta(vector.Size);
+                CalculateTheta(lines);
 
                 // Check for too many lines
-                if (vector.Size < LineMax)
+                if (lines < LineMax)
                     Clustering(GetLines(vector), frame);
             }
         }
