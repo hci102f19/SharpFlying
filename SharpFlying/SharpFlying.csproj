@@ -94,6 +94,10 @@
       <Project>{c1ad2c09-9ecb-4b7a-bed1-d3474180b0de}</Project>
       <Name>EdgyLib</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Flight\FlightLib.csproj">
+      <Project>{aeeb01c3-df18-440c-82b5-b3f7a7643901}</Project>
+      <Name>FlightLib</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ServiceLib\ServiceLib.csproj">
       <Project>{9df90151-0a5c-4d56-8f3c-9a890a76ed7a}</Project>
       <Name>ServiceLib</Name>

@@ -36,7 +36,8 @@ namespace EdgyLib
         protected Image<Bgr, byte> CurrentFrame = null;
         protected bool IsRunning = true;
 
-        protected BoxContainer boxContainer = new BoxContainer();
+        protected BoxContainer BoxContainer = new BoxContainer();
+        protected Response LatestResponse = new Response(false, null, 0);
 
 
         public override void Input(Image<Bgr, byte> frame)
@@ -150,13 +151,12 @@ namespace EdgyLib
 
                 if (clusters.IsValid()) filtering.Add(clusters.GetBestCluster().GetMean());
 
-                Vector v = boxContainer.Hit(filtering.GetMean());
+                Vector v = BoxContainer.Hit(filtering.GetMean());
 
                 if (!v.IsNull())
-                {
-                    Console.WriteLine(filtering.GetMean());
-                    Console.WriteLine(boxContainer.Hit(filtering.GetMean()));
-                }
+                    LatestResponse = new Response(true, BoxContainer.Hit(filtering.GetMean()), 0);
+                else
+                    LatestResponse = new Response(false, null, 0);
 
 
                 var r = new Random();
@@ -167,7 +167,7 @@ namespace EdgyLib
 
         public override Response GetLatestResult()
         {
-            return null;
+            return LatestResponse;
         }
     }
 }
