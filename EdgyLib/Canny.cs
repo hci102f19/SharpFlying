@@ -157,9 +157,9 @@ namespace EdgyLib
             }
         }
 
-        public override string GetLatestResultKage()
+        public override Response GetLatestResult()
         {
-            return toBeReturned;
+            return null;
         }
     }
 }

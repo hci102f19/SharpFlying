@@ -26,11 +26,5 @@ namespace ServiceLib
         {
             throw new NotImplementedException();
         }
-
-        public virtual string GetLatestResultKage()
-        {
-            throw new NotImplementedException();
-        }
-
     }
 }

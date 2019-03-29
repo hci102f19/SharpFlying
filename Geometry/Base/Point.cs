@@ -6,7 +6,7 @@ namespace Geometry.Base
 {
     public class Point
     {
-        protected V2d InternalPoint;
+        internal V2d InternalPoint;
 
         public Point(V2d point) : this(point.X, point.Y)
         {
@@ -30,7 +30,7 @@ namespace Geometry.Base
 
         public SDPoint AsPoint()
         {
-            return new SDPoint((int) X, (int) Y);
+            return new SDPoint((int)X, (int)Y);
         }
     }
 }

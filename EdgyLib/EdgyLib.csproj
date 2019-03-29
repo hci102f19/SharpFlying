@@ -33,13 +33,28 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Aardvark.Base, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Aardvark.Base.4.4.0\lib\netstandard2.0\Aardvark.Base.dll</HintPath>
+    </Reference>
+    <Reference Include="Aardvark.Base.Telemetry, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Aardvark.Base.Telemetry.4.4.0\lib\netstandard2.0\Aardvark.Base.Telemetry.dll</HintPath>
+    </Reference>
+    <Reference Include="DevILSharp, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\DevILSharp.0.2.4\lib\netstandard2.0\DevILSharp.dll</HintPath>
+    </Reference>
     <Reference Include="Emgu.CV.UI, Version=3.4.3.3016, Culture=neutral, PublicKeyToken=7281126722ab4438, processorArchitecture=MSIL">
       <HintPath>..\packages\EMGU.CV.3.4.3.3016\lib\net35\Emgu.CV.UI.dll</HintPath>
     </Reference>
     <Reference Include="Emgu.CV.World, Version=3.4.3.3016, Culture=neutral, PublicKeyToken=7281126722ab4438, processorArchitecture=MSIL">
       <HintPath>..\packages\EMGU.CV.3.4.3.3016\lib\net35\Emgu.CV.World.dll</HintPath>
     </Reference>
+    <Reference Include="FSharp.Core, Version=4.4.3.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\FSharp.Core.4.3.1\lib\net45\FSharp.Core.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Collections.Immutable, Version=1.2.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Collections.Immutable.1.4.0\lib\netstandard2.0\System.Collections.Immutable.dll</HintPath>
+    </Reference>
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Xml.Linq" />
@@ -54,12 +69,18 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Canny.cs" />
+    <Compile Include="Containers\BoxContainer.cs" />
+    <Compile Include="HitBox\HitBox.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DBSCAN\DBSCAN.csproj">
       <Project>{2ea4c8cf-0950-467f-983f-bc5ab2e00b13}</Project>
       <Name>DBSCAN</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Flight\FlightLib.csproj">
+      <Project>{aeeb01c3-df18-440c-82b5-b3f7a7643901}</Project>
+      <Name>FlightLib</Name>
     </ProjectReference>
     <ProjectReference Include="..\Geometry\Geometry.csproj">
       <Project>{6d6fcc45-597e-49e2-934d-5ba6ecb217f3}</Project>

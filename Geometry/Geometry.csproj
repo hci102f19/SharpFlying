@@ -67,6 +67,7 @@
     <Compile Include="Base\Box.cs" />
     <Compile Include="Base\Line.cs" />
     <Compile Include="Base\Point.cs" />
+    <Compile Include="Base\Polygon.cs" />
     <Compile Include="Dampening\SFiltering.cs" />
     <Compile Include="Extended\Cluster.cs" />
     <Compile Include="Extended\PointContainer.cs" />
