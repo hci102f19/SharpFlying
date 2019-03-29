@@ -19,7 +19,7 @@ namespace VidBuffLib
         protected Stack<Image<Bgr, byte>> Stack = new Stack<Image<Bgr, byte>>(1);
         protected VideoCapture stream;
 
-        public Buffer(VideoCapture stream, int width = 640, int height = 360)
+        public Buffer(VideoCapture stream, int width, int height)
         {
             this.stream = stream;
             size = new Size(width, height);
