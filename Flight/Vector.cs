@@ -31,6 +31,17 @@ namespace FlightLib
             Gaz = gaz;
         }
 
+        /// <summary>
+        /// Default 'null' constructor
+        /// </summary>
+        public Vector()
+        {
+        }
+
+        /// <summary>
+        /// Returns whether or not a vector is null
+        /// </summary>
+        /// <returns>true if null, false otherwise</returns>
         public bool IsNull()
         {
             return Flag == 0 && Roll == 0 && Pitch == 0 && Yaw == 0 && Gaz == 0;
