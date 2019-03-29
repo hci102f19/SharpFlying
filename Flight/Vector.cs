@@ -46,5 +46,10 @@ namespace FlightLib
         {
             return Flag == 0 && Roll == 0 && Pitch == 0 && Yaw == 0 && Gaz == 0;
         }
+
+        public override string ToString()
+        {
+            return "Flag: " + Flag + ", Roll: " + Roll + ", Pitch: " + Pitch + ", Yaw: " + Yaw + ", Gaz: " + Gaz;
+        }
     }
 }

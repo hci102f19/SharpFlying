@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Aardvark.Base;
 using EdgyLib.Containers;
 using Emgu.CV;
 using Emgu.CV.Structure;
@@ -10,6 +11,7 @@ using Geometry.Base;
 using Geometry.Dampening;
 using Geometry.Extended;
 using ServiceLib;
+using Vector = FlightLib.Vector;
 
 namespace EdgyLib
 {
@@ -148,8 +150,14 @@ namespace EdgyLib
 
                 if (clusters.IsValid()) filtering.Add(clusters.GetBestCluster().GetMean());
 
+                Vector v = boxContainer.Hit(filtering.GetMean());
 
-                Console.WriteLine(boxContainer.Hit(filtering.GetMean()));
+                if (!v.IsNull())
+                {
+                    Console.WriteLine(filtering.GetMean());
+                    Console.WriteLine(boxContainer.Hit(filtering.GetMean()));
+                }
+
 
                 var r = new Random();
                 var Color = new MCvScalar(r.Next(0, 255), r.Next(0, 255), r.Next(0, 255));

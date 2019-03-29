@@ -32,5 +32,10 @@ namespace Geometry.Base
         {
             return new SDPoint((int)X, (int)Y);
         }
+
+        public override string ToString()
+        {
+            return "X: " + X + ", Y: " + Y;
+        }
     }
 }
