@@ -19,13 +19,13 @@ namespace VidBuffLib
         protected Stack<Image<Bgr, byte>> Stack = new Stack<Image<Bgr, byte>>(1);
         protected VideoCapture Stream;
 
-        public bool IsRunning { get; protected set; } = true;
-
         protected Buffer(VideoCapture stream, int width, int height)
         {
-            this.Stream = stream;
+            Stream = stream;
             Size = new Size(width, height);
         }
+
+        public bool IsRunning { get; protected set; } = true;
 
 
         public Image<Bgr, byte> GetLastFrame()

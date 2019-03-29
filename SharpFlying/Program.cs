@@ -19,13 +19,13 @@ namespace SharpFlying
             var canny = (Service)new Canny(width, height);
             canny.Start();
 
-            while (frameBuffer.isRunning)
+            while (frameBuffer.IsRunning)
                 using (var frame = frameBuffer.PopLastFrame())
                 {
                     if (frame != null)
                     {
                         canny.Input(frame);
-                        Response r = canny.GetLatestResult();
+                        var r = canny.GetLatestResult();
 
                         if (r != null && r.IsValid)
                             Console.WriteLine(r.Vector);

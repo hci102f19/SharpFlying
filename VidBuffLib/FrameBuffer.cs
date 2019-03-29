@@ -28,7 +28,7 @@ namespace VidBuffLib
         {
             var frame = Stream.QueryFrame();
 
-            while (frame != null && isRunning)
+            while (frame != null && IsRunning)
             {
                 var startTime = DateTime.Now;
                 using (frame = ProcessFrame(frame))
@@ -50,7 +50,7 @@ namespace VidBuffLib
                 Sleep(DateTime.Now - startTime);
             }
 
-            isRunning = false;
+            IsRunning = false;
         }
     }
 }
