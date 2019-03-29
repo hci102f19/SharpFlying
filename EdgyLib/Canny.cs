@@ -20,8 +20,7 @@ namespace EdgyLib
         protected int CannyThreshold = 55;
         protected int CannyThresholdModifier = 3;
 
-        // TODO: Look into
-        protected SFiltering filtering = new SFiltering(640, 480);
+        protected SFiltering Filtering;
 
         protected int HoughLinesTheta = 150;
 
@@ -36,8 +35,14 @@ namespace EdgyLib
         protected Image<Bgr, byte> CurrentFrame = null;
         protected bool IsRunning = true;
 
-        protected BoxContainer BoxContainer = new BoxContainer();
+        protected BoxContainer BoxContainer;
         protected Response LatestResponse = new Response(false, null, 0);
+
+        public Canny(int width, int height)
+        {
+            BoxContainer = new BoxContainer(width, height);
+            Filtering = new SFiltering(width, height);
+        }
 
 
         public override void Input(Image<Bgr, byte> frame)
@@ -149,19 +154,19 @@ namespace EdgyLib
                     (int)Math.Round(0.1 * intersections.Count, 0)
                 );
 
-                if (clusters.IsValid()) filtering.Add(clusters.GetBestCluster().GetMean());
+                if (clusters.IsValid()) Filtering.Add(clusters.GetBestCluster().GetMean());
 
-                Vector v = BoxContainer.Hit(filtering.GetMean());
+                Vector v = BoxContainer.Hit(Filtering.GetMean());
 
                 if (!v.IsNull())
-                    LatestResponse = new Response(true, BoxContainer.Hit(filtering.GetMean()), 0);
+                    LatestResponse = new Response(true, BoxContainer.Hit(Filtering.GetMean()), 0);
                 else
                     LatestResponse = new Response(false, null, 0);
 
 
                 var r = new Random();
                 var Color = new MCvScalar(r.Next(0, 255), r.Next(0, 255), r.Next(0, 255));
-                CvInvoke.Circle(frame, filtering.GetMean().AsPoint(), 2, Color, -1);
+                CvInvoke.Circle(frame, Filtering.GetMean().AsPoint(), 2, Color, -1);
             }
         }
 

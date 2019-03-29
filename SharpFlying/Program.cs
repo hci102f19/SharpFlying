@@ -10,11 +10,13 @@ namespace SharpFlying
     {
         private static void Main(string[] args)
         {
+            int width = 640, height = 480;
+
             var capture = new VideoCapture(@"./video.v2.mp4");
-            var frameBuffer = new FrameBuffer(capture);
+            var frameBuffer = new FrameBuffer(capture, width, height);
             frameBuffer.Start();
 
-            var canny = (Service)new Canny();
+            var canny = (Service)new Canny(width, height);
             canny.Start();
 
             while (frameBuffer.isRunning)

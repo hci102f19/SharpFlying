@@ -10,7 +10,7 @@ namespace VidBuffLib
     {
         protected double fps, sleepTimer;
 
-        public FrameBuffer(VideoCapture stream, int width = 640, int height = 360) : base(stream, width, height)
+        public FrameBuffer(VideoCapture stream, int width, int height) : base(stream, width, height)
         {
             fps = stream.GetCaptureProperty(CapProp.Fps);
 
@@ -19,7 +19,7 @@ namespace VidBuffLib
 
         protected void Sleep(TimeSpan executionTime)
         {
-            var sleep = (int) (sleepTimer * 1000) - executionTime.Milliseconds;
+            var sleep = (int)(sleepTimer * 1000) - executionTime.Milliseconds;
             if (sleep > 0)
                 Thread.Sleep(sleep);
         }

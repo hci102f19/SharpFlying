@@ -11,12 +11,18 @@ namespace EdgyLib.Containers
 {
     public class BoxContainer
     {
-        List<IHit> HitBoxes = new List<IHit>()
+        protected List<IHit> HitBoxes;
+
+        public BoxContainer(int width, int height)
         {
-            new LeftHitBox(604, 480),
-            new RightHitBox(604, 480),
-            new ReverseHitBox(604, 480)
-        };
+            HitBoxes = new List<IHit>()
+            {
+                new LeftHitBox(width, height),
+                new RightHitBox(width, height),
+                new ReverseHitBox(width, height)
+            };
+        }
+
 
         public Vector Hit(Point point)
         {

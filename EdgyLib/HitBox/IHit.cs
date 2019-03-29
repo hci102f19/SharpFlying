@@ -8,7 +8,7 @@ using Geometry.Base;
 
 namespace EdgyLib.HitBox
 {
-    interface IHit
+    public interface IHit
     {
         bool Hit(Point point, Vector vector);
     }
