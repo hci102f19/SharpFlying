@@ -19,44 +19,45 @@ namespace VidBuffLib
         protected Stack<Image<Bgr, byte>> Stack = new Stack<Image<Bgr, byte>>(1);
         protected VideoCapture Stream;
 
+        public bool IsRunning { get; protected set; } = true;
+
         protected Buffer(VideoCapture stream, int width, int height)
         {
             this.Stream = stream;
             Size = new Size(width, height);
         }
 
-        public bool isRunning { get; protected set; } = true;
 
         public Image<Bgr, byte> GetLastFrame()
         {
-            if (!isRunning) return null;
+            if (!IsRunning) return null;
             Retry:
-            while (Stack.Count == 0 && isRunning) Thread.Yield();
+            while (Stack.Count == 0 && IsRunning) Thread.Yield();
 
-            if (Stack.Count > 0 && Stack.Peek() == null && isRunning)
+            if (Stack.Count > 0 && Stack.Peek() == null && IsRunning)
             {
                 Stack.Pop();
                 goto Retry;
             }
 
-            if (isRunning)
+            if (IsRunning)
                 return Stack.Peek();
             return null;
         }
 
         public Image<Bgr, byte> PopLastFrame()
         {
-            if (!isRunning) return null;
+            if (!IsRunning) return null;
             Retry:
-            while (Stack.Count == 0 && isRunning) Thread.Yield();
+            while (Stack.Count == 0 && IsRunning) Thread.Yield();
 
-            if (Stack.Count > 0 && Stack.Peek() == null && isRunning)
+            if (Stack.Count > 0 && Stack.Peek() == null && IsRunning)
             {
                 Stack.Pop();
                 goto Retry;
             }
 
-            if (isRunning)
+            if (IsRunning)
                 return Stack.Pop();
             return null;
         }
@@ -71,7 +72,7 @@ namespace VidBuffLib
 
         public void Kill()
         {
-            isRunning = false;
+            IsRunning = false;
         }
 
         public void Start()
