@@ -10,19 +10,19 @@ namespace VidBuffLib
 {
     public abstract class Buffer
     {
-        protected int blur = 3;
+        protected int Blur = 3;
 
-        protected Image<Bgr, byte> lastFrame = null;
+        protected Image<Bgr, byte> LastFrame = null;
 
-        protected Size size;
+        protected Size Size;
 
         protected Stack<Image<Bgr, byte>> Stack = new Stack<Image<Bgr, byte>>(1);
-        protected VideoCapture stream;
+        protected VideoCapture Stream;
 
-        public Buffer(VideoCapture stream, int width, int height)
+        protected Buffer(VideoCapture stream, int width, int height)
         {
-            this.stream = stream;
-            size = new Size(width, height);
+            this.Stream = stream;
+            Size = new Size(width, height);
         }
 
         public bool isRunning { get; protected set; } = true;
@@ -63,8 +63,8 @@ namespace VidBuffLib
 
         protected Mat ProcessFrame(Mat mat)
         {
-            CvInvoke.Resize(mat, mat, size);
-            CvInvoke.GaussianBlur(mat, mat, new Size(blur, blur), 0);
+            CvInvoke.Resize(mat, mat, Size);
+            CvInvoke.GaussianBlur(mat, mat, new Size(Blur, Blur), 0);
 
             return mat;
         }

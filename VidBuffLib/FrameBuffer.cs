@@ -8,25 +8,25 @@ namespace VidBuffLib
 {
     public class FrameBuffer : Buffer
     {
-        protected double fps, sleepTimer;
+        protected double Fps, SleepTimer;
 
         public FrameBuffer(VideoCapture stream, int width, int height) : base(stream, width, height)
         {
-            fps = stream.GetCaptureProperty(CapProp.Fps);
+            Fps = stream.GetCaptureProperty(CapProp.Fps);
 
-            sleepTimer = 1 / fps;
+            SleepTimer = 1 / Fps;
         }
 
         protected void Sleep(TimeSpan executionTime)
         {
-            var sleep = (int)(sleepTimer * 1000) - executionTime.Milliseconds;
+            var sleep = (int)(SleepTimer * 1000) - executionTime.Milliseconds;
             if (sleep > 0)
                 Thread.Sleep(sleep);
         }
 
         protected override void Run()
         {
-            var frame = stream.QueryFrame();
+            var frame = Stream.QueryFrame();
 
             while (frame != null && isRunning)
             {
@@ -44,7 +44,7 @@ namespace VidBuffLib
                     }
                 }
 
-                frame = stream.QueryFrame();
+                frame = Stream.QueryFrame();
 
 
                 Sleep(DateTime.Now - startTime);
