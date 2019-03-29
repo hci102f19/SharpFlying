@@ -14,21 +14,25 @@ namespace SharpFlying
 
             var capture = new VideoCapture(@"./video.v2.mp4");
             var frameBuffer = new FrameBuffer(capture, width, height);
-            frameBuffer.Start();
 
-            var canny = (Service)new Canny(width, height);
-            canny.Start();
+            frameBuffer.AddService(new Canny(width, height));
+
+            frameBuffer.Start();
 
             while (frameBuffer.IsRunning)
                 using (var frame = frameBuffer.PopLastFrame())
                 {
                     if (frame != null)
                     {
-                        canny.Input(frame);
-                        var r = canny.GetLatestResult();
+                        frameBuffer.TransmitFrame(frame);
 
-                        if (r != null && r.IsValid)
-                            Console.WriteLine(r.Vector);
+                        foreach (var service in frameBuffer.Services)
+                        {
+                            var r = service.GetLatestResult();
+                            if (r != null && r.IsValid)
+                                Console.WriteLine(r.Vector);
+
+                        }
 
                         CvInvoke.Imshow("frame", frame);
                         CvInvoke.WaitKey(1);

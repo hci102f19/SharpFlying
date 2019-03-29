@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Emgu.CV;
 using Emgu.CV.Structure;
+using ServiceLib;
 
 namespace VidBuffLib
 {
@@ -19,14 +20,20 @@ namespace VidBuffLib
         protected Stack<Image<Bgr, byte>> Stack = new Stack<Image<Bgr, byte>>(1);
         protected VideoCapture Stream;
 
+        public bool IsRunning { get; protected set; } = true;
+
+        public List<Service> Services { get; protected set; } = new List<Service>();
+
         protected Buffer(VideoCapture stream, int width, int height)
         {
             Stream = stream;
             Size = new Size(width, height);
         }
 
-        public bool IsRunning { get; protected set; } = true;
-
+        public void AddService(Service service)
+        {
+            Services.Add(service);
+        }
 
         public Image<Bgr, byte> GetLastFrame()
         {
@@ -77,12 +84,22 @@ namespace VidBuffLib
 
         public void Start()
         {
-            Task.Factory.StartNew(() => { Run(); });
+            //Start all connected services
+            foreach (Service service in Services)
+                service.Start();
+
+            Task.Factory.StartNew(Run);
         }
 
         protected virtual void Run()
         {
             throw new NotImplementedException();
+        }
+
+        public void TransmitFrame(Image<Bgr, byte> frame)
+        {
+            foreach (Service service in Services)
+                service.Input(frame);
         }
     }
 }
