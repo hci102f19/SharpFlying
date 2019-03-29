@@ -23,7 +23,7 @@ namespace SharpFlying
                     if (frame != null)
                     {
                         canny.Input(frame);
-                        Console.WriteLine(canny.GetLatestResult());
+                        //Console.WriteLine(canny.GetLatestResult());
 
                         CvInvoke.Imshow("frame", frame);
                         CvInvoke.WaitKey(1);

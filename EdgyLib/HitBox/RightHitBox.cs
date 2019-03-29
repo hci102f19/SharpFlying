@@ -22,7 +22,8 @@ namespace EdgyLib.HitBox
                 new V2d(0, height_top),
                 new V2d(width_top, height_top),
                 new V2d(width_top, height_top),
-                new V2d(width_bottom, height)
+                new V2d(width_bottom, height),
+                new V2d(0, height)
             );
         }
     }

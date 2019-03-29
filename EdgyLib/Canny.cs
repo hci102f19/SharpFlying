@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using EdgyLib.Containers;
 using Emgu.CV;
 using Emgu.CV.Structure;
 using Emgu.CV.Util;
@@ -33,8 +34,8 @@ namespace EdgyLib
         protected Image<Bgr, byte> CurrentFrame = null;
         protected bool IsRunning = true;
 
-        private static Random random = new Random();
-        protected String toBeReturned = "";
+        protected BoxContainer boxContainer = new BoxContainer();
+
 
         public override void Input(Image<Bgr, byte> frame)
         {
@@ -75,11 +76,6 @@ namespace EdgyLib
                     // Check for too many lines
                     if (lines < LineMax)
                         Clustering(GetLines(vector), frame);
-
-                    const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-                    toBeReturned = new string(Enumerable.Repeat(chars, 8)
-                        .Select(s => s[random.Next(s.Length)]).ToArray());
-
                 }
             }
         }
@@ -129,6 +125,7 @@ namespace EdgyLib
             var intersections = new List<Point>();
 
             foreach (var inLine in lines)
+            {
                 foreach (var cmpLine in lines)
                 {
                     if (inLine == cmpLine)
@@ -139,7 +136,7 @@ namespace EdgyLib
                     if (intersection != null && !intersections.Contains(intersection))
                         intersections.Add(intersection);
                 }
-
+            }
 
             if (intersections.Count > 0)
             {
@@ -150,6 +147,9 @@ namespace EdgyLib
                 );
 
                 if (clusters.IsValid()) filtering.Add(clusters.GetBestCluster().GetMean());
+
+
+                Console.WriteLine(boxContainer.Hit(filtering.GetMean()));
 
                 var r = new Random();
                 var Color = new MCvScalar(r.Next(0, 255), r.Next(0, 255), r.Next(0, 255));

@@ -9,7 +9,7 @@ using Geometry.Base;
 
 namespace EdgyLib.Containers
 {
-    class BoxContainer
+    public class BoxContainer
     {
         List<IHit> HitBoxes = new List<IHit>()
         {
