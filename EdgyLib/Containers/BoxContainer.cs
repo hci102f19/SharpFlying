@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using EdgyLib.HitBox;
 using FlightLib;
 using Geometry.Base;
@@ -15,7 +11,7 @@ namespace EdgyLib.Containers
 
         public BoxContainer(int width, int height)
         {
-            HitBoxes = new List<IHit>()
+            HitBoxes = new List<IHit>
             {
                 new LeftHitBox(width, height),
                 new RightHitBox(width, height),
@@ -26,9 +22,9 @@ namespace EdgyLib.Containers
 
         public Vector Hit(Point point)
         {
-            Vector vector = new Vector();
+            var vector = new Vector();
 
-            foreach (IHit hitBox in HitBoxes)
+            foreach (var hitBox in HitBoxes)
                 if (hitBox.Hit(point, vector))
                     return vector;
 

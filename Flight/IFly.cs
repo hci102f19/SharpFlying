@@ -9,6 +9,5 @@ namespace FlightLib
         void Landing();
         void Move(Vector flightVector);
         bool IsAlive();
-
     }
 }

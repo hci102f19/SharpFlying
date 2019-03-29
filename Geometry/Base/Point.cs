@@ -30,7 +30,7 @@ namespace Geometry.Base
 
         public SDPoint AsPoint()
         {
-            return new SDPoint((int)X, (int)Y);
+            return new SDPoint((int) X, (int) Y);
         }
 
         public override string ToString()

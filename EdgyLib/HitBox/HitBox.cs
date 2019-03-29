@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using FlightLib;
+﻿using FlightLib;
 using Geometry.Base;
 
 namespace EdgyLib.HitBox
@@ -11,12 +6,13 @@ namespace EdgyLib.HitBox
     internal abstract class HitBox : IHit
     {
         protected Polygon InternalPolygon;
-        public int Force { get; protected set; }
 
         protected HitBox(int? force)
         {
             Force = force ?? 100;
         }
+
+        public int Force { get; protected set; }
 
 
         public bool Hit(Point point, Vector vector)
@@ -30,6 +26,9 @@ namespace EdgyLib.HitBox
             return false;
         }
 
-        public Point Center() => InternalPolygon.Center();
+        public Point Center()
+        {
+            return InternalPolygon.Center();
+        }
     }
 }

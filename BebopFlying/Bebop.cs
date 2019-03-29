@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using BebopFlying.Bebop_Classes;
 using BebopFlying.Bebop_Classes.Structs;
 using Flight.Enums;
@@ -20,39 +16,38 @@ namespace BebopFlying
         //Logger
         private static NLog.Logger _logger;
 
-        //Bebop vector set by the move command to fly
-        private Vector _flyVector;
+        //Log to ensure 
+        private static readonly object ThisLock = new object();
+
+        private readonly CancellationTokenSource _cts = new CancellationTokenSource();
+
+        private readonly int[] _seq = new int[256];
+
+        private UdpClient _arstreamClient;
+        private CancellationToken _cancelToken;
 
         //Command struct used for sending commands to the drone
         private Command _cmd;
 
-        private readonly int[] _seq = new int[256];
-
-        //Log to ensure 
-        private static readonly object ThisLock = new object();
-
         //UDP client to send data to the drone
         private UdpClient _droneUdpClient;
 
-        private UdpClient _arstreamClient;
+        //Bebop vector set by the move command to fly
+        private Vector _flyVector;
         private IPEndPoint _remoteIpEndPoint;
 
-        private readonly CancellationTokenSource _cts = new CancellationTokenSource();
-        private CancellationToken _cancelToken;
-
         /// <summary>
-        /// Initializes the bebop object at a specific updateRate
+        ///     Initializes the bebop object at a specific updateRate
         /// </summary>
         /// <param name="updateRate">Numer of updates per second</param>
         public Bebop(int updateRate)
         {
             if (updateRate <= 0) throw new ArgumentOutOfRangeException(nameof(updateRate));
             _logger = NLog.LogManager.GetCurrentClassLogger();
-            Updaterate = 1000/updateRate;
+            Updaterate = 1000 / updateRate;
         }
-        
-        protected int Updaterate { get; }
 
+        protected int Updaterate { get; }
 
 
         public void TakeOff()
@@ -75,7 +70,7 @@ namespace BebopFlying
             throw new NotImplementedException();
         }
 
-        public Flight.Enums.ConnectionStatus Connect()
+        public ConnectionStatus Connect()
         {
             _logger.Debug("Attempting to connect to drone...");
 
@@ -131,7 +126,8 @@ namespace BebopFlying
             return ConnectionStatus.Success;
         }
 
-        private void SendCommand(ref Command cmd, int type = CommandSet.ARNETWORKAL_FRAME_TYPE_DATA, int id = CommandSet.BD_NET_CD_NONACK_ID)
+        private void SendCommand(ref Command cmd, int type = CommandSet.ARNETWORKAL_FRAME_TYPE_DATA,
+            int id = CommandSet.BD_NET_CD_NONACK_ID)
         {
             var bufSize = cmd.size + 7;
             var buf = new byte[bufSize];
@@ -139,13 +135,13 @@ namespace BebopFlying
             _seq[id]++;
             if (_seq[id] > 255) _seq[id] = 0;
 
-            buf[0] = (byte)type;
-            buf[1] = (byte)id;
-            buf[2] = (byte)_seq[id];
-            buf[3] = (byte)(bufSize & 0xff);
-            buf[4] = (byte)((bufSize & 0xff00) >> 8);
-            buf[5] = (byte)((bufSize & 0xff0000) >> 16);
-            buf[6] = (byte)((bufSize & 0xff000000) >> 24);
+            buf[0] = (byte) type;
+            buf[1] = (byte) id;
+            buf[2] = (byte) _seq[id];
+            buf[3] = (byte) (bufSize & 0xff);
+            buf[4] = (byte) ((bufSize & 0xff00) >> 8);
+            buf[5] = (byte) ((bufSize & 0xff0000) >> 16);
+            buf[6] = (byte) ((bufSize & 0xff000000) >> 24);
 
             cmd.cmd.CopyTo(buf, 7);
 
@@ -158,8 +154,6 @@ namespace BebopFlying
                 _flyVector.Roll = 0;
                 _flyVector.Yaw = 0;
             }
-
-
         }
 
         private void GenerateAllStates()
@@ -205,6 +199,7 @@ namespace BebopFlying
 
             SendCommand(ref _cmd, CommandSet.ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK, CommandSet.BD_NET_CD_ACK_ID);
         }
+
         public void InitArStream()
         {
             _arstreamClient = new UdpClient(55004);

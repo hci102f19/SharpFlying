@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace BebopFlying.Bebop_Classes
+﻿namespace BebopFlying.Bebop_Classes
 {
     public class CommandSet
     {
-        public const string HandshakeMessage = "{\"controller_type\":\"computer\", \"controller_name\":\"halley\", \"d2c_port\":\"43210\", \"arstream2_client_stream_port\":\"55004\", \"arstream2_client_control_port\":\"55005\"}";
+        public const string HandshakeMessage =
+            "{\"controller_type\":\"computer\", \"controller_name\":\"halley\", \"d2c_port\":\"43210\", \"arstream2_client_stream_port\":\"55004\", \"arstream2_client_control_port\":\"55005\"}";
+
         // eARCOMMANDS_ID_PROJECT
         public const int ARCOMMANDS_ID_PROJECT_COMMON = 0;
         public const int ARCOMMANDS_ID_PROJECT_ARDRONE3 = 1;
@@ -121,7 +117,10 @@ namespace BebopFlying.Bebop_Classes
         public const int ARCOMMANDS_ID_ARDRONE3_SETTINGSSTATE_MOTORERRORSTATECHANGED_MOTORERROR_NOERROR = 0;
         public const int ARCOMMANDS_ID_ARDRONE3_SETTINGSSTATE_MOTORERRORSTATECHANGED_MOTORERROR_ERROREEPROM = 1;
         public const int ARCOMMANDS_ID_ARDRONE3_SETTINGSSTATE_MOTORERRORSTATECHANGED_MOTORERROR_ERRORMOTORSTALLED = 2;
-        public const int ARCOMMANDS_ID_ARDRONE3_SETTINGSSTATE_MOTORERRORSTATECHANGED_MOTORERROR_ERRORPROPELLERSECURITY = 3;
+
+        public const int ARCOMMANDS_ID_ARDRONE3_SETTINGSSTATE_MOTORERRORSTATECHANGED_MOTORERROR_ERRORPROPELLERSECURITY =
+            3;
+
         public const int ARCOMMANDS_ID_ARDRONE3_SETTINGSSTATE_MOTORERRORSTATECHANGED_MOTORERROR_ERRORCOMMLOST = 4;
         public const int ARCOMMANDS_ID_ARDRONE3_SETTINGSSTATE_MOTORERRORSTATECHANGED_MOTORERROR_ERRORRCEMERGECYSTOP = 5;
         public const int ARCOMMANDS_ID_ARDRONE3_SETTINGSSTATE_MOTORERRORSTATECHANGED_MOTORERROR_ERRORREALTIME = 6;

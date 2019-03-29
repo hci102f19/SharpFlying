@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using Aardvark.Base;
 using EdgyLib.Containers;
 using Emgu.CV;
 using Emgu.CV.Structure;
@@ -11,32 +10,30 @@ using Geometry.Base;
 using Geometry.Dampening;
 using Geometry.Extended;
 using ServiceLib;
-using Vector = FlightLib.Vector;
 
 namespace EdgyLib
 {
     public class Canny : Service
     {
+        protected BoxContainer BoxContainer;
         protected int CannyThreshold = 55;
         protected int CannyThresholdModifier = 3;
+
+        protected Image<Bgr, byte> CurrentFrame;
 
         protected SFiltering Filtering;
 
         protected int HoughLinesTheta = 150;
+        protected bool IsRunning = true;
 
         protected int? LastFrameCount;
+        protected Response LatestResponse = new Response(false, null, 0);
 
         protected int LineMax = 100;
 
         protected int LowerLineThreshold = 20;
         protected int ThetaModifier = 5;
         protected int UpperLineThreshold = 75;
-
-        protected Image<Bgr, byte> CurrentFrame = null;
-        protected bool IsRunning = true;
-
-        protected BoxContainer BoxContainer;
-        protected Response LatestResponse = new Response(false, null, 0);
 
         public Canny(int width, int height)
         {
@@ -63,7 +60,7 @@ namespace EdgyLib
                     continue;
                 }
 
-                Image<Bgr, byte> frame = CurrentFrame;
+                var frame = CurrentFrame;
                 CurrentFrame = null;
 
                 using (var edges = new Mat())
@@ -74,7 +71,7 @@ namespace EdgyLib
                     var vector = new VectorOfPointF();
                     CvInvoke.HoughLines(edges, vector, 2, Math.PI / 180, HoughLinesTheta);
 
-                    int lines = vector.Size;
+                    var lines = vector.Size;
 
                     if (lines == 0)
                         continue;
@@ -93,7 +90,7 @@ namespace EdgyLib
             float modifier = 1;
             if (LastFrameCount != null)
             {
-                modifier = (float)LastFrameCount / lines * 2;
+                modifier = (float) LastFrameCount / lines * 2;
 
                 if (modifier <= 1)
                     modifier = 1;
@@ -101,12 +98,12 @@ namespace EdgyLib
 
             if (lines < LowerLineThreshold && HoughLinesTheta > ThetaModifier * modifier)
             {
-                HoughLinesTheta -= (int)Math.Round(ThetaModifier * modifier, 0);
+                HoughLinesTheta -= (int) Math.Round(ThetaModifier * modifier, 0);
                 Console.WriteLine("Not enough data, decreasing l_theta to " + HoughLinesTheta);
             }
             else if (lines > UpperLineThreshold)
             {
-                HoughLinesTheta += (int)Math.Round(ThetaModifier * modifier, 0);
+                HoughLinesTheta += (int) Math.Round(ThetaModifier * modifier, 0);
                 Console.WriteLine("Too much data, increasing l_theta to " + HoughLinesTheta);
             }
 
@@ -133,17 +130,15 @@ namespace EdgyLib
             var intersections = new List<Point>();
 
             foreach (var inLine in lines)
+            foreach (var cmpLine in lines)
             {
-                foreach (var cmpLine in lines)
-                {
-                    if (inLine == cmpLine)
-                        continue;
+                if (inLine == cmpLine)
+                    continue;
 
-                    var intersection = inLine.Intersect(cmpLine);
+                var intersection = inLine.Intersect(cmpLine);
 
-                    if (intersection != null && !intersections.Contains(intersection))
-                        intersections.Add(intersection);
-                }
+                if (intersection != null && !intersections.Contains(intersection))
+                    intersections.Add(intersection);
             }
 
             if (intersections.Count > 0)
@@ -151,12 +146,12 @@ namespace EdgyLib
                 var clusters = DBSCAN.DBSCAN.CalculateClusters(
                     intersections.Select(p => new PointContainer(p)).ToList(),
                     20,
-                    (int)Math.Round(0.1 * intersections.Count, 0)
+                    (int) Math.Round(0.1 * intersections.Count, 0)
                 );
 
                 if (clusters.IsValid()) Filtering.Add(clusters.GetBestCluster().GetMean());
 
-                Vector v = BoxContainer.Hit(Filtering.GetMean());
+                var v = BoxContainer.Hit(Filtering.GetMean());
 
                 if (!v.IsNull())
                     LatestResponse = new Response(true, BoxContainer.Hit(Filtering.GetMean()), 0);
