@@ -71,6 +71,10 @@
     <Compile Include="Canny.cs" />
     <Compile Include="Containers\BoxContainer.cs" />
     <Compile Include="HitBox\HitBox.cs" />
+    <Compile Include="HitBox\IHit.cs" />
+    <Compile Include="HitBox\LeftHitBox.cs" />
+    <Compile Include="HitBox\ReverseHitBox.cs" />
+    <Compile Include="HitBox\RightHitBox.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
