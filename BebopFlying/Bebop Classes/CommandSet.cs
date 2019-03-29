@@ -3,7 +3,7 @@
     public class CommandSet
     {
         public const string HandshakeMessage =
-            "{\"controller_type\":\"computer\", \"controller_name\":\"halley\", \"d2c_port\":\"43210\", \"arstream2_client_stream_port\":\"55004\", \"arstream2_client_control_port\":\"55005\"}";
+            "{\"controller_type\":\"computer\", \"controller_name\":\"SharpFlying\", \"d2c_port\":\"43210\", \"arstream2_client_stream_port\":\"55004\", \"arstream2_client_control_port\":\"55005\"}";
 
         // eARCOMMANDS_ID_PROJECT
         public const int ARCOMMANDS_ID_PROJECT_COMMON = 0;
