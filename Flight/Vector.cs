@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Flight
+namespace FlightLib
 {
     public class Vector
     {
@@ -33,14 +33,7 @@ namespace Flight
 
         public bool IsNull()
         {
-            if (Flag == 0 && Roll == 0 && Pitch == 0 && Yaw == 0 && Gaz == 0)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
+            return Flag == 0 && Roll == 0 && Pitch == 0 && Yaw == 0 && Gaz == 0;
         }
     }
 }
