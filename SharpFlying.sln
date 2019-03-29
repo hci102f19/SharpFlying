@@ -17,7 +17,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DBSCAN", "DBSCAN\DBSCAN.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlightLib", "Flight\FlightLib.csproj", "{AEEB01C3-DF18-440C-82B5-B3F7A7643901}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BebopFlying", "BebopFlying\BebopFlying.csproj", "{8E56759D-04A4-4F62-B6BD-805A84C55A77}"
+EndProject
 Global
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
@@ -51,6 +56,10 @@ Global
 		{AEEB01C3-DF18-440C-82B5-B3F7A7643901}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AEEB01C3-DF18-440C-82B5-B3F7A7643901}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AEEB01C3-DF18-440C-82B5-B3F7A7643901}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8E56759D-04A4-4F62-B6BD-805A84C55A77}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8E56759D-04A4-4F62-B6BD-805A84C55A77}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8E56759D-04A4-4F62-B6BD-805A84C55A77}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8E56759D-04A4-4F62-B6BD-805A84C55A77}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

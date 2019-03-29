@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{AEEB01C3-DF18-440C-82B5-B3F7A7643901}</ProjectGuid>
+    <ProjectGuid>{8E56759D-04A4-4F62-B6BD-805A84C55A77}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Flight</RootNamespace>
-    <AssemblyName>Flight</AssemblyName>
+    <RootNamespace>BebopFlying</RootNamespace>
+    <AssemblyName>BebopFlying</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -41,9 +41,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Vector.cs" />
+    <Compile Include="Bebop Classes\CommandSet.cs" />
+    <Compile Include="Bebop Classes\Structs\Command.cs" />
+    <Compile Include="Bebop Classes\Structs\PCmd.cs" />
+    <Compile Include="Bebop.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <WCFMetadata Include="Connected Services\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
