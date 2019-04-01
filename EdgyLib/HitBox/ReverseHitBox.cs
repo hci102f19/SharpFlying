@@ -1,4 +1,5 @@
-﻿using Aardvark.Base;
+﻿using System;
+using Aardvark.Base;
 using Emgu.CV;
 using Emgu.CV.Structure;
 using Geometry.Base;
@@ -52,7 +53,10 @@ namespace EdgyLib.HitBox
 
         protected int HorizontalMovement(double movement)
         {
-            return ((int)(((double)Width / 2 - movement) / movement) * 100).Clamp(-100, 100);
+            double center = (double)Width / 2;
+            int force = (int)Math.Round(((center - movement) / center) * 100, 0);
+
+            return force.Clamp(-100, 100);
         }
     }
 }

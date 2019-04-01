@@ -13,7 +13,7 @@ namespace Geometry.Base
 
         public bool Contains(Point point)
         {
-            return InternalPolygon.Contains(point.InternalPoint);
+            return InternalPolygon.BoundingBox2d.Contains(point.InternalPoint);
         }
 
         public Point Center()
