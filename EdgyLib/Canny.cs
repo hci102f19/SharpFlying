@@ -9,6 +9,7 @@ using Emgu.CV.Util;
 using Geometry.Base;
 using Geometry.Dampening;
 using Geometry.Extended;
+using RenderGeometry;
 using ServiceLib;
 
 namespace EdgyLib
@@ -35,10 +36,14 @@ namespace EdgyLib
         protected int ThetaModifier = 5;
         protected int UpperLineThreshold = 75;
 
-        public Canny(int width, int height)
+        protected bool Debug = false;
+
+        public Canny(int width, int height, bool debug = false)
         {
             BoxContainer = new BoxContainer(width, height);
             Filtering = new SFiltering(width, height);
+
+            Debug = debug;
         }
 
 
@@ -90,7 +95,7 @@ namespace EdgyLib
             float modifier = 1;
             if (LastFrameCount != null)
             {
-                modifier = (float) LastFrameCount / lines * 2;
+                modifier = (float)LastFrameCount / lines * 2;
 
                 if (modifier <= 1)
                     modifier = 1;
@@ -98,12 +103,12 @@ namespace EdgyLib
 
             if (lines < LowerLineThreshold && HoughLinesTheta > ThetaModifier * modifier)
             {
-                HoughLinesTheta -= (int) Math.Round(ThetaModifier * modifier, 0);
+                HoughLinesTheta -= (int)Math.Round(ThetaModifier * modifier, 0);
                 Console.WriteLine("Not enough data, decreasing l_theta to " + HoughLinesTheta);
             }
             else if (lines > UpperLineThreshold)
             {
-                HoughLinesTheta += (int) Math.Round(ThetaModifier * modifier, 0);
+                HoughLinesTheta += (int)Math.Round(ThetaModifier * modifier, 0);
                 Console.WriteLine("Too much data, increasing l_theta to " + HoughLinesTheta);
             }
 
@@ -130,15 +135,17 @@ namespace EdgyLib
             var intersections = new List<Point>();
 
             foreach (var inLine in lines)
-            foreach (var cmpLine in lines)
             {
-                if (inLine == cmpLine)
-                    continue;
+                foreach (var cmpLine in lines)
+                {
+                    if (inLine == cmpLine)
+                        continue;
 
-                var intersection = inLine.Intersect(cmpLine);
+                    var intersection = inLine.Intersect(cmpLine);
 
-                if (intersection != null && !intersections.Contains(intersection))
-                    intersections.Add(intersection);
+                    if (intersection != null && !intersections.Contains(intersection))
+                        intersections.Add(intersection);
+                }
             }
 
             if (intersections.Count > 0)
@@ -146,22 +153,23 @@ namespace EdgyLib
                 var clusters = DBSCAN.DBSCAN.CalculateClusters(
                     intersections.Select(p => new PointContainer(p)).ToList(),
                     20,
-                    (int) Math.Round(0.1 * intersections.Count, 0)
+                    (int)Math.Round(0.1 * intersections.Count, 0)
                 );
 
                 if (clusters.IsValid()) Filtering.Add(clusters.GetBestCluster().GetMean());
 
                 var v = BoxContainer.Hit(Filtering.GetMean());
 
-                if (!v.IsNull())
-                    LatestResponse = new Response(true, BoxContainer.Hit(Filtering.GetMean()), 0);
-                else
-                    LatestResponse = new Response(false, null, 0);
+                LatestResponse = !v.IsNull()
+                    ? new Response(true, BoxContainer.Hit(Filtering.GetMean()), 0)
+                    : new Response(false, null, 0);
 
 
-                var r = new Random();
-                var Color = new MCvScalar(r.Next(0, 255), r.Next(0, 255), r.Next(0, 255));
-                CvInvoke.Circle(frame, Filtering.GetMean().AsPoint(), 2, Color, -1);
+
+                ((RenderPoint)Filtering.GetMean()).Render(frame);
+
+                CvInvoke.Imshow("Canny", frame);
+                CvInvoke.WaitKey(1);
             }
         }
 

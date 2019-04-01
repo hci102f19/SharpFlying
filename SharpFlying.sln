@@ -19,10 +19,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlightLib", "Flight\FlightL
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BebopFlying", "BebopFlying\BebopFlying.csproj", "{8E56759D-04A4-4F62-B6BD-805A84C55A77}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RenderGeometry", "RenderGeometry\RenderGeometry.csproj", "{4F0A69CA-9EFE-4500-9D12-E27ABAF8E405}"
+EndProject
 Global
-	GlobalSection(Performance) = preSolution
-		HasPerformanceSessions = true
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
@@ -60,11 +59,18 @@ Global
 		{8E56759D-04A4-4F62-B6BD-805A84C55A77}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8E56759D-04A4-4F62-B6BD-805A84C55A77}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8E56759D-04A4-4F62-B6BD-805A84C55A77}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4F0A69CA-9EFE-4500-9D12-E27ABAF8E405}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4F0A69CA-9EFE-4500-9D12-E27ABAF8E405}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4F0A69CA-9EFE-4500-9D12-E27ABAF8E405}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4F0A69CA-9EFE-4500-9D12-E27ABAF8E405}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {1BCAF1BF-D549-42A3-B2E4-B38CF9AD0726}
+	EndGlobalSection
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
 	EndGlobalSection
 EndGlobal

@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{C1AD2C09-9ECB-4B7A-BED1-D3474180B0DE}</ProjectGuid>
+    <ProjectGuid>{4F0A69CA-9EFE-4500-9D12-E27ABAF8E405}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>EdgyLib</RootNamespace>
-    <AssemblyName>EdgyLib</AssemblyName>
+    <RootNamespace>RenderGeometry</RootNamespace>
+    <AssemblyName>RenderGeometry</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -68,42 +68,20 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Canny.cs" />
-    <Compile Include="Containers\BoxContainer.cs" />
-    <Compile Include="HitBox\HitBox.cs" />
-    <Compile Include="HitBox\IHit.cs" />
-    <Compile Include="HitBox\LeftHitBox.cs" />
-    <Compile Include="HitBox\ReverseHitBox.cs" />
-    <Compile Include="HitBox\RightHitBox.cs" />
+    <Compile Include="RenderPoint.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\DBSCAN\DBSCAN.csproj">
-      <Project>{2ea4c8cf-0950-467f-983f-bc5ab2e00b13}</Project>
-      <Name>DBSCAN</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Flight\FlightLib.csproj">
-      <Project>{aeeb01c3-df18-440c-82b5-b3f7a7643901}</Project>
-      <Name>FlightLib</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Geometry\Geometry.csproj">
       <Project>{6d6fcc45-597e-49e2-934d-5ba6ecb217f3}</Project>
       <Name>Geometry</Name>
     </ProjectReference>
-    <ProjectReference Include="..\RenderGeometry\RenderGeometry.csproj">
-      <Project>{4F0A69CA-9EFE-4500-9D12-E27ABAF8E405}</Project>
-      <Name>RenderGeometry</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ServiceLib\ServiceLib.csproj">
-      <Project>{9df90151-0a5c-4d56-8f3c-9a890a76ed7a}</Project>
-      <Name>ServiceLib</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="License-LGPL.txt" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="License-LGPL.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\EMGU.CV.3.4.3.3016\build\EMGU.CV.targets" Condition="Exists('..\packages\EMGU.CV.3.4.3.3016\build\EMGU.CV.targets')" />

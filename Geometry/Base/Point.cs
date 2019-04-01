@@ -1,6 +1,6 @@
 ﻿using System;
 using Aardvark.Base;
-using SDPoint = System.Drawing.Point;
+
 
 namespace Geometry.Base
 {
@@ -26,11 +26,6 @@ namespace Geometry.Base
             var yDist = point.Y - Y;
 
             return Math.Sqrt(xDist * xDist + yDist * yDist);
-        }
-
-        public SDPoint AsPoint()
-        {
-            return new SDPoint((int) X, (int) Y);
         }
 
         public override string ToString()
