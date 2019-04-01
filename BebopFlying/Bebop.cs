@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Net;
+using System.Net.Mime;
 using System.Net.Sockets;
 using System.Threading;
 using BebopFlying.Bebop_Classes;
@@ -35,6 +36,7 @@ namespace BebopFlying
         //Bebop vector set by the move command to fly
         private Vector _flyVector;
         private IPEndPoint _remoteIpEndPoint;
+        private byte[] _receivedData;
 
         /// <summary>
         ///     Initializes the bebop object at a specific updateRate
@@ -52,12 +54,32 @@ namespace BebopFlying
 
         public void TakeOff()
         {
-            throw new NotImplementedException();
+            _logger.Debug("Performing takeoff...");
+            _cmd = default(Command);
+            _cmd.size = 4;
+            _cmd.cmd = new byte[4];
+
+            _cmd.cmd[0] = CommandSet.ARCOMMANDS_ID_PROJECT_ARDRONE3;
+            _cmd.cmd[1] = CommandSet.ARCOMMANDS_ID_ARDRONE3_CLASS_PILOTING;
+            _cmd.cmd[2] = CommandSet.ARCOMMANDS_ID_ARDRONE3_PILOTING_CMD_TAKEOFF;
+            _cmd.cmd[3] = 0;
+
+            SendCommand(ref _cmd, CommandSet.ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK, CommandSet.BD_NET_CD_ACK_ID);
         }
 
         public void Landing()
         {
-            throw new NotImplementedException();
+            _logger.Debug("Landing...");
+            _cmd = default(Command);
+            _cmd.size = 4;
+            _cmd.cmd = new byte[4];
+
+            _cmd.cmd[0] = CommandSet.ARCOMMANDS_ID_PROJECT_ARDRONE3;
+            _cmd.cmd[1] = CommandSet.ARCOMMANDS_ID_ARDRONE3_CLASS_PILOTING;
+            _cmd.cmd[2] = CommandSet.ARCOMMANDS_ID_ARDRONE3_PILOTING_CMD_LANDING;
+            _cmd.cmd[3] = 0;
+
+            SendCommand(ref _cmd, CommandSet.ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK, CommandSet.BD_NET_CD_ACK_ID);
         }
 
         public void Move(Vector flightVector)
@@ -204,6 +226,13 @@ namespace BebopFlying
         {
             _arstreamClient = new UdpClient(55004);
             _remoteIpEndPoint = new IPEndPoint(IPAddress.Any, 0);
+
+        }
+
+        public byte[] GetImageData()
+        {
+            _receivedData = _arstreamClient.Receive(ref _remoteIpEndPoint);
+            return _receivedData;
         }
 
         public void CancelAllTasks()
