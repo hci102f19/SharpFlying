@@ -4,7 +4,7 @@ namespace Geometry.Base
 {
     public class Polygon
     {
-        protected Polygon2d InternalPolygon;
+        public Polygon2d InternalPolygon { get; protected set; }
 
         public Polygon(params V2d[] points)
         {

@@ -10,18 +10,19 @@ using Geometry.Base;
 using Geometry.Dampening;
 using Geometry.Extended;
 using RenderGeometry;
+using RenderGeometry.Base;
 using ServiceLib;
 
 namespace EdgyLib
 {
     public class Canny : Service
     {
-        protected BoxContainer BoxContainer;
         protected int CannyThreshold = 55;
         protected int CannyThresholdModifier = 3;
 
         protected Image<Bgr, byte> CurrentFrame;
 
+        protected BoxContainer BoxContainer;
         protected SFiltering Filtering;
 
         protected int HoughLinesTheta = 150;
@@ -165,8 +166,9 @@ namespace EdgyLib
                     : new Response(false, null, 0);
 
 
-
                 ((RenderPoint)Filtering.GetMean()).Render(frame);
+                BoxContainer.Render(frame);
+
 
                 CvInvoke.Imshow("Canny", frame);
                 CvInvoke.WaitKey(1);

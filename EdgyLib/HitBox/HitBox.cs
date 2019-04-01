@@ -1,5 +1,8 @@
-﻿using FlightLib;
+﻿using Emgu.CV;
+using Emgu.CV.Structure;
+using FlightLib;
 using Geometry.Base;
+using RenderGeometry.Base;
 
 namespace EdgyLib.HitBox
 {
@@ -24,6 +27,11 @@ namespace EdgyLib.HitBox
             }
 
             return false;
+        }
+
+        public void Render(Image<Bgr, byte> frame)
+        {
+            ((PolyRender)InternalPolygon).Render(frame);
         }
 
         public Point Center()

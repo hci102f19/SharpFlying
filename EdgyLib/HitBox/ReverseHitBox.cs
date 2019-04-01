@@ -1,5 +1,8 @@
 ﻿using Aardvark.Base;
+using Emgu.CV;
+using Emgu.CV.Structure;
 using Geometry.Base;
+using RenderGeometry.Base;
 using Vector = FlightLib.Vector;
 
 namespace EdgyLib.HitBox
@@ -42,9 +45,14 @@ namespace EdgyLib.HitBox
             return true;
         }
 
+        public void Render(Image<Bgr, byte> frame)
+        {
+            ((PolyRender)InternalPolygon).Render(frame);
+        }
+
         protected int HorizontalMovement(double movement)
         {
-            return ((int) (((double) Width / 2 - movement) / movement) * 100).Clamp(-100, 100);
+            return ((int)(((double)Width / 2 - movement) / movement) * 100).Clamp(-100, 100);
         }
     }
 }

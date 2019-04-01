@@ -1,7 +1,11 @@
 ﻿using System.Collections.Generic;
+using System.Xml.Serialization;
 using EdgyLib.HitBox;
+using Emgu.CV;
+using Emgu.CV.Structure;
 using FlightLib;
 using Geometry.Base;
+using RenderGeometry.Base;
 
 namespace EdgyLib.Containers
 {
@@ -19,7 +23,6 @@ namespace EdgyLib.Containers
             };
         }
 
-
         public Vector Hit(Point point)
         {
             var vector = new Vector();
@@ -29,6 +32,12 @@ namespace EdgyLib.Containers
                     return vector;
 
             return vector;
+        }
+
+        public void Render(Image<Bgr, byte> frame)
+        {
+            foreach (var hitBox in HitBoxes)
+                hitBox.Render(frame);
         }
     }
 }

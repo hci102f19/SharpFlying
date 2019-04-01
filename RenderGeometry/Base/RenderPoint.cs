@@ -9,7 +9,7 @@ using Emgu.CV.Structure;
 using Geometry.Base;
 using SDPoint = System.Drawing.Point;
 
-namespace RenderGeometry
+namespace RenderGeometry.Base
 {
     public class RenderPoint
     {
@@ -25,12 +25,9 @@ namespace RenderGeometry
             return new SDPoint((int)Point.X, (int)Point.Y);
         }
 
-        public void Render(Image<Bgr, byte> frame)
+        public void Render(Image<Bgr, byte> frame, MCvScalar color = default(MCvScalar))
         {
-            var r = new Random();
-            var Color = new MCvScalar(r.Next(0, 255), r.Next(0, 255), r.Next(0, 255));
-
-            CvInvoke.Circle(frame, AsPoint(), 2, Color, -1);
+            CvInvoke.Circle(frame, AsPoint(), 2, color, -1);
         }
 
         public static explicit operator RenderPoint(Point v)
