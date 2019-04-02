@@ -281,7 +281,7 @@ namespace BebopFlying
             SendCommand(ref _cmd, CommandSet.ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK, CommandSet.BD_NET_CD_ACK_ID);
         }
 
-        public void VideoEnable()
+        private void VideoEnable()
         {
             _cmd = default(Command);
             _cmd.size = 5;
