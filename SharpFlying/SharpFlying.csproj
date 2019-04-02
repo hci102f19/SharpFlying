@@ -90,6 +90,10 @@
     <WCFMetadata Include="Connected Services\" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\BebopFlying\BebopFlying.csproj">
+      <Project>{8E56759D-04A4-4F62-B6BD-805A84C55A77}</Project>
+      <Name>BebopFlying</Name>
+    </ProjectReference>
     <ProjectReference Include="..\EdgyLib\EdgyLib.csproj">
       <Project>{c1ad2c09-9ecb-4b7a-bed1-d3474180b0de}</Project>
       <Name>EdgyLib</Name>

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Threading;
 using System.Threading.Tasks;
+using BebopFlying;
 using Emgu.CV;
 using Emgu.CV.Structure;
 using ServiceLib;
@@ -19,7 +20,7 @@ namespace VidBuffLib
 
         protected Stack<Image<Bgr, byte>> Stack = new Stack<Image<Bgr, byte>>(1);
         protected VideoCapture Stream;
-
+        protected Bebop BebopStream;
         public bool IsRunning { get; protected set; } = true;
 
         public List<Service> Services { get; protected set; } = new List<Service>();
@@ -27,6 +28,12 @@ namespace VidBuffLib
         protected Buffer(VideoCapture stream, int width, int height)
         {
             Stream = stream;
+            Size = new Size(width, height);
+        }
+
+        protected Buffer(Bebop stream, int width, int height)
+        {
+            BebopStream = stream;
             Size = new Size(width, height);
         }
 

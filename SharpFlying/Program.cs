@@ -1,6 +1,8 @@
 ﻿using System;
+using BebopFlying;
 using EdgyLib;
 using Emgu.CV;
+using Flight.Enums;
 using ServiceLib;
 using VidBuffLib;
 
@@ -13,20 +15,24 @@ namespace SharpFlying
             int width = 640, height = 480;
 
             var capture = new VideoCapture(@"./video.v2.mp4");
-            var frameBuffer = new FrameBuffer(capture, width, height);
+            //var frameBuffer = new FrameBuffer(capture, width, height);
+            Bebop bebop = new Bebop(30);
+           
+            var buffer = new StreamBuffer(bebop, width, height);
+            buffer.AddService(new Canny(width, height, true));
+            buffer.Start();
+            //frameBuffer.AddService(new Canny(width, height, true));
 
-            frameBuffer.AddService(new Canny(width, height, true));
+            //frameBuffer.Start();
 
-            frameBuffer.Start();
-
-            while (frameBuffer.IsRunning)
+            while (buffer.IsRunning)
             {
-                var frame = frameBuffer.PopLastFrame();
+                var frame = buffer.PopLastFrame();
                 if (frame != null)
                 {
-                    frameBuffer.TransmitFrame(frame);
+                    buffer.TransmitFrame(frame);
 
-                    foreach (var service in frameBuffer.Services)
+                    foreach (var service in buffer.Services)
                     {
                         var r = service.GetLatestResult();
                         if (r != null && r.IsValid)

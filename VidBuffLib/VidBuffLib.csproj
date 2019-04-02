@@ -65,6 +65,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\BebopFlying\BebopFlying.csproj">
+      <Project>{8E56759D-04A4-4F62-B6BD-805A84C55A77}</Project>
+      <Name>BebopFlying</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ServiceLib\ServiceLib.csproj">
       <Project>{9DF90151-0A5C-4D56-8F3C-9A890A76ED7A}</Project>
       <Name>ServiceLib</Name>

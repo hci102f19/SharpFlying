@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Mime;
 using System.Net.Sockets;
 using System.Threading;
+using System.Threading.Tasks;
 using BebopFlying.Bebop_Classes;
 using BebopFlying.Bebop_Classes.Structs;
 using Flight.Enums;
@@ -34,7 +35,7 @@ namespace BebopFlying
         private UdpClient _droneUdpClient;
 
         //Bebop vector set by the move command to fly
-        private Vector _flyVector;
+        private Vector _flyVector = new Vector();
         private IPEndPoint _remoteIpEndPoint;
         private byte[] _receivedData;
 
@@ -124,7 +125,7 @@ namespace BebopFlying
 
             //initialize
             _cmd = default(Command);
-            _flyVector = default(Vector);
+            _flyVector = new Vector();
 
             //All State setting
             GenerateAllStates();
@@ -141,7 +142,7 @@ namespace BebopFlying
             _cancelToken = _cts.Token;
 
             //todo: TRÅD OG SMART TRÅD HANDLING HER
-            //PcmdThreadActive();
+            PcmdThreadActive();
 
 
             //arStreamThreadActive();
@@ -191,6 +192,60 @@ namespace BebopFlying
             _cmd.cmd[3] = CommandSet.ARCOMMANDS_ID_COMMON_COMMON_CMD_ALLSTATES & (0xff00 >> 8);
 
             SendCommand(ref _cmd, CommandSet.ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK, CommandSet.BD_NET_CD_ACK_ID);
+        }
+
+        public void ArStreamThreadActive()
+        {
+            _logger.Debug("The ARStream thread is starting");
+
+            Task.Factory.StartNew(() =>
+            {
+                while (true)
+                {
+                    GetImageData();
+                    Thread.Sleep(Updaterate);
+                }
+            }, _cancelToken);
+        }
+
+        private void PcmdThreadActive()
+        {
+            Task.Factory.StartNew(() =>
+            {
+                while (true)
+                {
+                    GeneratePcmd();
+                    Thread.Sleep(Updaterate);
+                }
+            }, _cancelToken);
+        }
+
+        private void GeneratePcmd()
+        {
+            lock (ThisLock)
+            {
+                _cmd = default(Command);
+                _cmd.size = 13;
+                _cmd.cmd = new byte[13];
+
+                _cmd.cmd[0] = CommandSet.ARCOMMANDS_ID_PROJECT_ARDRONE3;
+                _cmd.cmd[1] = CommandSet.ARCOMMANDS_ID_ARDRONE3_CLASS_PILOTING;
+                _cmd.cmd[2] = CommandSet.ARCOMMANDS_ID_ARDRONE3_PILOTING_CMD_PCMD;
+                _cmd.cmd[3] = 0;
+                _cmd.cmd[4] = (byte)_flyVector.Flag; // flag
+                _cmd.cmd[5] = _flyVector.Roll >= 0 ? (byte)_flyVector.Roll : (byte)(256 + _flyVector.Roll); // roll: fly left or right [-100 ~ 100]
+                _cmd.cmd[6] = _flyVector.Pitch >= 0 ? (byte)_flyVector.Pitch : (byte)(256 + _flyVector.Pitch); // pitch: backward or forward [-100 ~ 100]
+                _cmd.cmd[7] = _flyVector.Yaw >= 0 ? (byte)_flyVector.Yaw : (byte)(256 + _flyVector.Yaw); // yaw: rotate left or right [-100 ~ 100]
+                _cmd.cmd[8] = _flyVector.Gaz >= 0 ? (byte)_flyVector.Gaz : (byte)(256 + _flyVector.Gaz); // gaze: down or up [-100 ~ 100]
+
+                // for Debug Mode
+                _cmd.cmd[9] = 0;
+                _cmd.cmd[10] = 0;
+                _cmd.cmd[11] = 0;
+                _cmd.cmd[12] = 0;
+
+                SendCommand(ref _cmd);
+            }
         }
 
         private void GenerateAllSettings()
