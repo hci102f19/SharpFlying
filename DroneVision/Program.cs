@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Emgu.CV;
 
@@ -11,14 +12,19 @@ namespace DroneVision
     {
         static void Main(string[] args)
         {
+            // Environment.SetEnvironmentVariable("OPENCV_FFMPEG_CAPTURE_OPTIONS", "protocol_whitelist=ALL", EnvironmentVariableTarget.User);
             VideoCapture videoCapture = new VideoCapture(@"./bebop.sdp");
 
             var frame = videoCapture.QueryFrame();
 
             while (frame != null)
             {
-                CvInvoke.Imshow("frame", frame);
-                CvInvoke.WaitKey(1);
+                using (frame)
+                {
+                    CvInvoke.Imshow("frame", frame);
+                    CvInvoke.WaitKey(1);
+                }
+
                 frame = videoCapture.QueryFrame();
             }
         }
