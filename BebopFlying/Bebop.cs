@@ -9,10 +9,10 @@ using BebopFlying.Bebop_Classes;
 using BebopFlying.Bebop_Classes.Structs;
 using Flight.Enums;
 using FlightLib;
+using NLog;
 
 namespace BebopFlying
 {
-    //todo: Check hvis tråde er i live
     public class Bebop : IFly
     {
         //Logger
@@ -25,9 +25,6 @@ namespace BebopFlying
 
         private readonly int[] _seq = new int[256];
 
-        private UdpClient _arstreamClient;
-        private CancellationToken _cancelToken;
-
         //Command struct used for sending commands to the drone
         private Command _cmd;
 
@@ -36,8 +33,9 @@ namespace BebopFlying
 
         //Bebop vector set by the move command to fly
         private Vector _flyVector = new Vector();
-        private IPEndPoint _remoteIpEndPoint;
-        private byte[] _receivedData;
+
+        private Thread _commandGeneratorThread;
+        private Thread _threadWatcher;
 
         /// <summary>
         ///     Initializes the bebop object at a specific updateRate
@@ -46,6 +44,12 @@ namespace BebopFlying
         public Bebop(int updateRate)
         {
             if (updateRate <= 0) throw new ArgumentOutOfRangeException(nameof(updateRate));
+            var config = new NLog.Config.LoggingConfiguration();
+            var logfile = new NLog.Targets.FileTarget("logfile") { FileName = "BebopFileLog.txt" };
+            var logconsole = new NLog.Targets.ConsoleTarget("logconsole");
+            config.AddRule(LogLevel.Debug, LogLevel.Fatal, logfile);
+            config.AddRule(LogLevel.Debug, LogLevel.Fatal, logconsole);
+            NLog.LogManager.Configuration = config;
             _logger = NLog.LogManager.GetCurrentClassLogger();
             Updaterate = 1000 / updateRate;
         }
@@ -90,63 +94,75 @@ namespace BebopFlying
 
         public bool IsAlive()
         {
-            throw new NotImplementedException();
+            return _threadWatcher.IsAlive && _commandGeneratorThread.IsAlive;
         }
 
+        /// <summary>
+        /// Connects to the drone
+        /// </summary>
+        /// <returns>The connection status of the connect attempt</returns>
         public ConnectionStatus Connect()
         {
-            _logger.Debug("Attempting to connect to drone...");
-
-            //Initialize the drone udp client
-            _droneUdpClient = new UdpClient(CommandSet.IP, 54321);
-
-            //make handshake with TCP_client, and the port is set to be 4444
-            var tcpClient = new TcpClient(CommandSet.IP, CommandSet.DISCOVERY_PORT);
-            //Initialize the network stream for the handshake
-            var stream = new NetworkStream(tcpClient.Client);
-
-            //initialize reader and writer
-            var streamWriter = new StreamWriter(stream);
-            var streamReader = new StreamReader(stream);
-
-            //when the drone receive the message bellow, it will return the confirmation
-            streamWriter.WriteLine(CommandSet.HandshakeMessage);
-            streamWriter.Flush();
-
-            var receiveMessage = streamReader.ReadLine();
-
-            if (receiveMessage == null)
+            try
             {
-                _logger.Fatal("Connection failed");
-                return ConnectionStatus.Failed;
+                _logger.Debug("Attempting to connect to drone...");
+                //Initialize the drone udp client
+                _droneUdpClient = new UdpClient(CommandSet.IP, 54321);
+
+                //make handshake with TCP_client, and the port is set to be 4444
+                var tcpClient = new TcpClient(CommandSet.IP, CommandSet.DISCOVERY_PORT);
+                //Initialize the network stream for the handshake
+                var stream = new NetworkStream(tcpClient.Client);
+
+                //initialize reader and writer
+                var streamWriter = new StreamWriter(stream);
+                var streamReader = new StreamReader(stream);
+
+                //when the drone receive the message below, it will return the confirmation
+                streamWriter.WriteLine(CommandSet.HandshakeMessage);
+                streamWriter.Flush();
+
+                var droneHandshakeResponse = streamReader.ReadLine();
+
+                if (droneHandshakeResponse == null)
+                {
+                    _logger.Fatal("Connection failed");
+                    return ConnectionStatus.Failed;
+                }
+
+                _logger.Debug("The message from the drone shows: " + droneHandshakeResponse);
+
+                //initialize command struct and movement vector
+                _cmd = default(Command);
+                _flyVector = new Vector();
+
+                //All State setting
+                GenerateAllStates();
+                GenerateAllSettings();
+
+                //enable video streaming
+                VideoEnable();
             }
-
-            _logger.Debug("The message from the drone shows: " + receiveMessage);
-
-            //initialize
-            _cmd = default(Command);
-            _flyVector = new Vector();
-
-            //All State setting
-            GenerateAllStates();
-            GenerateAllSettings();
-
-            //enable video streaming
-            VideoEnable();
-
-            //init CancellationToken
-            _cancelToken = _cts.Token;
-
-            //todo: TRÅD OG SMART TRÅD HANDLING HER
-            PcmdThreadActive();
-
-
-            //arStreamThreadActive();
+            catch (SocketException ex)
+            {
+                _logger.Fatal(ex.Message);
+                throw;
+            }
+            _commandGeneratorThread = new Thread(PcmdThreadActive);
+            _commandGeneratorThread.Start();
+            _threadWatcher = new Thread(ThreadManager);
+            _threadWatcher.Start();
+            _logger.Debug("Successfully connected to the drone");
             return ConnectionStatus.Success;
         }
 
-        private void SendCommand(ref Command cmd, int type = CommandSet.ARNETWORKAL_FRAME_TYPE_DATA,
-            int id = CommandSet.BD_NET_CD_NONACK_ID)
+        /// <summary>
+        /// Sends a command to the drone
+        /// </summary>
+        /// <param name="cmd">The command to send</param>
+        /// <param name="type">The type of command to send, defaults to a fly command</param>
+        /// <param name="id">The id of the command, defaults to not receiving an acknowledge</param>
+        private void SendCommand(ref Command cmd, int type = CommandSet.ARNETWORKAL_FRAME_TYPE_DATA, int id = CommandSet.BD_NET_CD_NONACK_ID)
         {
             var bufSize = cmd.size + 7;
             var buf = new byte[bufSize];
@@ -164,8 +180,10 @@ namespace BebopFlying
 
             cmd.cmd.CopyTo(buf, 7);
 
-
+            //Send buffer to drone
             _droneUdpClient.Send(buf, buf.Length);
+
+            //Reset flyvector
             lock (ThisLock)
             {
                 _flyVector.Flag = 0;
@@ -191,17 +209,37 @@ namespace BebopFlying
         }
         private void PcmdThreadActive()
         {
-            Task.Factory.StartNew(() =>
+            _logger.Debug("Started command generator thread");
+            while (true)
             {
-                while (true)
+                GenerateDroneCommand();
+                Thread.Sleep(Updaterate);
+            }
+        }
+        
+
+        private void ThreadManager()
+        {
+            _logger.Debug("Started Threadwatcher");
+            while (true)
+            {
+                if (_commandGeneratorThread.IsAlive)
                 {
-                    GeneratePcmd();
-                    Thread.Sleep(Updaterate);
+                    Thread.Sleep(500);
                 }
-            }, _cancelToken);
+                else
+                {
+                    _logger.Fatal("Bebop command thread is not alive, initializing emergency procedure!");
+                    Landing();
+                }
+
+            }
         }
 
-        private void GeneratePcmd()
+        /// <summary>
+        /// Generates the command for the drone
+        /// </summary>
+        private void GenerateDroneCommand()
         {
             lock (ThisLock)
             {
@@ -254,25 +292,11 @@ namespace BebopFlying
             _cmd.cmd[2] = 0 & 0xff; // ARCOMMANDS_ID_COMMON_CLASS_SETTINGS_CMD_VIDEOENABLE = 0
             _cmd.cmd[3] = 0 & (0xff00 >> 8);
             _cmd.cmd[4] = 1; //arg: Enable
-            Console.WriteLine(_cmd.cmd);
+            for (int i = 0; i < _cmd.size; i++)
+            {
+                Console.Write(_cmd.cmd[i]);
+            }
             SendCommand(ref _cmd, CommandSet.ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK, CommandSet.BD_NET_CD_ACK_ID);
-        }
-
-        public void InitArStream()
-        {
-            _arstreamClient = new UdpClient(55004);
-            _remoteIpEndPoint = new IPEndPoint(IPAddress.Any, 0);
-        }
-
-        public byte[] GetImageData()
-        {
-            _receivedData = _arstreamClient.Receive(ref _remoteIpEndPoint);
-            return _receivedData;
-        }
-
-        public void CancelAllTasks()
-        {
-            _cts.Cancel();
         }
     }
 }
