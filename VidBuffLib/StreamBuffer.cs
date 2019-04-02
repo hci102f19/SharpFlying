@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Reflection;
 using System.Threading;
 using Emgu.CV;
 using Emgu.CV.Structure;
@@ -15,12 +14,12 @@ namespace VidBuffLib
 
         private void FixEnviromentVariable()
         {
-            string env = Environment.GetEnvironmentVariable(
+            var env = Environment.GetEnvironmentVariable(
                 "OPENCV_FFMPEG_CAPTURE_OPTIONS",
                 EnvironmentVariableTarget.User
             );
 
-            string envVal = "protocol_whitelist;file,rtp,udp";
+            var envVal = "protocol_whitelist;file,rtp,udp";
 
             if (env == null || env != envVal)
             {
