@@ -134,10 +134,6 @@ namespace BebopFlying
             //enable video streaming
             VideoEnable();
 
-            //init ARStream
-            InitArStream();
-            //initARStream();
-
             //init CancellationToken
             _cancelToken = _cts.Token;
 
@@ -193,21 +189,6 @@ namespace BebopFlying
 
             SendCommand(ref _cmd, CommandSet.ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK, CommandSet.BD_NET_CD_ACK_ID);
         }
-
-        public void ArStreamThreadActive()
-        {
-            _logger.Debug("The ARStream thread is starting");
-
-            Task.Factory.StartNew(() =>
-            {
-                while (true)
-                {
-                    GetImageData();
-                    Thread.Sleep(Updaterate);
-                }
-            }, _cancelToken);
-        }
-
         private void PcmdThreadActive()
         {
             Task.Factory.StartNew(() =>
@@ -273,7 +254,7 @@ namespace BebopFlying
             _cmd.cmd[2] = 0 & 0xff; // ARCOMMANDS_ID_COMMON_CLASS_SETTINGS_CMD_VIDEOENABLE = 0
             _cmd.cmd[3] = 0 & (0xff00 >> 8);
             _cmd.cmd[4] = 1; //arg: Enable
-
+            Console.WriteLine(_cmd.cmd);
             SendCommand(ref _cmd, CommandSet.ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK, CommandSet.BD_NET_CD_ACK_ID);
         }
 
@@ -281,7 +262,6 @@ namespace BebopFlying
         {
             _arstreamClient = new UdpClient(55004);
             _remoteIpEndPoint = new IPEndPoint(IPAddress.Any, 0);
-
         }
 
         public byte[] GetImageData()

@@ -14,11 +14,11 @@ namespace SharpFlying
         {
             int width = 640, height = 480;
 
-            var capture = new VideoCapture(@"./video.v2.mp4");
+            var capture = new VideoCapture(@"C:\Users\bstaf\Documents\GitHub\SharpFlying\DroneVision\bin\Debug/bebop.sdp");
             //var frameBuffer = new FrameBuffer(capture, width, height);
             Bebop bebop = new Bebop(30);
-           
-            var buffer = new StreamBuffer(bebop, width, height);
+            bebop.Connect();
+            var buffer = new FrameBuffer(capture,width,height);
             buffer.AddService(new Canny(width, height, true));
             buffer.Start();
             //frameBuffer.AddService(new Canny(width, height, true));
