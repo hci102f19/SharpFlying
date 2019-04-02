@@ -94,7 +94,7 @@ namespace BebopFlying
 
         public bool IsAlive()
         {
-            return _threadWatcher.IsAlive && _commandGeneratorThread.IsAlive;
+            return _threadWatcher.IsAlive;
         }
 
         /// <summary>
@@ -243,6 +243,7 @@ namespace BebopFlying
         {
             lock (ThisLock)
             {
+                if(_flyVector.IsNull())return;
                 _cmd = default(Command);
                 _cmd.size = 13;
                 _cmd.cmd = new byte[13];
