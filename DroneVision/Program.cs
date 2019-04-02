@@ -12,7 +12,7 @@ namespace DroneVision
     {
         static void Main(string[] args)
         {
-            // Environment.SetEnvironmentVariable("OPENCV_FFMPEG_CAPTURE_OPTIONS", "protocol_whitelist=ALL", EnvironmentVariableTarget.User);
+            Environment.SetEnvironmentVariable("OPENCV_FFMPEG_CAPTURE_OPTIONS", "protocol_whitelist;file,rtp,udp", EnvironmentVariableTarget.User);
             VideoCapture videoCapture = new VideoCapture(@"./bebop.sdp");
 
             var frame = videoCapture.QueryFrame();
