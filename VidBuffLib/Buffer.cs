@@ -20,15 +20,15 @@ namespace VidBuffLib
         protected Stack<Image<Bgr, byte>> Stack = new Stack<Image<Bgr, byte>>(1);
         protected VideoCapture Stream;
 
-        public bool IsRunning { get; protected set; } = true;
-
-        public List<Service> Services { get; protected set; } = new List<Service>();
-
         protected Buffer(VideoCapture stream, int width, int height)
         {
             Stream = stream;
             Size = new Size(width, height);
         }
+
+        public bool IsRunning { get; protected set; } = true;
+
+        public List<Service> Services { get; protected set; } = new List<Service>();
 
         public void AddService(Service service)
         {
@@ -85,7 +85,7 @@ namespace VidBuffLib
         public void Start()
         {
             //Start all connected services
-            foreach (Service service in Services)
+            foreach (var service in Services)
                 service.Start();
 
             Task.Factory.StartNew(Run);
@@ -98,7 +98,7 @@ namespace VidBuffLib
 
         public void TransmitFrame(Image<Bgr, byte> frame)
         {
-            foreach (Service service in Services)
+            foreach (var service in Services)
                 service.Input(frame);
         }
     }
