@@ -33,7 +33,9 @@ namespace BebopFlying
         private UdpClient _droneDataClient;
         private UdpClient _arstreamClient;
         private IPEndPoint _remoteIpEndPoint;
+
         private IPEndPoint _droneData = new IPEndPoint(IPAddress.Any, 43210);
+
         //Bebop vector set by the move command to fly
         private Vector _flyVector = new Vector();
 
@@ -49,7 +51,7 @@ namespace BebopFlying
         {
             if (updaterate <= 0) throw new ArgumentOutOfRangeException(nameof(updaterate));
             var config = new NLog.Config.LoggingConfiguration();
-            var logfile = new NLog.Targets.FileTarget("logfile") { FileName = "BebopFileLog.txt" };
+            var logfile = new NLog.Targets.FileTarget("logfile") {FileName = "BebopFileLog.txt"};
             var logconsole = new NLog.Targets.ConsoleTarget("logconsole");
             config.AddRule(LogLevel.Debug, LogLevel.Fatal, logfile);
             config.AddRule(LogLevel.Debug, LogLevel.Fatal, logconsole);
@@ -101,6 +103,7 @@ namespace BebopFlying
         }
 
         private StreamReader streamReader;
+
         /// <summary>
         /// Connects to the drone
         /// </summary>
@@ -116,7 +119,7 @@ namespace BebopFlying
 
                 //make handshake with TCP_client, and the port is set to be 4444
                 var tcpClient = new TcpClient(CommandSet.IP, CommandSet.DISCOVERY_PORT);
-                
+
                 //Initialize the network stream for the handshake
                 var stream = new NetworkStream(tcpClient.Client);
 
@@ -142,7 +145,6 @@ namespace BebopFlying
                 _cmd = default(Command);
                 _flyVector = new Vector();
 
-                
 
                 //All State setting
                 AskForStateUpdate();
@@ -169,13 +171,18 @@ namespace BebopFlying
 
         private void CreateSocket()
         {
-            Socket socket = new Socket(AddressFamily.InterNetwork,SocketType.Dgram,ProtocolType.Udp);
+            Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+
             socket.ReceiveTimeout = 5000;
-            socket.SetSocketOption(SocketOptionLevel.Socket,SocketOptionName.ReuseAddress,1);
+
+            socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, 1);
             socket.Bind(_droneData);
-            Console.WriteLine(socket.Connected);
+
+            Console.WriteLine(socket.Connected == false);
+            socket.Connect(CommandSet.IP, CommandSet.D2C_PORT);
+            Console.WriteLine(socket.Connected == true);
+
             _droneDataClient.Client = socket;
-            _droneDataClient.Connect(CommandSet.IP, CommandSet.D2C_PORT);
         }
 
         private void ReadDroneOutput()
@@ -185,6 +192,7 @@ namespace BebopFlying
             string message = "";
             while (true)
             {
+                Console.WriteLine("READING?");
                 try
                 {
                     AskForStateUpdate();
@@ -257,6 +265,7 @@ namespace BebopFlying
 
             SendCommand(ref _cmd, CommandSet.ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK, CommandSet.BD_NET_CD_ACK_ID);
         }
+
         private void PcmdThreadActive()
         {
             _logger.Debug("Started command generator thread");
@@ -266,7 +275,7 @@ namespace BebopFlying
                 SmartSleep(Updaterate);
             }
         }
-        
+
 
         private void ThreadManager()
         {
@@ -282,7 +291,6 @@ namespace BebopFlying
                     _logger.Fatal("Bebop command thread is not alive, initializing emergency procedure!");
                     Landing();
                 }
-
             }
         }
 
@@ -302,11 +310,11 @@ namespace BebopFlying
                 _cmd.cmd[1] = CommandSet.ARCOMMANDS_ID_ARDRONE3_CLASS_PILOTING;
                 _cmd.cmd[2] = CommandSet.ARCOMMANDS_ID_ARDRONE3_PILOTING_CMD_PCMD;
                 _cmd.cmd[3] = 0;
-                _cmd.cmd[4] = (byte)_flyVector.Flag; // flag
-                _cmd.cmd[5] = _flyVector.Roll >= 0 ? (byte)_flyVector.Roll : (byte)(256 + _flyVector.Roll); // roll: fly left or right [-100 ~ 100]
-                _cmd.cmd[6] = _flyVector.Pitch >= 0 ? (byte)_flyVector.Pitch : (byte)(256 + _flyVector.Pitch); // pitch: backward or forward [-100 ~ 100]
-                _cmd.cmd[7] = _flyVector.Yaw >= 0 ? (byte)_flyVector.Yaw : (byte)(256 + _flyVector.Yaw); // yaw: rotate left or right [-100 ~ 100]
-                _cmd.cmd[8] = _flyVector.Gaz >= 0 ? (byte)_flyVector.Gaz : (byte)(256 + _flyVector.Gaz); // gaze: down or up [-100 ~ 100]
+                _cmd.cmd[4] = (byte) _flyVector.Flag; // flag
+                _cmd.cmd[5] = _flyVector.Roll >= 0 ? (byte) _flyVector.Roll : (byte) (256 + _flyVector.Roll); // roll: fly left or right [-100 ~ 100]
+                _cmd.cmd[6] = _flyVector.Pitch >= 0 ? (byte) _flyVector.Pitch : (byte) (256 + _flyVector.Pitch); // pitch: backward or forward [-100 ~ 100]
+                _cmd.cmd[7] = _flyVector.Yaw >= 0 ? (byte) _flyVector.Yaw : (byte) (256 + _flyVector.Yaw); // yaw: rotate left or right [-100 ~ 100]
+                _cmd.cmd[8] = _flyVector.Gaz >= 0 ? (byte) _flyVector.Gaz : (byte) (256 + _flyVector.Gaz); // gaze: down or up [-100 ~ 100]
 
                 // for Debug Mode
                 _cmd.cmd[9] = 0;
@@ -330,6 +338,7 @@ namespace BebopFlying
             {
                 Thread.Yield();
             }
+
             sw.Stop();
         }
 
@@ -367,6 +376,5 @@ namespace BebopFlying
 
             SendCommand(ref _cmd, CommandSet.ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK, CommandSet.BD_NET_CD_ACK_ID);
         }
-
     }
 }
