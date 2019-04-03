@@ -1,22 +1,21 @@
 ﻿using System;
 using System.IO;
-using System.Net;
-using System.Net.Mime;
 using System.Net.Sockets;
 using System.Threading;
-using System.Threading.Tasks;
 using BebopFlying.Bebop_Classes;
 using BebopFlying.Bebop_Classes.Structs;
 using Flight.Enums;
 using FlightLib;
 using NLog;
+using NLog.Config;
+using NLog.Targets;
 
 namespace BebopFlying
 {
     public class Bebop : IFly
     {
         //Logger
-        private static NLog.Logger _logger;
+        private static Logger _logger;
 
         //Log to ensure 
         private static readonly object ThisLock = new object();
@@ -28,13 +27,13 @@ namespace BebopFlying
         //Command struct used for sending commands to the drone
         private Command _cmd;
 
+        private Thread _commandGeneratorThread;
+
         //UDP client to send data to the drone
         private UdpClient _droneUdpClient;
 
         //Bebop vector set by the move command to fly
         private Vector _flyVector = new Vector();
-
-        private Thread _commandGeneratorThread;
         private Thread _threadWatcher;
 
         /// <summary>
@@ -44,13 +43,13 @@ namespace BebopFlying
         public Bebop(int updateRate)
         {
             if (updateRate <= 0) throw new ArgumentOutOfRangeException(nameof(updateRate));
-            var config = new NLog.Config.LoggingConfiguration();
-            var logfile = new NLog.Targets.FileTarget("logfile") { FileName = "BebopFileLog.txt" };
-            var logconsole = new NLog.Targets.ConsoleTarget("logconsole");
+            var config = new LoggingConfiguration();
+            var logfile = new FileTarget("logfile") { FileName = "BebopFileLog.txt" };
+            var logconsole = new ConsoleTarget("logconsole");
             config.AddRule(LogLevel.Debug, LogLevel.Fatal, logfile);
             config.AddRule(LogLevel.Debug, LogLevel.Fatal, logconsole);
-            NLog.LogManager.Configuration = config;
-            _logger = NLog.LogManager.GetCurrentClassLogger();
+            LogManager.Configuration = config;
+            _logger = LogManager.GetCurrentClassLogger();
             Updaterate = 1000 / updateRate;
         }
 
@@ -97,7 +96,7 @@ namespace BebopFlying
         }
 
         /// <summary>
-        /// Connects to the drone
+        ///     Connects to the drone
         /// </summary>
         /// <returns>The connection status of the connect attempt</returns>
         public ConnectionStatus Connect()
@@ -147,6 +146,7 @@ namespace BebopFlying
                 _logger.Fatal(ex.Message);
                 throw;
             }
+
             _commandGeneratorThread = new Thread(PcmdThreadActive);
             _commandGeneratorThread.Start();
             _threadWatcher = new Thread(ThreadManager);
@@ -156,12 +156,13 @@ namespace BebopFlying
         }
 
         /// <summary>
-        /// Sends a command to the drone
+        ///     Sends a command to the drone
         /// </summary>
         /// <param name="cmd">The command to send</param>
         /// <param name="type">The type of command to send, defaults to a fly command</param>
         /// <param name="id">The id of the command, defaults to not receiving an acknowledge</param>
-        private void SendCommand(ref Command cmd, int type = CommandSet.ARNETWORKAL_FRAME_TYPE_DATA, int id = CommandSet.BD_NET_CD_NONACK_ID)
+        private void SendCommand(ref Command cmd, int type = CommandSet.ARNETWORKAL_FRAME_TYPE_DATA,
+            int id = CommandSet.BD_NET_CD_NONACK_ID)
         {
             var bufSize = cmd.size + 7;
             var buf = new byte[bufSize];
@@ -169,13 +170,13 @@ namespace BebopFlying
             _seq[id]++;
             if (_seq[id] > 255) _seq[id] = 0;
 
-            buf[0] = (byte) type;
-            buf[1] = (byte) id;
-            buf[2] = (byte) _seq[id];
-            buf[3] = (byte) (bufSize & 0xff);
-            buf[4] = (byte) ((bufSize & 0xff00) >> 8);
-            buf[5] = (byte) ((bufSize & 0xff0000) >> 16);
-            buf[6] = (byte) ((bufSize & 0xff000000) >> 24);
+            buf[0] = (byte)type;
+            buf[1] = (byte)id;
+            buf[2] = (byte)_seq[id];
+            buf[3] = (byte)(bufSize & 0xff);
+            buf[4] = (byte)((bufSize & 0xff00) >> 8);
+            buf[5] = (byte)((bufSize & 0xff0000) >> 16);
+            buf[6] = (byte)((bufSize & 0xff000000) >> 24);
 
             cmd.cmd.CopyTo(buf, 7);
 
@@ -206,6 +207,7 @@ namespace BebopFlying
 
             SendCommand(ref _cmd, CommandSet.ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK, CommandSet.BD_NET_CD_ACK_ID);
         }
+
         private void PcmdThreadActive()
         {
             _logger.Debug("Started command generator thread");
@@ -215,13 +217,12 @@ namespace BebopFlying
                 Thread.Sleep(Updaterate);
             }
         }
-        
+
 
         private void ThreadManager()
         {
             _logger.Debug("Started Threadwatcher");
             while (true)
-            {
                 if (_commandGeneratorThread.IsAlive)
                 {
                     Thread.Sleep(500);
@@ -231,12 +232,10 @@ namespace BebopFlying
                     _logger.Fatal("Bebop command thread is not alive, initializing emergency procedure!");
                     Landing();
                 }
-
-            }
         }
 
         /// <summary>
-        /// Generates the command for the drone
+        ///     Generates the command for the drone
         /// </summary>
         private void GenerateDroneCommand()
         {
@@ -252,10 +251,22 @@ namespace BebopFlying
                 _cmd.cmd[2] = CommandSet.ARCOMMANDS_ID_ARDRONE3_PILOTING_CMD_PCMD;
                 _cmd.cmd[3] = 0;
                 _cmd.cmd[4] = (byte)_flyVector.Flag; // flag
-                _cmd.cmd[5] = _flyVector.Roll >= 0 ? (byte)_flyVector.Roll : (byte)(256 + _flyVector.Roll); // roll: fly left or right [-100 ~ 100]
-                _cmd.cmd[6] = _flyVector.Pitch >= 0 ? (byte)_flyVector.Pitch : (byte)(256 + _flyVector.Pitch); // pitch: backward or forward [-100 ~ 100]
-                _cmd.cmd[7] = _flyVector.Yaw >= 0 ? (byte)_flyVector.Yaw : (byte)(256 + _flyVector.Yaw); // yaw: rotate left or right [-100 ~ 100]
-                _cmd.cmd[8] = _flyVector.Gaz >= 0 ? (byte)_flyVector.Gaz : (byte)(256 + _flyVector.Gaz); // gaze: down or up [-100 ~ 100]
+                _cmd.cmd[5] =
+                    _flyVector.Roll >= 0
+                        ? (byte)_flyVector.Roll
+                        : (byte)(256 + _flyVector.Roll); // roll: fly left or right [-100 ~ 100]
+                _cmd.cmd[6] =
+                    _flyVector.Pitch >= 0
+                        ? (byte)_flyVector.Pitch
+                        : (byte)(256 + _flyVector.Pitch); // pitch: backward or forward [-100 ~ 100]
+                _cmd.cmd[7] =
+                    _flyVector.Yaw >= 0
+                        ? (byte)_flyVector.Yaw
+                        : (byte)(256 + _flyVector.Yaw); // yaw: rotate left or right [-100 ~ 100]
+                _cmd.cmd[8] =
+                    _flyVector.Gaz >= 0
+                        ? (byte)_flyVector.Gaz
+                        : (byte)(256 + _flyVector.Gaz); // gaze: down or up [-100 ~ 100]
 
                 // for Debug Mode
                 _cmd.cmd[9] = 0;

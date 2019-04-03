@@ -2,8 +2,6 @@
 using BebopFlying;
 using EdgyLib;
 using Emgu.CV;
-using Flight.Enums;
-using ServiceLib;
 using VidBuffLib;
 
 namespace SharpFlying
@@ -16,7 +14,7 @@ namespace SharpFlying
 
             var capture = new VideoCapture(@"./bebop.sdp");
 
-            Bebop bebop = new Bebop(30);
+            var bebop = new Bebop(30);
             bebop.Connect();
             var buffer = new StreamBuffer(capture, width, height);
             buffer.AddService(new Canny(width, height, true));

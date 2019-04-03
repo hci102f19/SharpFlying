@@ -4,12 +4,12 @@ namespace Geometry.Base
 {
     public class Polygon
     {
-        public Polygon2d InternalPolygon { get; protected set; }
-
         public Polygon(params V2d[] points)
         {
             InternalPolygon = new Polygon2d(points);
         }
+
+        public Polygon2d InternalPolygon { get; protected set; }
 
         public bool Contains(Point point)
         {

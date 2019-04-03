@@ -63,7 +63,6 @@ namespace VidBuffLib
                 }
 
                 frame = Stream.QueryFrame();
-
             }
 
             IsRunning = false;
