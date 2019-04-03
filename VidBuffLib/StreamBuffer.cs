@@ -47,7 +47,7 @@ namespace VidBuffLib
                 Thread.Sleep(100);
             }
 
-            while (IsRunning)
+            while (frame != null && IsRunning)
             {
                 using (frame = ProcessFrame(frame))
                 {

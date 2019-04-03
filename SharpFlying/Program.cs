@@ -10,8 +10,6 @@ namespace SharpFlying
 {
     internal class Program
     {
-        private static Bebop bebop;
-        private static StreamBuffer buffer;
         private static void Main(string[] args)
         {
             int width = 640, height = 480;
