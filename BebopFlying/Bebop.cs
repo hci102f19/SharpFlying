@@ -56,7 +56,6 @@ namespace BebopFlying
 
         protected int Updaterate { get; }
 
-
         public void TakeOff()
         {
             _logger.Debug("Performing takeoff...");
@@ -243,7 +242,7 @@ namespace BebopFlying
         {
             lock (ThisLock)
             {
-                if(_flyVector.IsNull())return;
+                //if(_flyVector.IsNull())return;
                 _cmd = default(Command);
                 _cmd.size = 13;
                 _cmd.cmd = new byte[13];
@@ -293,10 +292,7 @@ namespace BebopFlying
             _cmd.cmd[2] = 0 & 0xff; // ARCOMMANDS_ID_COMMON_CLASS_SETTINGS_CMD_VIDEOENABLE = 0
             _cmd.cmd[3] = 0 & (0xff00 >> 8);
             _cmd.cmd[4] = 1; //arg: Enable
-            for (int i = 0; i < _cmd.size; i++)
-            {
-                Console.Write(_cmd.cmd[i]);
-            }
+
             SendCommand(ref _cmd, CommandSet.ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK, CommandSet.BD_NET_CD_ACK_ID);
         }
     }

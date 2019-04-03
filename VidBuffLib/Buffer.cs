@@ -65,12 +65,16 @@ namespace VidBuffLib
             }
 
             if (IsRunning)
+            {
                 return Stack.Pop();
+            }
+
             return null;
         }
 
         protected Mat ProcessFrame(Mat mat)
         {
+
             CvInvoke.Resize(mat, mat, Size);
             CvInvoke.GaussianBlur(mat, mat, new Size(Blur, Blur), 0);
 
@@ -82,13 +86,16 @@ namespace VidBuffLib
             IsRunning = false;
         }
 
+        public Thread deadmanThread;
         public void Start()
         {
             //Start all connected services
             foreach (var service in Services)
                 service.Start();
 
-            Task.Factory.StartNew(Run);
+            deadmanThread = new Thread(Run);
+            deadmanThread.Start();
+            //Task.Factory.StartNew(Run);
         }
 
         protected virtual void Run()

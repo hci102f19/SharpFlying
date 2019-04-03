@@ -10,20 +10,19 @@ namespace SharpFlying
 {
     internal class Program
     {
+        private static Bebop bebop;
+        private static StreamBuffer buffer;
         private static void Main(string[] args)
         {
             int width = 640, height = 480;
 
-            var capture = new VideoCapture(@"C:\Users\bstaf\Documents\GitHub\SharpFlying\DroneVision\bin\Debug/bebop.sdp");
-            //var frameBuffer = new FrameBuffer(capture, width, height);
+            var capture = new VideoCapture(@"./bebop.sdp");
+
             Bebop bebop = new Bebop(30);
             bebop.Connect();
-            var buffer = new FrameBuffer(capture,width,height);
+            var buffer = new StreamBuffer(capture, width, height);
             buffer.AddService(new Canny(width, height, true));
             buffer.Start();
-            //frameBuffer.AddService(new Canny(width, height, true));
-
-            //frameBuffer.Start();
 
             while (buffer.IsRunning)
             {
@@ -39,8 +38,8 @@ namespace SharpFlying
                             Console.WriteLine(r.Vector);
                     }
 
-                    // CvInvoke.Imshow("frame", frame);
-                    // CvInvoke.WaitKey(1);
+                    //CvInvoke.Imshow("frame", frame);
+                    //CvInvoke.WaitKey(1);
                 }
             }
         }
