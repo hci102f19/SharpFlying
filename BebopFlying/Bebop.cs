@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Mime;
 using System.Net.Sockets;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using BebopFlying.Bebop_Classes;
@@ -18,10 +20,8 @@ namespace BebopFlying
         //Logger
         private static NLog.Logger _logger;
 
-        //Log to ensure 
+        //Log to ensure that access to flyvector is fine during multithreading
         private static readonly object ThisLock = new object();
-
-        private readonly CancellationTokenSource _cts = new CancellationTokenSource();
 
         private readonly int[] _seq = new int[256];
 
@@ -30,20 +30,24 @@ namespace BebopFlying
 
         //UDP client to send data to the drone
         private UdpClient _droneUdpClient;
-
+        private UdpClient _droneDataClient;
+        private UdpClient _arstreamClient;
+        private IPEndPoint _remoteIpEndPoint;
+        private IPEndPoint _droneData = new IPEndPoint(IPAddress.Any, 43210);
         //Bebop vector set by the move command to fly
         private Vector _flyVector = new Vector();
 
         private Thread _commandGeneratorThread;
         private Thread _threadWatcher;
+        private Thread _StreamReader;
 
         /// <summary>
-        ///     Initializes the bebop object at a specific updateRate
+        ///     Initializes the bebop object at a specific updaterate
         /// </summary>
-        /// <param name="updateRate">Numer of updates per second</param>
-        public Bebop(int updateRate)
+        /// <param name="updaterate">Numer of updates per second</param>
+        public Bebop(int updaterate)
         {
-            if (updateRate <= 0) throw new ArgumentOutOfRangeException(nameof(updateRate));
+            if (updaterate <= 0) throw new ArgumentOutOfRangeException(nameof(updaterate));
             var config = new NLog.Config.LoggingConfiguration();
             var logfile = new NLog.Targets.FileTarget("logfile") { FileName = "BebopFileLog.txt" };
             var logconsole = new NLog.Targets.ConsoleTarget("logconsole");
@@ -51,7 +55,7 @@ namespace BebopFlying
             config.AddRule(LogLevel.Debug, LogLevel.Fatal, logconsole);
             NLog.LogManager.Configuration = config;
             _logger = NLog.LogManager.GetCurrentClassLogger();
-            Updaterate = 1000 / updateRate;
+            Updaterate = 1000 / updaterate;
         }
 
         protected int Updaterate { get; }
@@ -96,6 +100,7 @@ namespace BebopFlying
             return _threadWatcher.IsAlive;
         }
 
+        private StreamReader streamReader;
         /// <summary>
         /// Connects to the drone
         /// </summary>
@@ -107,19 +112,21 @@ namespace BebopFlying
                 _logger.Debug("Attempting to connect to drone...");
                 //Initialize the drone udp client
                 _droneUdpClient = new UdpClient(CommandSet.IP, 54321);
+                _droneDataClient = new UdpClient(CommandSet.IP, 43210);
 
                 //make handshake with TCP_client, and the port is set to be 4444
                 var tcpClient = new TcpClient(CommandSet.IP, CommandSet.DISCOVERY_PORT);
+                
                 //Initialize the network stream for the handshake
                 var stream = new NetworkStream(tcpClient.Client);
 
                 //initialize reader and writer
                 var streamWriter = new StreamWriter(stream);
-                var streamReader = new StreamReader(stream);
-
+                streamReader = new StreamReader(stream);
                 //when the drone receive the message below, it will return the confirmation
                 streamWriter.WriteLine(CommandSet.HandshakeMessage);
                 streamWriter.Flush();
+                _StreamReader = new Thread(ReadDroneOutput);
 
                 var droneHandshakeResponse = streamReader.ReadLine();
 
@@ -135,24 +142,68 @@ namespace BebopFlying
                 _cmd = default(Command);
                 _flyVector = new Vector();
 
+                
+
                 //All State setting
-                GenerateAllStates();
+                AskForStateUpdate();
                 GenerateAllSettings();
 
                 //enable video streaming
                 VideoEnable();
+                //InitArStream();
             }
             catch (SocketException ex)
             {
                 _logger.Fatal(ex.Message);
                 throw;
             }
+
             _commandGeneratorThread = new Thread(PcmdThreadActive);
             _commandGeneratorThread.Start();
             _threadWatcher = new Thread(ThreadManager);
             _threadWatcher.Start();
+            _StreamReader.Start();
             _logger.Debug("Successfully connected to the drone");
             return ConnectionStatus.Success;
+        }
+
+        private void CreateSocket()
+        {
+            Socket socket = new Socket(AddressFamily.InterNetwork,SocketType.Dgram,ProtocolType.Udp);
+            socket.ReceiveTimeout = 5000;
+            socket.SetSocketOption(SocketOptionLevel.Socket,SocketOptionName.ReuseAddress,1);
+            socket.Bind(_droneData);
+            Console.WriteLine(socket.Connected);
+            _droneDataClient.Client = socket;
+            _droneDataClient.Connect(CommandSet.IP, CommandSet.D2C_PORT);
+        }
+
+        private void ReadDroneOutput()
+        {
+            CreateSocket();
+            byte[] data = new byte[0];
+            string message = "";
+            while (true)
+            {
+                try
+                {
+                    AskForStateUpdate();
+                    data = _droneDataClient.Receive(ref _droneData);
+                    message = Encoding.ASCII.GetString(data);
+                    Console.WriteLine(message);
+                }
+                catch (SocketException ex)
+                {
+                    if (ex.ErrorCode != 10060)
+                    {
+                        // Handle the error. 10060 is a timeout error, which is expected.
+                    }
+                }
+                finally
+                {
+                    SmartSleep(100);
+                }
+            }
         }
 
         /// <summary>
@@ -192,9 +243,9 @@ namespace BebopFlying
             }
         }
 
-        private void GenerateAllStates()
+        private void AskForStateUpdate()
         {
-            _logger.Debug("Generated all states");
+            //_logger.Debug("Generated all states");
             _cmd = default(Command);
             _cmd.size = 4;
             _cmd.cmd = new byte[4];
@@ -212,7 +263,7 @@ namespace BebopFlying
             while (true)
             {
                 GenerateDroneCommand();
-                Thread.Sleep(Updaterate);
+                SmartSleep(Updaterate);
             }
         }
         
@@ -267,6 +318,21 @@ namespace BebopFlying
             }
         }
 
+        /// <summary>
+        /// Busy sleeps for the specified amount of time.
+        /// </summary>
+        /// <param name="milliseconds">Number of milliseconds to sleep</param>
+        private void SmartSleep(int milliseconds)
+        {
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+            while (sw.ElapsedMilliseconds < milliseconds)
+            {
+                Thread.Yield();
+            }
+            sw.Stop();
+        }
+
         private void GenerateAllSettings()
         {
             _cmd = default(Command);
@@ -279,6 +345,12 @@ namespace BebopFlying
             _cmd.cmd[3] = 0 & (0xff00 >> 8);
 
             SendCommand(ref _cmd, CommandSet.ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK, CommandSet.BD_NET_CD_ACK_ID);
+        }
+
+        public void InitArStream()
+        {
+            _arstreamClient = new UdpClient(55004);
+            _remoteIpEndPoint = new IPEndPoint(IPAddress.Any, 0);
         }
 
         private void VideoEnable()
@@ -295,5 +367,6 @@ namespace BebopFlying
 
             SendCommand(ref _cmd, CommandSet.ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK, CommandSet.BD_NET_CD_ACK_ID);
         }
+
     }
 }

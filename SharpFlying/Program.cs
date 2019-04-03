@@ -34,8 +34,8 @@ namespace SharpFlying
                     foreach (var service in buffer.Services)
                     {
                         var r = service.GetLatestResult();
-                        if (r != null && r.IsValid)
-                            Console.WriteLine(r.Vector);
+                        //if (r != null && r.IsValid)
+                            //Console.WriteLine(r.Vector);
                     }
 
                     //CvInvoke.Imshow("frame", frame);
