@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Emgu.CV;
 using Emgu.CV.Structure;
@@ -7,9 +8,13 @@ namespace ServiceLib
 {
     public abstract class Service
     {
+        protected bool IgnoreInput = false;
+        public Thread BackgroundThread { get; protected set; }
+
         public void Start()
         {
-            Task.Factory.StartNew(() => { Run(); });
+            BackgroundThread = new Thread(Run);
+            BackgroundThread.Start();
         }
 
         protected virtual void Run()
@@ -19,7 +24,8 @@ namespace ServiceLib
 
         public virtual void Input(Image<Bgr, byte> frame)
         {
-            throw new NotImplementedException();
+            if (!IgnoreInput)
+                throw new NotImplementedException();
         }
 
         public virtual Response GetLatestResult()

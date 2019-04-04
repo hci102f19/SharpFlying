@@ -21,6 +21,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BebopFlying", "BebopFlying\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RenderGeometry", "RenderGeometry\RenderGeometry.csproj", "{4F0A69CA-9EFE-4500-9D12-E27ABAF8E405}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WiFiLib", "WiFiLib\WiFiLib.csproj", "{D26B14F4-8206-4476-A997-814D126D3DEF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -63,6 +65,10 @@ Global
 		{4F0A69CA-9EFE-4500-9D12-E27ABAF8E405}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4F0A69CA-9EFE-4500-9D12-E27ABAF8E405}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4F0A69CA-9EFE-4500-9D12-E27ABAF8E405}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D26B14F4-8206-4476-A997-814D126D3DEF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D26B14F4-8206-4476-A997-814D126D3DEF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D26B14F4-8206-4476-A997-814D126D3DEF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D26B14F4-8206-4476-A997-814D126D3DEF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
