@@ -73,7 +73,7 @@ namespace BebopFlying
         {
             if (updaterate <= 0) throw new ArgumentOutOfRangeException(nameof(updaterate));
             var config = new NLog.Config.LoggingConfiguration();
-            var logfile = new NLog.Targets.FileTarget("logfile") {FileName = "BebopFileLog.txt"};
+            var logfile = new NLog.Targets.FileTarget("logfile") { FileName = "BebopFileLog.txt" };
             var logconsole = new NLog.Targets.ConsoleTarget("logconsole");
             config.AddRule(LogLevel.Debug, LogLevel.Fatal, logfile);
             config.AddRule(LogLevel.Debug, LogLevel.Fatal, logconsole);
@@ -264,7 +264,7 @@ namespace BebopFlying
             {
                 var ackSeqNumber = BitConverter.ToInt32(data.data, 0);
                 _commandReceived.Add(new Tuple<string, int>("SEND_WITH_ACK", ackSeqNumber), true);
-                AckPacket(data.BufferID,ackSeqNumber);
+                AckPacket(data.BufferID, ackSeqNumber);
             }
             //Drone just sent us sensor data -> No acknowledge required
             else if (data.DataType == CommandSet.ARNETWORKAL_FRAME_TYPE_DATA)
@@ -295,9 +295,9 @@ namespace BebopFlying
                 _commandReceived[new Tuple<string, int>("ACK", (newbufferId + 1) % 256)] = true;
                 packet.cmd[0] = CommandSet.ARNETWORKAL_FRAME_TYPE_ACK;
                 packet.cmd[1] = (byte)newbufferId;
-                packet.cmd[2] = (byte) ((newbufferId + 1) % 256);
+                packet.cmd[2] = (byte)((newbufferId + 1) % 256);
                 packet.cmd[3] = 8;
-                packet.cmd[4] = (byte) packetID;
+                packet.cmd[4] = (byte)packetID;
                 packet.size = 5;
             }
             SafeSendDroneCMD(packet);
@@ -309,7 +309,7 @@ namespace BebopFlying
         {
             var size = data.Length;
 
-            var seq =_sequenceDictionary["PONG"];
+            var seq = _sequenceDictionary["PONG"];
 
             _sequenceDictionary["PONG"] = seq + 1 % 256;
 
@@ -317,7 +317,7 @@ namespace BebopFlying
             {
                 BufferID = CommandSet.ARNETWORK_MANAGER_INTERNAL_BUFFER_ID_PONG,
                 DataType = CommandSet.ARNETWORKAL_FRAME_TYPE_DATA,
-                PacketSequenceID = (byte) _sequenceDictionary["PONG"],
+                PacketSequenceID = (byte)_sequenceDictionary["PONG"],
                 PacketSize = size + 7,
                 data = data
             };
@@ -392,13 +392,13 @@ namespace BebopFlying
             _seq[id]++;
             if (_seq[id] > 255) _seq[id] = 0;
 
-            buf[0] = (byte) type;
-            buf[1] = (byte) id;
-            buf[2] = (byte) _seq[id];
-            buf[3] = (byte) (bufSize & 0xff);
-            buf[4] = (byte) ((bufSize & 0xff00) >> 8);
-            buf[5] = (byte) ((bufSize & 0xff0000) >> 16);
-            buf[6] = (byte) ((bufSize & 0xff000000) >> 24);
+            buf[0] = (byte)type;
+            buf[1] = (byte)id;
+            buf[2] = (byte)_seq[id];
+            buf[3] = (byte)(bufSize & 0xff);
+            buf[4] = (byte)((bufSize & 0xff00) >> 8);
+            buf[5] = (byte)((bufSize & 0xff0000) >> 16);
+            buf[6] = (byte)((bufSize & 0xff000000) >> 24);
 
             cmd.cmd.CopyTo(buf, 7);
 
@@ -489,11 +489,11 @@ namespace BebopFlying
                 _cmd.cmd[1] = CommandSet.ARCOMMANDS_ID_ARDRONE3_CLASS_PILOTING;
                 _cmd.cmd[2] = CommandSet.ARCOMMANDS_ID_ARDRONE3_PILOTING_CMD_PCMD;
                 _cmd.cmd[3] = 0;
-                _cmd.cmd[4] = (byte) _flyVector.Flag; // flag
-                _cmd.cmd[5] = _flyVector.Roll >= 0 ? (byte) _flyVector.Roll : (byte) (256 + _flyVector.Roll); // roll: fly left or right [-100 ~ 100]
-                _cmd.cmd[6] = _flyVector.Pitch >= 0 ? (byte) _flyVector.Pitch : (byte) (256 + _flyVector.Pitch); // pitch: backward or forward [-100 ~ 100]
-                _cmd.cmd[7] = _flyVector.Yaw >= 0 ? (byte) _flyVector.Yaw : (byte) (256 + _flyVector.Yaw); // yaw: rotate left or right [-100 ~ 100]
-                _cmd.cmd[8] = _flyVector.Gaz >= 0 ? (byte) _flyVector.Gaz : (byte) (256 + _flyVector.Gaz); // gaze: down or up [-100 ~ 100]
+                _cmd.cmd[4] = (byte)_flyVector.Flag; // flag
+                _cmd.cmd[5] = _flyVector.Roll >= 0 ? (byte)_flyVector.Roll : (byte)(256 + _flyVector.Roll); // roll: fly left or right [-100 ~ 100]
+                _cmd.cmd[6] = _flyVector.Pitch >= 0 ? (byte)_flyVector.Pitch : (byte)(256 + _flyVector.Pitch); // pitch: backward or forward [-100 ~ 100]
+                _cmd.cmd[7] = _flyVector.Yaw >= 0 ? (byte)_flyVector.Yaw : (byte)(256 + _flyVector.Yaw); // yaw: rotate left or right [-100 ~ 100]
+                _cmd.cmd[8] = _flyVector.Gaz >= 0 ? (byte)_flyVector.Gaz : (byte)(256 + _flyVector.Gaz); // gaze: down or up [-100 ~ 100]
 
                 // for Debug Mode
                 _cmd.cmd[9] = 0;

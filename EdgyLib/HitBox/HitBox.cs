@@ -31,7 +31,7 @@ namespace EdgyLib.HitBox
 
         public void Render(Image<Bgr, byte> frame)
         {
-            ((PolyRender)InternalPolygon).Render(frame);
+            ((PolyRender) InternalPolygon).Render(frame);
         }
 
         public Point Center()

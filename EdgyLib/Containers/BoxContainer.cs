@@ -1,11 +1,9 @@
 ﻿using System.Collections.Generic;
-using System.Xml.Serialization;
 using EdgyLib.HitBox;
 using Emgu.CV;
 using Emgu.CV.Structure;
 using FlightLib;
 using Geometry.Base;
-using RenderGeometry.Base;
 
 namespace EdgyLib.Containers
 {

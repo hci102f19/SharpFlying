@@ -1,7 +1,6 @@
 ﻿using System;
 using Aardvark.Base;
 
-
 namespace Geometry.Base
 {
     public class Point
