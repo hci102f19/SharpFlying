@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Mime;
 using System.Net.Sockets;
@@ -196,7 +197,7 @@ namespace BebopFlying
             Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
 
             socket.ReceiveTimeout = 5000;
-
+            
             socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, 1);
             socket.Bind(_droneData);
 
@@ -212,8 +213,9 @@ namespace BebopFlying
             {
                 try
                 {
-                    AskForStateUpdate();
+                    //AskForStateUpdate();
                     data = _droneDataClient.Receive(ref _droneData);
+                    
                     HandleData(data);
                     //Console.WriteLine("Datatype: " + stuctData.DataType);
                     //Console.WriteLine("BufferID: " + stuctData.BufferID);
@@ -242,14 +244,23 @@ namespace BebopFlying
 
         private void HandleData(byte[] data)
         {
-            var BebopData = ByteArrayToStructure(data);
-            for (int i = 0; i < BebopData.PacketSize; i++)
+            while (data.Length > 0)
             {
-                Console.Write(BebopData.data[i] + " ");
+                var buffer = new byte[7];
+                buffer = data.Take(7).ToArray();
+                BebopData dataStruct = new BebopData
+                {
+                    DataType = buffer[0],
+                    BufferID = buffer[1],
+                    PacketSequenceID = buffer[2],
+                    PacketSize = BitConverter.ToInt32(buffer, 3)
+                    
+                };
+                dataStruct.data = new byte[dataStruct.PacketSize];
+                dataStruct.data = data.Skip(7).Take(dataStruct.PacketSize).ToArray();
+                HandleFrameData(dataStruct);
+                data = data.Skip(dataStruct.PacketSize + 7).ToArray();
             }
-
-            Console.WriteLine();
-            HandleFrameData(BebopData);
         }
 
         private void HandleFrameData(BebopData data)
@@ -368,11 +379,14 @@ namespace BebopFlying
 
         private static BebopData ByteArrayToStructure(byte[] bytes)
         {
-            BebopData data = new BebopData();
-            data.DataType = bytes[1];
-            data.BufferID = bytes[2];
-            data.PacketSequenceID = bytes[3];
-            data.PacketSize = BitConverter.ToInt32(bytes, 4);
+            BebopData data = new BebopData
+            {
+                data = new byte[bytes.Length+7],
+                DataType = bytes[1],
+                BufferID = bytes[2],
+                PacketSequenceID = bytes[3],
+                PacketSize = BitConverter.ToInt32(bytes, 4)
+            };
             bytes.CopyTo(data.data, 7);
 
             return data;
