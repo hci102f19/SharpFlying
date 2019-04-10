@@ -32,7 +32,7 @@ namespace WiFiLib
 
         protected void SendHELO()
         {
-            var sendBuffer = Encoding.ASCII.GetBytes(HELOMessage);
+            var sendBuffer = Encoding.UTF8.GetBytes(HELOMessage);
             Client.Send(sendBuffer, sendBuffer.Length);
         }
 
@@ -43,7 +43,7 @@ namespace WiFiLib
             while (IsRunning)
             {
                 var receivedData = Client.Receive(ref EndPoint);
-                Deserialize(Encoding.ASCII.GetString(receivedData));
+                Deserialize(Encoding.UTF8.GetString(receivedData));
 
                 CalculatePosition();
             }
