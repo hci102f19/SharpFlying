@@ -1,4 +1,5 @@
 ﻿using System;
+using Newtonsoft.Json;
 using ServiceLib;
 using UDPBase;
 using UDPBase.exceptions;
@@ -8,6 +9,7 @@ namespace UltraSonicLib
     public class UltraSonicService : Service
     {
         protected readonly UDPClient Client = new UDPClient("192.168.1.102", 20002);
+        protected Sensors Sensors;
 
         public UltraSonicService()
         {
@@ -61,14 +63,18 @@ namespace UltraSonicLib
 
         protected void Deserialize(string data)
         {
-            Console.WriteLine("Ultra Sanic: " + data);
-            // Network = JsonConvert.DeserializeObject<Network>(data);
-            //CalculatePosition();
+            Sensors = JsonConvert.DeserializeObject<Sensors>(data);
+            CalculatePosition();
         }
 
         private void CalculatePosition()
         {
-            Console.WriteLine("TEST");
+            if (Sensors == null)
+                return;
+            Console.WriteLine("Front: " + Sensors.Front.Distance + "cm.");
+            Console.WriteLine("Right: " + Sensors.Right.Distance + "cm.");
+            Console.WriteLine("Back: " + Sensors.Back.Distance + "cm.");
+            Console.WriteLine("Left: " + Sensors.Left.Distance + "cm.");
         }
 
         public override Response GetLatestResult()
