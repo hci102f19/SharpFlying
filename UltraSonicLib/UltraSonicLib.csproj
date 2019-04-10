@@ -49,6 +49,10 @@
       <Project>{9DF90151-0A5C-4D56-8F3C-9A890A76ED7A}</Project>
       <Name>ServiceLib</Name>
     </ProjectReference>
+    <ProjectReference Include="..\UDPBase\UDPBase.csproj">
+      <Project>{b77ab0f7-7c4b-4528-b89b-b989e5d6a3f2}</Project>
+      <Name>UDPBase</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

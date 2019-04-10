@@ -61,6 +61,10 @@
       <Project>{9DF90151-0A5C-4D56-8F3C-9A890A76ED7A}</Project>
       <Name>ServiceLib</Name>
     </ProjectReference>
+    <ProjectReference Include="..\UDPBase\UDPBase.csproj">
+      <Project>{B77AB0F7-7C4B-4528-B89B-B989E5D6A3F2}</Project>
+      <Name>UDPBase</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
