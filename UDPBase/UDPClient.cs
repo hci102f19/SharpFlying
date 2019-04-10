@@ -16,6 +16,7 @@ namespace UDPBase
         protected IPEndPoint EndPoint;
 
         protected bool IsConnected;
+        protected int ReconnectionCount;
         protected int PacketsDropped;
 
         public UDPClient(string host, int port)
@@ -26,7 +27,8 @@ namespace UDPBase
 
         public void ReConnect()
         {
-            // Client.Close();
+            if (++ReconnectionCount >= 3)
+                throw new UnableToConnect();
 
             PacketsDropped = 0;
             IsConnected = false;
@@ -53,7 +55,7 @@ namespace UDPBase
             try
             {
                 var receivedData = Encoding.UTF8.GetString(Client.Receive(ref EndPoint));
-                PacketsDropped = 0;
+                ResetChecks();
 
                 if (!IsConnected)
                 {
@@ -79,6 +81,12 @@ namespace UDPBase
             }
 
             return null;
+        }
+
+        protected void ResetChecks()
+        {
+            PacketsDropped = 0;
+            ReconnectionCount = 0;
         }
     }
 }

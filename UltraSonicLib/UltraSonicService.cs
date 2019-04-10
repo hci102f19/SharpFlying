@@ -44,6 +44,12 @@ namespace UltraSonicLib
                     Console.WriteLine("Server did not acknowledge client, trying to reconnect");
                     Client.ReConnect();
                 }
+                catch (UnableToConnect)
+                {
+                    Console.WriteLine("The program was unable to reconnect to server.");
+                    Stop();
+                    return;
+                }
             }
         }
 
