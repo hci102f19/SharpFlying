@@ -270,10 +270,11 @@ namespace BebopFlying
             {
                 SendPong(data.data);
             }
+
             //Drone is asking for us to acknowledge the receival of the packet
             if (data.DataType == CommandSet.ARNETWORKAL_FRAME_TYPE_ACK)
             {
-                var ackSeqNumber = BitConverter.ToInt32(data.data, 0);
+                int ackSeqNumber = (int)data.data[0];
                 _commandReceived.Add(new Tuple<string, int>("SEND_WITH_ACK", ackSeqNumber), true);
                 AckPacket(data.BufferID, ackSeqNumber);
             }
@@ -282,6 +283,7 @@ namespace BebopFlying
             {
                 if (data.BufferID == CommandSet.BD_NET_DC_NAVDATA_ID || data.BufferID == CommandSet.BD_NET_DC_EVENT_ID)
                 {
+                    UpdateSensorData(data.data,data.BufferID,data.PacketSequenceID,false);
                     //self.drone.update_sensors(packet_type, buffer_id, packet_seq_id, recv_data, ack=True)
                 }
             }
@@ -289,6 +291,11 @@ namespace BebopFlying
             {
                 _logger.Fatal("Unknown data type received from drone!");
             }
+        }
+
+        private void UpdateSensorData(byte[] rawDataPacket, byte bufferId, int seqNumber,bool ack)
+        {
+
         }
 
         private void AckPacket(byte bufferID, int packetID)
@@ -387,6 +394,7 @@ namespace BebopFlying
                 PacketSequenceID = bytes[3],
                 PacketSize = BitConverter.ToInt32(bytes, 4)
             };
+
             bytes.CopyTo(data.data, 7);
 
             return data;
