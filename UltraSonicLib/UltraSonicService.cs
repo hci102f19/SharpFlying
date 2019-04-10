@@ -29,7 +29,7 @@ namespace UltraSonicLib
 
                     Deserialize(data);
                 }
-                catch (ServerStoppedResponding)
+                catch (ServerStoppedRespondingException)
                 {
                     Console.WriteLine("Lost connection, trying to reconnect");
                     if (!Client.ReConnect())
@@ -38,7 +38,7 @@ namespace UltraSonicLib
                         return;
                     }
                 }
-                catch (ServerStopping)
+                catch (ServerStoppingException)
                 {
                     Console.WriteLine("Server closing, trying to reconnect");
                     if (!Client.ReConnect())
@@ -47,7 +47,7 @@ namespace UltraSonicLib
                         return;
                     }
                 }
-                catch (NoAcknowledgement)
+                catch (NoAcknowledgementException)
                 {
                     Console.WriteLine("Server did not acknowledge client, trying to reconnect");
                     if (!Client.ReConnect())

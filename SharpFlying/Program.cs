@@ -20,9 +20,9 @@ namespace SharpFlying
             WiFiService myWiFiService = new WiFiService();
             myWiFiService.Start();
 
-            Console.ReadLine();
-            myUltraSonicService.Stop();
-            myWiFiService.Stop();
+            //            Console.ReadLine();
+            //            myUltraSonicService.Stop();
+            //            myWiFiService.Stop();
         }
 
         //        private static Bebop bebop;

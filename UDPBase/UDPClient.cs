@@ -69,11 +69,11 @@ namespace UDPBase
                         return null;
                     }
                     else
-                        throw new NoAcknowledgement("Server did not acknowledge client");
+                        throw new NoAcknowledgementException("Server did not acknowledge client");
                 }
                 else if (receivedData == BYEMessage)
                 {
-                    throw new ServerStopping("Server is stopping.");
+                    throw new ServerStoppingException("Server is stopping.");
                 }
 
                 return receivedData;
@@ -81,7 +81,7 @@ namespace UDPBase
             catch (SocketException e)
             {
                 if (PacketsDropped++ >= 3)
-                    throw new ServerStoppedResponding("Server stopped responding.");
+                    throw new ServerStoppedRespondingException("Server stopped responding.");
             }
 
             return null;

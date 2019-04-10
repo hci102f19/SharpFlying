@@ -41,9 +41,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="exceptions\NoAcknowledgement.cs" />
-    <Compile Include="exceptions\ServerStoppedResponding.cs" />
-    <Compile Include="exceptions\ServerStopping.cs" />
+    <Compile Include="exceptions\NoAcknowledgementException.cs" />
+    <Compile Include="exceptions\ServerStoppedRespondingException.cs" />
+    <Compile Include="exceptions\ServerStoppingException.cs" />
     <Compile Include="UDPClient.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

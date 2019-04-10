@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace UDPBase.exceptions
 {
-    public class NoAcknowledgement : Exception
+    public class ServerStoppedRespondingException : Exception
     {
-        public NoAcknowledgement(string message) : base(message) { }
+        public ServerStoppedRespondingException(string message) : base(message) { }
     }
 }
