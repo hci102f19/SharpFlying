@@ -1,6 +1,7 @@
 ﻿using System;
 using ServiceLib;
 using UDPBase;
+using UDPBase.exceptions;
 
 namespace UltraSonicLib
 {
@@ -20,11 +21,31 @@ namespace UltraSonicLib
 
             while (IsRunning)
             {
-                var data = Client.ReceiveData();
-                if (data == null)
-                    continue;
+                try
+                {
+                    var data = Client.ReceiveData();
+                    if (data == null)
+                        continue;
 
-                Deserialize(data);
+                    Deserialize(data);
+                }
+                catch (ServerStoppedResponding)
+                {
+                    Console.WriteLine("Lost connection, trying to reconnect");
+                }
+                catch (ServerStopping)
+                {
+                    Console.WriteLine("Server closing, trying to reconnect");
+                }
+                catch (NoAcknowledgement)
+                {
+                    Console.WriteLine("Server did not acknowledge client, trying to reconnect");
+                }
+                finally
+                {
+                    Client.ReConnect();
+
+                }
             }
         }
 

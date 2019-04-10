@@ -17,12 +17,12 @@ namespace SharpFlying
             UltraSonicService myUltraSonicService = new UltraSonicService();
             myUltraSonicService.Start();
 
-            WiFiService myWiFiService = new WiFiService();
-            myWiFiService.Start();
+            //            WiFiService myWiFiService = new WiFiService();
+            //            myWiFiService.Start();
 
             Console.ReadLine();
             myUltraSonicService.Stop();
-            myWiFiService.Stop();
+            //myWiFiService.Stop();
         }
 
         //        private static Bebop bebop;

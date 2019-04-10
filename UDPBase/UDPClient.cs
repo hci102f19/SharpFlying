@@ -21,14 +21,23 @@ namespace UDPBase
         public UDPClient(string host, int port)
         {
             EndPoint = new IPEndPoint(IPAddress.Parse(host), port);
+            Client.Client.ReceiveTimeout = Timeout;
+        }
+
+        public void ReConnect()
+        {
+            // Client.Close();
+
+            PacketsDropped = 0;
+            IsConnected = false;
+
+            Connect();
         }
 
         public void Connect()
         {
             if (IsConnected)
                 return;
-            Client.Client.ReceiveTimeout = Timeout;
-
             Client.Connect(EndPoint);
             SendHELO();
         }
