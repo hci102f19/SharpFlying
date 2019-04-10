@@ -26,7 +26,6 @@ namespace EdgyLib
         protected SFiltering Filtering;
 
         protected int HoughLinesTheta = 150;
-        protected bool IsRunning = true;
 
         protected int? LastFrameCount;
         protected Response LatestResponse = new Response(false, null, 0);
