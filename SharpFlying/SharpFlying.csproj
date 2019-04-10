@@ -109,6 +109,10 @@
       <Project>{9df90151-0a5c-4d56-8f3c-9a890a76ed7a}</Project>
       <Name>ServiceLib</Name>
     </ProjectReference>
+    <ProjectReference Include="..\UltraSonicLib\UltraSonicLib.csproj">
+      <Project>{8CC2C5C8-F73D-4B4E-BF6B-BC018596287B}</Project>
+      <Name>UltraSonicLib</Name>
+    </ProjectReference>
     <ProjectReference Include="..\VidBuffLib\VidBuffLib.csproj">
       <Project>{129df76e-94fb-4098-809a-f2e58298c9c6}</Project>
       <Name>VidBuffLib</Name>

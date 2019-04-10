@@ -1,15 +1,15 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using Newtonsoft.Json;
+using System.Threading.Tasks;
 using ServiceLib;
-using WiFiLib.Data;
-using WiFiLib.Persistence;
 
-namespace WiFiLib
+namespace UltraSonicLib
 {
-    public class WiFiService : Service
+    public class UltraSonicService : Service
     {
         protected readonly UdpClient Client = new UdpClient();
 
@@ -17,9 +17,7 @@ namespace WiFiLib
 
         protected string HELOMessage = "HELO";
 
-        protected Network Network = new Network();
-
-        public WiFiService()
+        public UltraSonicService()
         {
             IgnoreInput = true;
         }
@@ -56,12 +54,14 @@ namespace WiFiLib
 
         protected void Deserialize(string data)
         {
-            Network = JsonConvert.DeserializeObject<Network>(data);
+            Console.WriteLine(data);
+            // Network = JsonConvert.DeserializeObject<Network>(data);
         }
 
         public override Response GetLatestResult()
         {
             return null;
         }
+
     }
 }

@@ -4,6 +4,7 @@ using EdgyLib;
 using Emgu.CV;
 using Flight.Enums;
 using ServiceLib;
+using UltraSonicLib;
 using VidBuffLib;
 using WiFiLib;
 
@@ -13,7 +14,7 @@ namespace SharpFlying
     {
         private static void Main(string[] args)
         {
-            WiFiService myWiFiService = new WiFiService();
+            UltraSonicService myWiFiService = new UltraSonicService();
             myWiFiService.Start();
 
             Console.ReadLine();

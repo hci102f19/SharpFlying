@@ -11,6 +11,8 @@ namespace ServiceLib
         protected bool IgnoreInput = false;
         public Thread BackgroundThread { get; protected set; }
 
+        public bool IsRunning { get; protected set; } = true;
+
         public void Start()
         {
             BackgroundThread = new Thread(Run);
@@ -31,6 +33,11 @@ namespace ServiceLib
         public virtual Response GetLatestResult()
         {
             throw new NotImplementedException();
+        }
+
+        public void Stop()
+        {
+            IsRunning = false;
         }
     }
 }
