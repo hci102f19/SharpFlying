@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Net;
-using System.Net.Sockets;
-using System.Text;
 using Newtonsoft.Json;
 using ServiceLib;
 using UDPBase;
 using WiFiLib.Data;
-using WiFiLib.Persistence;
 
 namespace WiFiLib
 {
@@ -30,7 +26,6 @@ namespace WiFiLib
             {
                 var data = Client.ReceiveData();
                 Deserialize(data);
-
             }
         }
 

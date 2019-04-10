@@ -1,25 +1,20 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace UDPBase
 {
     public class UDPClient
     {
-        protected readonly UdpClient Client = new UdpClient();
-        protected IPEndPoint EndPoint;
-
         protected const string HELOMessage = "HELO";
         protected const string BYEMessage = "K-BYE";
 
         protected const int Timeout = 3000;
+        protected readonly UdpClient Client = new UdpClient();
+        protected IPEndPoint EndPoint;
 
-        protected bool IsConnected = false;
+        protected bool IsConnected;
         protected int PacketsDropped;
 
         public UDPClient(string host, int port)
@@ -58,7 +53,9 @@ namespace UDPBase
                         throw new Exception("Server did not acknowledge client"); // TODO: Exception which makes sense
                 }
                 else if (receivedData == BYEMessage)
+                {
                     throw new Exception("Server is stopping."); // TODO: Exception which makes sense
+                }
 
                 return receivedData;
             }

@@ -1,10 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Net.Sockets;
-using System.Text;
-using System.Threading.Tasks;
 using ServiceLib;
 using UDPBase;
 
@@ -28,7 +22,6 @@ namespace UltraSonicLib
             {
                 var data = Client.ReceiveData();
                 Deserialize(data);
-
             }
         }
 
