@@ -16,6 +16,8 @@ namespace UltraSonicLib
         protected IPEndPoint EndPoint = new IPEndPoint(IPAddress.Parse("192.168.1.102"), 20001);
 
         protected string HELOMessage = "HELO";
+        protected string BYEMessage = "K-BYE";
+        protected bool IsConnected = false;
 
         public UltraSonicService()
         {
@@ -36,14 +38,47 @@ namespace UltraSonicLib
 
         protected override void Run()
         {
+            var packetLoss = 0;
             Connect();
+            Client.Client.ReceiveTimeout = 3000;
 
             while (IsRunning)
             {
-                var receivedData = Client.Receive(ref EndPoint);
-                Deserialize(Encoding.UTF8.GetString(receivedData));
+                try
+                {
+                    var receivedData = Encoding.UTF8.GetString(Client.Receive(ref EndPoint));
+                    packetLoss = 0;
+                    if (!IsConnected)
+                    {
+                        if (receivedData == HELOMessage)
+                        {
+                            Console.WriteLine("Sever acknowledge me");
+                            IsConnected = true;
+                        }
+                        else
+                        {
+                            return;
+                        }
+                    }
+                    else if (receivedData == BYEMessage)
+                    {
+                        Console.WriteLine("Server is stopping, so am i");
+                        return;
+                    }
 
-                CalculatePosition();
+                    Deserialize(receivedData);
+
+                    // CalculatePosition();
+                }
+                catch (SocketException e)
+                {
+                    if (packetLoss > 3)
+                    {
+                        Console.WriteLine("Server stopped responding.");
+                        return;
+                    }
+                    packetLoss++;
+                }
             }
         }
 
@@ -62,6 +97,5 @@ namespace UltraSonicLib
         {
             return null;
         }
-
     }
 }
