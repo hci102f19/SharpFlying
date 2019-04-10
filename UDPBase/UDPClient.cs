@@ -11,7 +11,7 @@ namespace UDPBase
         protected const string HELOMessage = "HELO";
         protected const string BYEMessage = "K-BYE";
 
-        protected const int Timeout = 3000;
+        protected const int Timeout = 1000;
         protected readonly UdpClient Client = new UdpClient();
         protected IPEndPoint EndPoint;
 
