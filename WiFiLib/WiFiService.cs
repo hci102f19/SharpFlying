@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 using Newtonsoft.Json;
 using ServiceLib;
 using UDPBase;
@@ -17,7 +18,6 @@ namespace WiFiLib
             IgnoreInput = true;
         }
 
-
         protected override void Run()
         {
             Client.Connect();
@@ -25,6 +25,9 @@ namespace WiFiLib
             while (IsRunning)
             {
                 var data = Client.ReceiveData();
+                if (data == null)
+                    continue;
+
                 Deserialize(data);
             }
         }
@@ -36,7 +39,9 @@ namespace WiFiLib
 
         protected void Deserialize(string data)
         {
-            Network = JsonConvert.DeserializeObject<Network>(data);
+            Console.WriteLine("WiFly: " + data);
+            //Network = JsonConvert.DeserializeObject<Network>(data);
+            //CalculatePosition();
         }
 
         public override Response GetLatestResult()

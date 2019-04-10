@@ -2,6 +2,7 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using UDPBase.exceptions;
 
 namespace UDPBase
 {
@@ -48,13 +49,16 @@ namespace UDPBase
                 if (!IsConnected)
                 {
                     if (receivedData == HELOMessage)
+                    {
                         IsConnected = true;
+                        return null;
+                    }
                     else
-                        throw new Exception("Server did not acknowledge client"); // TODO: Exception which makes sense
+                        throw new NoAcknowledgement("Server did not acknowledge client");
                 }
                 else if (receivedData == BYEMessage)
                 {
-                    throw new Exception("Server is stopping."); // TODO: Exception which makes sense
+                    throw new ServerStopping("Server is stopping.");
                 }
 
                 return receivedData;
@@ -62,7 +66,7 @@ namespace UDPBase
             catch (SocketException e)
             {
                 if (PacketsDropped++ >= 3)
-                    throw new Exception("Server stopped responding."); // TODO: Exception which makes sense
+                    throw new ServerStoppedResponding("Server stopped responding.");
             }
 
             return null;

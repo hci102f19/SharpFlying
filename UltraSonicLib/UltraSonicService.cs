@@ -21,13 +21,16 @@ namespace UltraSonicLib
             while (IsRunning)
             {
                 var data = Client.ReceiveData();
+                if (data == null)
+                    continue;
+
                 Deserialize(data);
             }
         }
 
         protected void Deserialize(string data)
         {
-            Console.WriteLine(data);
+            Console.WriteLine("Ultra Sanic: " + data);
             // Network = JsonConvert.DeserializeObject<Network>(data);
             //CalculatePosition();
         }

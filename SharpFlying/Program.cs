@@ -14,10 +14,14 @@ namespace SharpFlying
     {
         private static void Main(string[] args)
         {
-            UltraSonicService myWiFiService = new UltraSonicService();
+            UltraSonicService myUltraSonicService = new UltraSonicService();
+            myUltraSonicService.Start();
+
+            WiFiService myWiFiService = new WiFiService();
             myWiFiService.Start();
 
             Console.ReadLine();
+            myUltraSonicService.Stop();
             myWiFiService.Stop();
         }
 
