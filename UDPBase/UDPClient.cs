@@ -25,15 +25,19 @@ namespace UDPBase
             Client.Client.ReceiveTimeout = Timeout;
         }
 
-        public void ReConnect()
+        public bool ReConnect()
         {
             if (++ReconnectionCount >= 3)
-                throw new UnableToConnect();
+            {
+                Console.WriteLine("The program was unable to reconnect to server.");
+                return false;
+            }
 
             PacketsDropped = 0;
             IsConnected = false;
 
             Connect();
+            return true;
         }
 
         public void Connect()

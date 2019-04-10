@@ -32,23 +32,29 @@ namespace UltraSonicLib
                 catch (ServerStoppedResponding)
                 {
                     Console.WriteLine("Lost connection, trying to reconnect");
-                    Client.ReConnect();
+                    if (!Client.ReConnect())
+                    {
+                        Stop();
+                        return;
+                    }
                 }
                 catch (ServerStopping)
                 {
                     Console.WriteLine("Server closing, trying to reconnect");
-                    Client.ReConnect();
+                    if (!Client.ReConnect())
+                    {
+                        Stop();
+                        return;
+                    }
                 }
                 catch (NoAcknowledgement)
                 {
                     Console.WriteLine("Server did not acknowledge client, trying to reconnect");
-                    Client.ReConnect();
-                }
-                catch (UnableToConnect)
-                {
-                    Console.WriteLine("The program was unable to reconnect to server.");
-                    Stop();
-                    return;
+                    if (!Client.ReConnect())
+                    {
+                        Stop();
+                        return;
+                    }
                 }
             }
         }
