@@ -36,17 +36,16 @@ namespace WiFiLib
                 catch (ServerStoppedResponding)
                 {
                     Console.WriteLine("Lost connection, trying to reconnect");
+                    Client.ReConnect();
                 }
                 catch (ServerStopping)
                 {
                     Console.WriteLine("Server closing, trying to reconnect");
+                    Client.ReConnect();
                 }
                 catch (NoAcknowledgement)
                 {
                     Console.WriteLine("Server did not acknowledge client, trying to reconnect");
-                }
-                finally
-                {
                     Client.ReConnect();
                 }
             }
