@@ -2,7 +2,10 @@
 using BebopFlying;
 using EdgyLib;
 using Emgu.CV;
+using ServiceLib;
+using UltraSonicLib;
 using VidBuffLib;
+using WiFiLib;
 
 namespace SharpFlying
 {
@@ -17,7 +20,11 @@ namespace SharpFlying
             var bebop = new Bebop(30);
             bebop.Connect();
             var buffer = new StreamBuffer(capture, width, height);
+
             buffer.AddService(new Canny(width, height, true));
+            buffer.AddService(new UltraSonicService());
+            // buffer.AddService(new WiFiService());
+
             buffer.Start();
 
             while (buffer.IsRunning)
@@ -27,11 +34,11 @@ namespace SharpFlying
                 {
                     buffer.TransmitFrame(frame);
 
-                    foreach (var service in buffer.Services)
+                    foreach (Service service in buffer.Services)
                     {
-                        var r = service.GetLatestResult();
-                        //if (r != null && r.IsValid)
-                            //Console.WriteLine(r.Vector);
+                        Response r = service.GetLatestResult();
+                        if (r != null && r.IsValid)
+                            Console.WriteLine(r.Vector);
                     }
 
                     //CvInvoke.Imshow("frame", frame);

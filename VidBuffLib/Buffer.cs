@@ -12,7 +12,7 @@ namespace VidBuffLib
     {
         protected int Blur = 3;
 
-        public Thread deadmanThread;
+        public Thread BufferThread;
 
         protected Image<Bgr, byte> LastFrame = null;
 
@@ -48,9 +48,7 @@ namespace VidBuffLib
                 goto Retry;
             }
 
-            if (IsRunning)
-                return Stack.Peek();
-            return null;
+            return IsRunning ? Stack.Peek() : null;
         }
 
         public Image<Bgr, byte> PopLastFrame()
@@ -65,9 +63,7 @@ namespace VidBuffLib
                 goto Retry;
             }
 
-            if (IsRunning) return Stack.Pop();
-
-            return null;
+            return IsRunning ? Stack.Pop() : null;
         }
 
         protected Mat ProcessFrame(Mat mat)
@@ -86,11 +82,11 @@ namespace VidBuffLib
         public void Start()
         {
             //Start all connected services
-            foreach (var service in Services)
+            foreach (Service service in Services)
                 service.Start();
 
-            deadmanThread = new Thread(Run);
-            deadmanThread.Start();
+            BufferThread = new Thread(Run);
+            BufferThread.Start();
             //Task.Factory.StartNew(Run);
         }
 
@@ -101,7 +97,7 @@ namespace VidBuffLib
 
         public void TransmitFrame(Image<Bgr, byte> frame)
         {
-            foreach (var service in Services)
+            foreach (Service service in Services)
                 service.Input(frame);
         }
     }

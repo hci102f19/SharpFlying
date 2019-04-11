@@ -11,6 +11,7 @@ namespace UltraSonicLib
     {
         protected readonly UDPClient Client = new UDPClient("192.168.1.102", 20002);
         protected Sensors Sensors;
+        protected Response Response;
 
         protected const int MinDistanceToWall = 20;
 
@@ -69,7 +70,7 @@ namespace UltraSonicLib
             Sensors = JsonConvert.DeserializeObject<Sensors>(data);
 
             if (Sensors != null)
-                CalculatePosition();
+                Response = new Response(true, CalculatePosition());
         }
 
         protected int Difference(float f1, float f2)
@@ -110,20 +111,12 @@ namespace UltraSonicLib
                     movement.Roll = diff;
             }
 
-
-            Console.WriteLine("Front: " + Sensors.Front.Distance + "cm.");
-            Console.WriteLine("Right: " + Sensors.Right.Distance + "cm.");
-            Console.WriteLine("Back: " + Sensors.Back.Distance + "cm.");
-            Console.WriteLine("Left: " + Sensors.Left.Distance + "cm.");
-            Console.WriteLine("Roll:" + movement.ToString());
-
             return movement;
-            // Negative values go left, positive go right.
         }
 
         public override Response GetLatestResult()
         {
-            return null;
+            return Response;
         }
     }
 }
