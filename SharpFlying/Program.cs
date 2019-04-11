@@ -5,7 +5,6 @@ using Emgu.CV;
 using ServiceLib;
 using UltraSonicLib;
 using VidBuffLib;
-using WiFiLib;
 
 namespace SharpFlying
 {

@@ -29,11 +29,13 @@ namespace UltraSonicLib
             {
                 try
                 {
-                    var data = Client.ReceiveData();
-                    if (data == null)
-                        continue;
+                    Sensors data = Client.ReceiveData<Sensors>();
 
-                    Deserialize(data);
+                    if (data != null)
+                    {
+                        Sensors = data;
+                        Response = new Response(true, CalculatePosition());
+                    }
                 }
                 catch (ServerStoppedRespondingException)
                 {
@@ -63,14 +65,6 @@ namespace UltraSonicLib
                     }
                 }
             }
-        }
-
-        protected void Deserialize(string data)
-        {
-            Sensors = JsonConvert.DeserializeObject<Sensors>(data);
-
-            if (Sensors != null)
-                Response = new Response(true, CalculatePosition());
         }
 
         protected int Difference(float f1, float f2)

@@ -38,9 +38,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Aardvark.Base, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Aardvark.Base.4.4.0\lib\netstandard2.0\Aardvark.Base.dll</HintPath>
-    </Reference>
     <Reference Include="Aardvark.Base.Telemetry, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Aardvark.Base.Telemetry.4.4.0\lib\netstandard2.0\Aardvark.Base.Telemetry.dll</HintPath>
     </Reference>
@@ -61,12 +58,6 @@
       <HintPath>..\packages\System.Collections.Immutable.1.6.0-preview3.19128.7\lib\netstandard2.0\System.Collections.Immutable.dll</HintPath>
     </Reference>
     <Reference Include="System.Core" />
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
     <Reference Include="ZedGraph, Version=5.1.7.430, Culture=neutral, PublicKeyToken=02a83cbd123fcd60, processorArchitecture=MSIL">
       <HintPath>..\packages\ZedGraph.5.1.7\lib\net35-Client\ZedGraph.dll</HintPath>
@@ -116,10 +107,6 @@
     <ProjectReference Include="..\VidBuffLib\VidBuffLib.csproj">
       <Project>{129df76e-94fb-4098-809a-f2e58298c9c6}</Project>
       <Name>VidBuffLib</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\WiFiLib\WiFiLib.csproj">
-      <Project>{D26B14F4-8206-4476-A997-814D126D3DEF}</Project>
-      <Name>WiFiLib</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

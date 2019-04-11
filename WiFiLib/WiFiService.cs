@@ -27,11 +27,10 @@ namespace WiFiLib
             {
                 try
                 {
-                    var data = Client.ReceiveData();
+                    Network data = Client.ReceiveData<Network>();
                     if (data == null)
                         continue;
-
-                    Deserialize(data);
+                    Network = data;
                 }
                 catch (ServerStoppedRespondingException)
                 {
@@ -66,13 +65,6 @@ namespace WiFiLib
         protected void CalculatePosition()
         {
             Console.WriteLine("TEST");
-        }
-
-        protected void Deserialize(string data)
-        {
-            Console.WriteLine("WiFly: " + data);
-            //Network = JsonConvert.DeserializeObject<Network>(data);
-            //CalculatePosition();
         }
 
         public override Response GetLatestResult()

@@ -2,6 +2,7 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using Newtonsoft.Json;
 using UDPBase.exceptions;
 
 namespace UDPBase
@@ -10,8 +11,8 @@ namespace UDPBase
     {
         protected const string HELOMessage = "HELO";
         protected const string BYEMessage = "K-BYE";
-
         protected const int Timeout = 1000;
+
         protected readonly UdpClient Client = new UdpClient();
         protected IPEndPoint EndPoint;
 
@@ -50,15 +51,15 @@ namespace UDPBase
 
         protected void SendHELO()
         {
-            var sendBuffer = Encoding.UTF8.GetBytes(HELOMessage);
+            byte[] sendBuffer = Encoding.UTF8.GetBytes(HELOMessage);
             Client.Send(sendBuffer, sendBuffer.Length);
         }
 
-        public string ReceiveData()
+        public T ReceiveData<T>()
         {
             try
             {
-                var receivedData = Encoding.UTF8.GetString(Client.Receive(ref EndPoint));
+                string receivedData = Encoding.UTF8.GetString(Client.Receive(ref EndPoint));
                 ResetChecks();
 
                 if (!IsConnected)
@@ -66,7 +67,7 @@ namespace UDPBase
                     if (receivedData == HELOMessage)
                     {
                         IsConnected = true;
-                        return null;
+                        return default(T);
                     }
                     else
                         throw new NoAcknowledgementException("Server did not acknowledge client");
@@ -76,7 +77,7 @@ namespace UDPBase
                     throw new ServerStoppingException("Server is stopping.");
                 }
 
-                return receivedData;
+                return JsonConvert.DeserializeObject<T>(receivedData);
             }
             catch (SocketException e)
             {
@@ -84,7 +85,7 @@ namespace UDPBase
                     throw new ServerStoppedRespondingException("Server stopped responding.");
             }
 
-            return null;
+            return default(T);
         }
 
         protected void ResetChecks()
