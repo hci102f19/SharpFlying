@@ -27,7 +27,7 @@ namespace UDPBase
 
         public bool ReConnect()
         {
-            if (++ReconnectionCount >= 3)
+            if (++ReconnectionCount >= 30)
             {
                 Console.WriteLine("The program was unable to reconnect to server.");
                 return false;
