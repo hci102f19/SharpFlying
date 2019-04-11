@@ -50,6 +50,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Flight\FlightLib.csproj">
+      <Project>{AEEB01C3-DF18-440C-82B5-B3F7A7643901}</Project>
+      <Name>FlightLib</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ServiceLib\ServiceLib.csproj">
       <Project>{9DF90151-0A5C-4D56-8F3C-9A890A76ED7A}</Project>
       <Name>ServiceLib</Name>

@@ -1,4 +1,6 @@
-﻿namespace FlightLib
+﻿using System.Runtime.InteropServices;
+
+namespace FlightLib
 {
     public class Vector
     {
@@ -16,7 +18,7 @@
         ///     gaz speed percentage (calculated on the max vertical speed)(from -100 to 100). Negative values go
         ///     down, positive go up.
         /// </param>
-        public Vector(int flag, int roll, int pitch, int yaw, int gaz)
+        public Vector(int flag = 0, int roll = 0, int pitch = 0, int yaw = 0, int gaz = 0)
         {
             Flag = flag;
             Roll = roll;
@@ -50,6 +52,26 @@
         public override string ToString()
         {
             return "Flag: " + Flag + ", Roll: " + Roll + ", Pitch: " + Pitch + ", Yaw: " + Yaw + ", Gaz: " + Gaz;
+        }
+
+        public Vector Add(Vector vector)
+        {
+            Roll += vector.Roll;
+            Pitch += vector.Pitch;
+            Yaw += vector.Yaw;
+            Gaz += vector.Gaz;
+
+            return this;
+        }
+
+        public Vector TimesConstant(int constant)
+        {
+            Roll *= constant;
+            Pitch *= constant;
+            Yaw *= constant;
+            Gaz *= constant;
+
+            return this;
         }
     }
 }
