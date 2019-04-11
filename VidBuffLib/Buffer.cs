@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Threading;
-using System.Threading.Tasks;
 using Emgu.CV;
 using Emgu.CV.Structure;
 using ServiceLib;
@@ -12,6 +11,8 @@ namespace VidBuffLib
     public abstract class Buffer
     {
         protected int Blur = 3;
+
+        public Thread deadmanThread;
 
         protected Image<Bgr, byte> LastFrame = null;
 
@@ -64,17 +65,13 @@ namespace VidBuffLib
                 goto Retry;
             }
 
-            if (IsRunning)
-            {
-                return Stack.Pop();
-            }
+            if (IsRunning) return Stack.Pop();
 
             return null;
         }
 
         protected Mat ProcessFrame(Mat mat)
         {
-
             CvInvoke.Resize(mat, mat, Size);
             CvInvoke.GaussianBlur(mat, mat, new Size(Blur, Blur), 0);
 
@@ -86,7 +83,6 @@ namespace VidBuffLib
             IsRunning = false;
         }
 
-        public Thread deadmanThread;
         public void Start()
         {
             //Start all connected services

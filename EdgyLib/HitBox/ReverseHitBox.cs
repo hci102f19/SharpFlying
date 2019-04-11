@@ -48,13 +48,13 @@ namespace EdgyLib.HitBox
 
         public void Render(Image<Bgr, byte> frame)
         {
-            ((PolyRender)InternalPolygon).Render(frame);
+            ((PolyRender) InternalPolygon).Render(frame);
         }
 
         protected int HorizontalMovement(double movement)
         {
-            double center = (double)Width / 2;
-            int force = (int)Math.Round(((center - movement) / center) * 100, 0);
+            var center = (double) Width / 2;
+            var force = (int) Math.Round((center - movement) / center * 100, 0);
 
             return force.Clamp(-100, 100);
         }

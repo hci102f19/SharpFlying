@@ -9,7 +9,6 @@ using Emgu.CV.Util;
 using Geometry.Base;
 using Geometry.Dampening;
 using Geometry.Extended;
-using RenderGeometry;
 using RenderGeometry.Base;
 using ServiceLib;
 
@@ -17,12 +16,13 @@ namespace EdgyLib
 {
     public class Canny : Service
     {
+        protected BoxContainer BoxContainer;
         protected int CannyThreshold = 55;
         protected int CannyThresholdModifier = 3;
 
         protected Image<Bgr, byte> CurrentFrame;
 
-        protected BoxContainer BoxContainer;
+        protected bool Debug;
         protected SFiltering Filtering;
 
         protected int HoughLinesTheta = 150;
@@ -35,8 +35,6 @@ namespace EdgyLib
         protected int LowerLineThreshold = 20;
         protected int ThetaModifier = 5;
         protected int UpperLineThreshold = 75;
-
-        protected bool Debug = false;
 
         public Canny(int width, int height, bool debug = false)
         {
@@ -95,7 +93,7 @@ namespace EdgyLib
             float modifier = 1;
             if (LastFrameCount != null)
             {
-                modifier = (float)LastFrameCount / lines * 2;
+                modifier = (float) LastFrameCount / lines * 2;
 
                 if (modifier <= 1)
                     modifier = 1;
@@ -103,12 +101,12 @@ namespace EdgyLib
 
             if (lines < LowerLineThreshold && HoughLinesTheta > ThetaModifier * modifier)
             {
-                HoughLinesTheta -= (int)Math.Round(ThetaModifier * modifier, 0);
+                HoughLinesTheta -= (int) Math.Round(ThetaModifier * modifier, 0);
                 Console.WriteLine("Not enough data, decreasing l_theta to " + HoughLinesTheta);
             }
             else if (lines > UpperLineThreshold)
             {
-                HoughLinesTheta += (int)Math.Round(ThetaModifier * modifier, 0);
+                HoughLinesTheta += (int) Math.Round(ThetaModifier * modifier, 0);
                 Console.WriteLine("Too much data, increasing l_theta to " + HoughLinesTheta);
             }
 
@@ -135,17 +133,15 @@ namespace EdgyLib
             var intersections = new List<Point>();
 
             foreach (var inLine in lines)
+            foreach (var cmpLine in lines)
             {
-                foreach (var cmpLine in lines)
-                {
-                    if (inLine == cmpLine)
-                        continue;
+                if (inLine == cmpLine)
+                    continue;
 
-                    var intersection = inLine.Intersect(cmpLine);
+                var intersection = inLine.Intersect(cmpLine);
 
-                    if (intersection != null && !intersections.Contains(intersection))
-                        intersections.Add(intersection);
-                }
+                if (intersection != null && !intersections.Contains(intersection))
+                    intersections.Add(intersection);
             }
 
             if (intersections.Count > 0)
@@ -153,7 +149,7 @@ namespace EdgyLib
                 var clusters = DBSCAN.DBSCAN.CalculateClusters(
                     intersections.Select(p => new PointContainer(p)).ToList(),
                     20,
-                    (int)Math.Round(0.1 * intersections.Count, 0)
+                    (int) Math.Round(0.1 * intersections.Count, 0)
                 );
 
                 if (clusters.IsValid()) Filtering.Add(clusters.GetBestCluster().GetMean());
@@ -165,7 +161,7 @@ namespace EdgyLib
                     : new Response(false, null, 0);
 
 
-                ((RenderPoint)Filtering.GetMean()).Render(frame);
+                ((RenderPoint) Filtering.GetMean()).Render(frame);
                 BoxContainer.Render(frame);
 
 

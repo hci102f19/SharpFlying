@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Aardvark.Base;
+﻿using Aardvark.Base;
 using Emgu.CV;
 using Emgu.CV.Structure;
 using Geometry.Base;
@@ -22,15 +17,13 @@ namespace RenderGeometry.Base
 
         protected SDPoint AsPoint(V2d point)
         {
-            return new SDPoint((int)point.X, (int)point.Y);
+            return new SDPoint((int) point.X, (int) point.Y);
         }
 
         public void Render(Image<Bgr, byte> frame, MCvScalar color = default(MCvScalar))
         {
             foreach (var line in Polygon.InternalPolygon.EdgeLines)
-            {
                 CvInvoke.Line(frame, AsPoint(line.P0), AsPoint(line.P1), color);
-            }
         }
 
         public static explicit operator PolyRender(Polygon v)
