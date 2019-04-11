@@ -2,11 +2,7 @@
 using BebopFlying;
 using EdgyLib;
 using Emgu.CV;
-using Flight.Enums;
-using ServiceLib;
-using UltraSonicLib;
 using VidBuffLib;
-using WiFiLib;
 
 namespace SharpFlying
 {
@@ -14,49 +10,34 @@ namespace SharpFlying
     {
         private static void Main(string[] args)
         {
-            UltraSonicService myUltraSonicService = new UltraSonicService();
-            myUltraSonicService.Start();
+            int width = 640, height = 480;
 
-            //            WiFiService myWiFiService = new WiFiService();
-            //            myWiFiService.Start();
+            var capture = new VideoCapture(@"./bebop.sdp");
 
-            //            Console.ReadLine();
-            //            myUltraSonicService.Stop();
-            //            myWiFiService.Stop();
+            var bebop = new Bebop(30);
+            bebop.Connect();
+            var buffer = new StreamBuffer(capture, width, height);
+            buffer.AddService(new Canny(width, height, true));
+            buffer.Start();
+
+            while (buffer.IsRunning)
+            {
+                var frame = buffer.PopLastFrame();
+                if (frame != null)
+                {
+                    buffer.TransmitFrame(frame);
+
+                    foreach (var service in buffer.Services)
+                    {
+                        var r = service.GetLatestResult();
+                        //if (r != null && r.IsValid)
+                            //Console.WriteLine(r.Vector);
+                    }
+
+                    //CvInvoke.Imshow("frame", frame);
+                    //CvInvoke.WaitKey(1);
+                }
+            }
         }
-
-        //        private static Bebop bebop;
-        //        private static StreamBuffer buffer;
-        //        private static void Main(string[] args)
-        //        {
-        //            int width = 640, height = 480;
-        //
-        //            var capture = new VideoCapture(@"./bebop.sdp");
-        //
-        //            Bebop bebop = new Bebop(30);
-        //            bebop.Connect();
-        //            var buffer = new StreamBuffer(capture, width, height);
-        //            buffer.AddService(new Canny(width, height, true));
-        //            buffer.Start();
-        //
-        //            while (buffer.IsRunning)
-        //            {
-        //                var frame = buffer.PopLastFrame();
-        //                if (frame != null)
-        //                {
-        //                    buffer.TransmitFrame(frame);
-        //
-        //                    foreach (var service in buffer.Services)
-        //                    {
-        //                        var r = service.GetLatestResult();
-        //                        //if (r != null && r.IsValid)
-        //                            //Console.WriteLine(r.Vector);
-        //                    }
-        //
-        //                    //CvInvoke.Imshow("frame", frame);
-        //                    //CvInvoke.WaitKey(1);
-        //                }
-        //            }
-        //        }
     }
 }
