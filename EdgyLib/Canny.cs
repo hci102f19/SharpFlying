@@ -133,16 +133,21 @@ namespace EdgyLib
             List<Point> intersections = new List<Point>();
 
             foreach (Line inLine in lines)
-            foreach (Line cmpLine in lines)
             {
-                if (inLine == cmpLine)
-                    continue;
+                foreach (Line cmpLine in lines)
+                {
+                    if (inLine == cmpLine)
+                        continue;
 
-                Point intersection = inLine.Intersect(cmpLine);
+                    Point intersection = inLine.Intersect(cmpLine);
 
-                if (intersection != null && !intersections.Contains(intersection))
-                    intersections.Add(intersection);
+                    if (intersection != null && !intersections.Contains(intersection))
+                    {
+                        intersections.Add(intersection);
+                    }
+                }
             }
+
 
             if (intersections.Count > 0)
             {
@@ -154,10 +159,16 @@ namespace EdgyLib
 
                 if (clusters.IsValid())
                     if (Filtering.Add(clusters.GetBestCluster().GetMean()))
+                    {
                         if (Confidence < 1)
+                        {
                             Confidence = (Confidence >= 1) ? 1 : Confidence + 0.25f;
+                        }
+                    }
                     else
+                    {
                         Confidence = 0;
+                    }
 
                 Vector vector = BoxContainer.Hit(Filtering.GetMean());
 
