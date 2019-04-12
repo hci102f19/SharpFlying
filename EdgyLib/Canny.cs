@@ -156,8 +156,8 @@ namespace EdgyLib
                     if (Filtering.Add(clusters.GetBestCluster().GetMean()))
                         if (Confidence < 1)
                             Confidence = (Confidence >= 1) ? 1 : Confidence + 0.25f;
-                        else
-                            Confidence = 0;
+                    else
+                        Confidence = 0;
 
                 Vector vector = BoxContainer.Hit(Filtering.GetMean());
 
