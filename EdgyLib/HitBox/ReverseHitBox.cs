@@ -18,10 +18,10 @@ namespace EdgyLib.HitBox
             Width = width;
             Height = height;
 
-            var x1 = width * (1 - (1 - centerWidth) / 2);
-            var y1 = height * ((1 - centerHeight) / 2 - centerHeightOffset);
-            var x2 = width * ((1 - centerWidth) / 2);
-            var y2 = height * (1 - (1 - centerHeight) / 2 - centerHeightOffset);
+            double x1 = width * (1 - (1 - centerWidth) / 2);
+            double y1 = height * ((1 - centerHeight) / 2 - centerHeightOffset);
+            double x2 = width * ((1 - centerWidth) / 2);
+            double y2 = height * (1 - (1 - centerHeight) / 2 - centerHeightOffset);
 
             InternalPolygon = new Polygon(
                 new V2d(x1, y1),
@@ -53,8 +53,8 @@ namespace EdgyLib.HitBox
 
         protected int HorizontalMovement(double movement)
         {
-            var center = (double) Width / 2;
-            var force = (int) Math.Round((center - movement) / center * 100, 0);
+            double center = (double) Width / 2;
+            int force = (int) Math.Round((center - movement) / center * 100, 0);
 
             return force.Clamp(-100, 100);
         }

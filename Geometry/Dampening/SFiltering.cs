@@ -34,11 +34,11 @@ namespace Geometry.Dampening
 
         protected bool Deviate(List<Point> points, Point point)
         {
-            var percentPoint = PointToPercent(point);
+            Point percentPoint = PointToPercent(point);
 
-            foreach (var listPoint in points)
+            foreach (Point listPoint in points)
             {
-                var listPercentagePoint = PointToPercent(listPoint);
+                Point listPercentagePoint = PointToPercent(listPoint);
                 if (Math.Abs(listPercentagePoint.X - percentPoint.X) >= DeviationMax ||
                     Math.Abs(listPercentagePoint.Y - percentPoint.Y) >= DeviationMax)
                     return true;
@@ -66,7 +66,7 @@ namespace Geometry.Dampening
             return points;
         }
 
-        public void Add(Point point)
+        public bool Add(Point point)
         {
             if (point.X < 0 || point.X > XMax || point.Y < 0 || point.Y > YMax)
             {
@@ -91,8 +91,11 @@ namespace Geometry.Dampening
                     Console.WriteLine("SETTING NEW POINTS LIST!");
                     CurrentPoints = RejectedPoints.CopyToList();
                     RejectedPoints.Clear();
+                    return false;
                 }
             }
+
+            return true;
         }
     }
 }

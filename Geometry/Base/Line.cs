@@ -18,11 +18,11 @@ namespace Geometry.Base
 
         public Line(float rho, float theta)
         {
-            var a = Math.Cos(theta);
-            var b = Math.Sin(theta);
+            double a = Math.Cos(theta);
+            double b = Math.Sin(theta);
 
-            var x0 = a * rho;
-            var y0 = b * rho;
+            double x0 = a * rho;
+            double y0 = b * rho;
 
             StartPoint = new V2d(x0 + 1000 * -b, y0 + 1000 * a);
             EndPoint = new V2d(x0 - 1000 * -b, y0 - 1000 * a);
@@ -37,7 +37,7 @@ namespace Geometry.Base
 
         public bool IsValid()
         {
-            var angle = Math.Round(
+            double angle = Math.Round(
                 Math.Abs(RadianToDegree(Math.Atan2(EndPoint.Y - StartPoint.Y, EndPoint.X - StartPoint.X))),
                 0
             );
@@ -51,7 +51,7 @@ namespace Geometry.Base
 
         public Point Intersect(Line line)
         {
-            InternalLine.Intersects(line.InternalLine, out var intersection);
+            InternalLine.Intersects(line.InternalLine, out V2d intersection);
 
             if (intersection.X.IsNaN() || intersection.Y.IsNaN())
                 return null;

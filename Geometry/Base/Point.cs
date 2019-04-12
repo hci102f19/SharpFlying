@@ -21,8 +21,8 @@ namespace Geometry.Base
 
         public double Distance(Point point)
         {
-            var xDist = point.X - X;
-            var yDist = point.Y - Y;
+            double xDist = point.X - X;
+            double yDist = point.Y - Y;
 
             return Math.Sqrt(xDist * xDist + yDist * yDist);
         }

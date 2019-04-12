@@ -2,7 +2,7 @@
 using System.Linq;
 using Geometry.Extended;
 
-namespace DBSCAN
+namespace DBSCANLib
 {
     public static class DBSCAN
     {
@@ -11,7 +11,7 @@ namespace DBSCAN
             double epsilon,
             int minimumPointsPerCluster)
         {
-            var pointInfos = data
+            List<PointInfo> pointInfos = data
                 .Select(p => new PointInfo(p))
                 .ToList();
 
@@ -27,16 +27,16 @@ namespace DBSCAN
             double epsilon,
             int minimumPointsPerCluster)
         {
-            var points = index.Search().ToList();
+            List<PointInfo> points = index.Search().ToList();
 
-            var clusters = new List<Cluster>();
+            List<Cluster> clusters = new List<Cluster>();
 
-            foreach (var p in points)
+            foreach (PointInfo p in points)
             {
                 if (p.Visited) continue;
 
                 p.Visited = true;
-                var candidates = index.Search(p.Point, epsilon);
+                IReadOnlyList<PointInfo> candidates = index.Search(p.Point, epsilon);
 
                 if (candidates.Count >= minimumPointsPerCluster)
                     clusters.Add(
@@ -62,20 +62,20 @@ namespace DBSCAN
             IReadOnlyList<PointInfo> neighborhood,
             double epsilon, int minimumPointsPerCluster)
         {
-            var points = new List<PointContainer> {point.Item};
-            var cluster = new Cluster {Points = points};
+            List<PointContainer> points = new List<PointContainer> { point.Item };
+            Cluster cluster = new Cluster { Points = points };
             point.Cluster = cluster;
 
-            var queue = new Queue<PointInfo>(neighborhood);
+            Queue<PointInfo> queue = new Queue<PointInfo>(neighborhood);
             while (queue.Any())
             {
-                var newPoint = queue.Dequeue();
+                PointInfo newPoint = queue.Dequeue();
                 if (!newPoint.Visited)
                 {
                     newPoint.Visited = true;
-                    var newNeighbors = index.Search(newPoint.Point, epsilon);
+                    IReadOnlyList<PointInfo> newNeighbors = index.Search(newPoint.Point, epsilon);
                     if (newNeighbors.Count >= minimumPointsPerCluster)
-                        foreach (var p in newNeighbors)
+                        foreach (PointInfo p in newNeighbors)
                             queue.Enqueue(p);
                 }
 

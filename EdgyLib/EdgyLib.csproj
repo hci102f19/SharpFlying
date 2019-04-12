@@ -73,9 +73,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\DBSCAN\DBSCAN.csproj">
+    <ProjectReference Include="..\DBSCAN\DBSCANLib.csproj">
       <Project>{2ea4c8cf-0950-467f-983f-bc5ab2e00b13}</Project>
-      <Name>DBSCAN</Name>
+      <Name>DBSCANLib</Name>
     </ProjectReference>
     <ProjectReference Include="..\Flight\FlightLib.csproj">
       <Project>{aeeb01c3-df18-440c-82b5-b3f7a7643901}</Project>

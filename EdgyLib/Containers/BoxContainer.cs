@@ -23,9 +23,9 @@ namespace EdgyLib.Containers
 
         public Vector Hit(Point point)
         {
-            var vector = new Vector();
+            Vector vector = new Vector();
 
-            foreach (var hitBox in HitBoxes)
+            foreach (IHit hitBox in HitBoxes)
                 if (hitBox.Hit(point, vector))
                     return vector;
 
@@ -34,7 +34,7 @@ namespace EdgyLib.Containers
 
         public void Render(Image<Bgr, byte> frame)
         {
-            foreach (var hitBox in HitBoxes)
+            foreach (IHit hitBox in HitBoxes)
                 hitBox.Render(frame);
         }
     }

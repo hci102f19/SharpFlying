@@ -1,7 +1,7 @@
 ﻿using Geometry.Base;
 using Geometry.Extended;
 
-namespace DBSCAN
+namespace DBSCANLib
 {
     public class PointInfo
     {

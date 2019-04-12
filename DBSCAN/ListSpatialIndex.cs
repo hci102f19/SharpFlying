@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using Geometry.Base;
 
-namespace DBSCAN
+namespace DBSCANLib
 {
     public class ListSpatialIndex
     {
         public delegate bool DistanceFunction(in Point a, in Point b, in double epsilon);
 
         private readonly IReadOnlyList<PointInfo> _points;
-        private readonly DistanceFunction distanceFunction;
+        private readonly DistanceFunction _distanceFunction;
 
         public ListSpatialIndex(IEnumerable<PointInfo> data)
             : this(data, EuclideanDistance)
@@ -20,13 +20,13 @@ namespace DBSCAN
         public ListSpatialIndex(IEnumerable<PointInfo> data, DistanceFunction distanceFunction)
         {
             _points = data.ToList();
-            this.distanceFunction = distanceFunction;
+            this._distanceFunction = distanceFunction;
         }
 
         public static bool EuclideanDistance(in Point a, in Point b, in double epsilon)
         {
-            var xDist = b.X - a.X;
-            var yDist = b.Y - a.Y;
+            double xDist = b.X - a.X;
+            double yDist = b.Y - a.Y;
 
             if (Math.Abs(xDist) > epsilon || Math.Abs(yDist) > epsilon)
                 return false;
@@ -40,9 +40,9 @@ namespace DBSCAN
 
         public IReadOnlyList<PointInfo> Search(in Point p, double epsilon)
         {
-            var neighbours = new List<PointInfo>();
-            foreach (var point in _points)
-                if (distanceFunction(p, point.Point, epsilon))
+            List<PointInfo> neighbours = new List<PointInfo>();
+            foreach (PointInfo point in _points)
+                if (_distanceFunction(p, point.Point, epsilon))
                     neighbours.Add(point);
             return neighbours;
         }

@@ -28,7 +28,7 @@ namespace Geometry.Extended
         {
             if (ClusterDensity == null)
             {
-                var area = GetBoundingBox().Area;
+                double area = GetBoundingBox().Area;
 
                 if (area > 0 && Math.Log(area) > 0)
                     ClusterDensity = Math.Log(ClusterSize) * Modifier / Math.Log(area);

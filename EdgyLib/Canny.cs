@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using DBSCANLib;
 using EdgyLib.Containers;
 using Emgu.CV;
 using Emgu.CV.Structure;
 using Emgu.CV.Util;
+using FlightLib;
 using Geometry.Base;
 using Geometry.Dampening;
 using Geometry.Extended;
@@ -29,6 +31,7 @@ namespace EdgyLib
 
         protected int? LastFrameCount;
         protected Response LatestResponse = new Response(false, null, 0);
+        protected float Confidence = 0;
 
         protected int LineMax = 100;
 
@@ -44,13 +47,11 @@ namespace EdgyLib
             Debug = debug;
         }
 
-
         public override void Input(Image<Bgr, byte> frame)
         {
             if (CurrentFrame == null)
                 CurrentFrame = frame;
         }
-
 
         protected override void Run()
         {
@@ -63,25 +64,24 @@ namespace EdgyLib
                     continue;
                 }
 
-                var frame = CurrentFrame;
+                Image<Bgr, byte> frame = CurrentFrame;
                 CurrentFrame = null;
 
-                using (var edges = new Mat())
+                using (Mat edges = new Mat())
                 {
                     CvInvoke.Canny(frame, edges, CannyThreshold, CannyThreshold * CannyThresholdModifier, 3);
 
 
-                    var vector = new VectorOfPointF();
+                    VectorOfPointF vector = new VectorOfPointF();
                     CvInvoke.HoughLines(edges, vector, 2, Math.PI / 180, HoughLinesTheta);
 
-                    var lines = vector.Size;
+                    int lines = vector.Size;
 
                     if (lines == 0)
                         continue;
 
                     CalculateTheta(lines);
 
-                    // Check for too many lines
                     if (lines < LineMax)
                         Clustering(GetLines(vector), frame);
                 }
@@ -115,11 +115,11 @@ namespace EdgyLib
 
         protected List<Line> GetLines(VectorOfPointF vector)
         {
-            var lines = new List<Line>();
+            List<Line> lines = new List<Line>();
 
-            for (var i = 0; i < vector.Size; i++)
+            for (int i = 0; i < vector.Size; i++)
             {
-                var line = new Line(vector[i]);
+                Line line = new Line(vector[i]);
 
                 if (line.IsValid())
                     lines.Add(line);
@@ -130,15 +130,15 @@ namespace EdgyLib
 
         protected void Clustering(List<Line> lines, Image<Bgr, byte> frame)
         {
-            var intersections = new List<Point>();
+            List<Point> intersections = new List<Point>();
 
-            foreach (var inLine in lines)
-            foreach (var cmpLine in lines)
+            foreach (Line inLine in lines)
+            foreach (Line cmpLine in lines)
             {
                 if (inLine == cmpLine)
                     continue;
 
-                var intersection = inLine.Intersect(cmpLine);
+                Point intersection = inLine.Intersect(cmpLine);
 
                 if (intersection != null && !intersections.Contains(intersection))
                     intersections.Add(intersection);
@@ -146,19 +146,24 @@ namespace EdgyLib
 
             if (intersections.Count > 0)
             {
-                var clusters = DBSCAN.DBSCAN.CalculateClusters(
+                ClusterSet clusters = DBSCAN.CalculateClusters(
                     intersections.Select(p => new PointContainer(p)).ToList(),
                     20,
                     (int) Math.Round(0.1 * intersections.Count, 0)
                 );
 
-                if (clusters.IsValid()) Filtering.Add(clusters.GetBestCluster().GetMean());
+                if (clusters.IsValid())
+                    if (Filtering.Add(clusters.GetBestCluster().GetMean()))
+                        if (Confidence < 1)
+                            Confidence = (Confidence >= 1) ? 1 : Confidence + 0.25f;
+                        else
+                            Confidence = 0;
 
-                var v = BoxContainer.Hit(Filtering.GetMean());
+                Vector vector = BoxContainer.Hit(Filtering.GetMean());
 
-                LatestResponse = !v.IsNull()
-                    ? new Response(true, BoxContainer.Hit(Filtering.GetMean()), 0)
-                    : new Response(false, null, 0);
+                LatestResponse = !vector.IsNull()
+                    ? new Response(true, BoxContainer.Hit(Filtering.GetMean()), Confidence)
+                    : new Response(false, null);
 
 
                 ((RenderPoint) Filtering.GetMean()).Render(frame);
