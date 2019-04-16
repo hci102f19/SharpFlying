@@ -48,11 +48,10 @@ namespace VidBuffLib
 
                 frame = Stream.QueryFrame();
 
-
                 Sleep(DateTime.Now - startTime);
             }
 
-            IsRunning = false;
+            Stop();
         }
     }
 }

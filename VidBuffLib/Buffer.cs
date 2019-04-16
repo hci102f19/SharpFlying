@@ -88,8 +88,11 @@ namespace VidBuffLib
             return mat;
         }
 
-        public void Kill()
+        public void Stop()
         {
+            foreach (Service s in Services)
+                s.Stop();
+
             IsRunning = false;
         }
 

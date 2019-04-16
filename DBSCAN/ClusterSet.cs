@@ -7,8 +7,8 @@ namespace DBSCANLib
 {
     public class ClusterSet
     {
-        public List<Cluster> Clusters { get; internal set; }
-        public List<PointContainer> UnclusteredObjects { get; internal set; }
+        public List<Cluster> Clusters { get; protected internal set; }
+        public List<PointContainer> UnclusteredObjects { get; protected internal set; }
 
         public bool IsValid()
         {
