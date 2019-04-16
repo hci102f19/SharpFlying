@@ -1,17 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 
 namespace UltraSonicLib
 {
     public class UltrasonicSensor
     {
         [JsonProperty("distance")]
-        public float Distance { get; protected set; } = 0;
+        public float Distance { get; protected set; }
 
         [JsonProperty("value")]
-        public float Value { get; protected set; } = 0;
+        public float Value { get; protected set; }
     }
 }

@@ -18,7 +18,10 @@ namespace DBSCANLib
         public Cluster GetBestCluster()
         {
             if (!IsValid())
+            {
                 throw new Exception("Clusters is not available");
+            }
+
             return Clusters.OrderByDescending(p => p.Points.Count).First();
         }
     }

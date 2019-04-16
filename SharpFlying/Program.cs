@@ -37,11 +37,15 @@ namespace SharpFlying
                     {
                         buffer.TransmitFrame(frame);
 
+                        Console.WriteLine(buffer.CalculateMovement());
+
                         foreach (Service service in buffer.Services)
                         {
                             Response r = service.GetLatestResult();
                             if (r != null && r.IsValid)
+                            {
                                 Console.WriteLine(r.Vector);
+                            }
                         }
 
                         //CvInvoke.Imshow("frame", frame);

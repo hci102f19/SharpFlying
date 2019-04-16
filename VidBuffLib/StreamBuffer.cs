@@ -2,6 +2,8 @@
 using System.Threading;
 using Emgu.CV;
 using Emgu.CV.Structure;
+using FlightLib;
+using ServiceLib;
 
 namespace VidBuffLib
 {
@@ -14,12 +16,12 @@ namespace VidBuffLib
 
         private void FixEnviromentVariable()
         {
-            var env = Environment.GetEnvironmentVariable(
+            string env = Environment.GetEnvironmentVariable(
                 "OPENCV_FFMPEG_CAPTURE_OPTIONS",
                 EnvironmentVariableTarget.User
             );
 
-            var envVal = "protocol_whitelist;file,rtp,udp";
+            string envVal = "protocol_whitelist;file,rtp,udp";
 
             if (env == null || env != envVal)
             {
@@ -39,7 +41,7 @@ namespace VidBuffLib
 
         protected override void Run()
         {
-            var frame = Stream.QueryFrame();
+            Mat frame = Stream.QueryFrame();
 
             while (!Stream.IsOpened)
             {
@@ -66,6 +68,23 @@ namespace VidBuffLib
             }
 
             IsRunning = false;
+        }
+
+        public Vector CalculateMovement()
+        {
+            Vector movement = new Vector();
+
+            foreach (Service service in Services)
+            {
+                Response response = service.GetLatestResult();
+                if (response != null && response.IsValid)
+                {
+                    Vector responseVector = response.Vector.TimesConstant(response.Confidence / 100);
+                    movement.Add(responseVector);
+                }
+            }
+
+            return movement;
         }
     }
 }

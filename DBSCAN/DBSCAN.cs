@@ -33,12 +33,16 @@ namespace DBSCANLib
 
             foreach (PointInfo p in points)
             {
-                if (p.Visited) continue;
+                if (p.Visited)
+                {
+                    continue;
+                }
 
                 p.Visited = true;
                 IReadOnlyList<PointInfo> candidates = index.Search(p.Point, epsilon);
 
                 if (candidates.Count >= minimumPointsPerCluster)
+                {
                     clusters.Add(
                         BuildCluster(
                             index,
@@ -46,6 +50,7 @@ namespace DBSCANLib
                             candidates,
                             epsilon,
                             minimumPointsPerCluster));
+                }
             }
 
             return new ClusterSet
@@ -62,8 +67,8 @@ namespace DBSCANLib
             IReadOnlyList<PointInfo> neighborhood,
             double epsilon, int minimumPointsPerCluster)
         {
-            List<PointContainer> points = new List<PointContainer> { point.Item };
-            Cluster cluster = new Cluster { Points = points };
+            List<PointContainer> points = new List<PointContainer> {point.Item};
+            Cluster cluster = new Cluster {Points = points};
             point.Cluster = cluster;
 
             Queue<PointInfo> queue = new Queue<PointInfo>(neighborhood);
@@ -75,8 +80,12 @@ namespace DBSCANLib
                     newPoint.Visited = true;
                     IReadOnlyList<PointInfo> newNeighbors = index.Search(newPoint.Point, epsilon);
                     if (newNeighbors.Count >= minimumPointsPerCluster)
+                    {
                         foreach (PointInfo p in newNeighbors)
+                        {
                             queue.Enqueue(p);
+                        }
+                    }
                 }
 
                 if (newPoint.Cluster == null)

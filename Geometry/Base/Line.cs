@@ -43,9 +43,15 @@ namespace Geometry.Base
             );
 
             if (180 - AngleThreshold <= angle || angle <= 0 + AngleThreshold)
+            {
                 return false;
+            }
+
             if (90 - AngleThreshold <= angle && angle <= 90 + AngleThreshold)
+            {
                 return false;
+            }
+
             return true;
         }
 
@@ -54,7 +60,9 @@ namespace Geometry.Base
             InternalLine.Intersects(line.InternalLine, out V2d intersection);
 
             if (intersection.X.IsNaN() || intersection.Y.IsNaN())
+            {
                 return null;
+            }
 
             return new Point(intersection);
         }

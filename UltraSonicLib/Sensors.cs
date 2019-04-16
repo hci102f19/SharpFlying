@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
 using FlightLib;
 using Newtonsoft.Json;
 
@@ -21,12 +19,12 @@ namespace UltraSonicLib
         [JsonProperty("Left")]
         public UltrasonicSensor Left { get; protected set; }
 
-        public List<Tuple<UltrasonicSensor, Vector>> GetSensors => new List<Tuple<UltrasonicSensor, Vector>>()
+        public List<Tuple<UltrasonicSensor, Vector>> GetSensors => new List<Tuple<UltrasonicSensor, Vector>>
         {
             new Tuple<UltrasonicSensor, Vector>(Front, new Vector(pitch: 50)),
             new Tuple<UltrasonicSensor, Vector>(Right, new Vector()),
             new Tuple<UltrasonicSensor, Vector>(Back, new Vector(pitch: -50)),
-            new Tuple<UltrasonicSensor, Vector>(Left, new Vector()),
+            new Tuple<UltrasonicSensor, Vector>(Left, new Vector())
         };
     }
 }

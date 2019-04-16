@@ -9,8 +9,9 @@ namespace DBSCANLib
     {
         public delegate bool DistanceFunction(in Point a, in Point b, in double epsilon);
 
-        private readonly IReadOnlyList<PointInfo> _points;
         private readonly DistanceFunction _distanceFunction;
+
+        private readonly IReadOnlyList<PointInfo> _points;
 
         public ListSpatialIndex(IEnumerable<PointInfo> data)
             : this(data, EuclideanDistance)
@@ -20,7 +21,7 @@ namespace DBSCANLib
         public ListSpatialIndex(IEnumerable<PointInfo> data, DistanceFunction distanceFunction)
         {
             _points = data.ToList();
-            this._distanceFunction = distanceFunction;
+            _distanceFunction = distanceFunction;
         }
 
         public static bool EuclideanDistance(in Point a, in Point b, in double epsilon)
@@ -29,7 +30,10 @@ namespace DBSCANLib
             double yDist = b.Y - a.Y;
 
             if (Math.Abs(xDist) > epsilon || Math.Abs(yDist) > epsilon)
+            {
                 return false;
+            }
+
             return a.Distance(b) < epsilon;
         }
 
@@ -42,8 +46,13 @@ namespace DBSCANLib
         {
             List<PointInfo> neighbours = new List<PointInfo>();
             foreach (PointInfo point in _points)
+            {
                 if (_distanceFunction(p, point.Point, epsilon))
+                {
                     neighbours.Add(point);
+                }
+            }
+
             return neighbours;
         }
     }

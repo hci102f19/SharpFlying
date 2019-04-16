@@ -4,7 +4,7 @@ namespace ServiceLib
 {
     public class Response
     {
-        public Response(bool isValid, Vector vector, float confidence = 0)
+        public Response(bool isValid, Vector vector, float confidence = 1)
         {
             IsValid = isValid;
             Vector = vector;

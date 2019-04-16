@@ -1,4 +1,4 @@
-﻿using System.Runtime.InteropServices;
+﻿using System;
 
 namespace FlightLib
 {
@@ -70,6 +70,16 @@ namespace FlightLib
             Pitch *= constant;
             Yaw *= constant;
             Gaz *= constant;
+
+            return this;
+        }
+
+        public Vector TimesConstant(float constant)
+        {
+            Roll = (int)Math.Round(Roll * constant, 0);
+            Pitch = (int)Math.Round(Pitch * constant, 0);
+            Yaw = (int)Math.Round(Yaw * constant, 0);
+            Gaz = (int)Math.Round(Gaz * constant,0);
 
             return this;
         }

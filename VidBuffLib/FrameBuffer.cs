@@ -19,18 +19,20 @@ namespace VidBuffLib
 
         protected void Sleep(TimeSpan executionTime)
         {
-            var sleep = (int) (SleepTimer * 1000) - executionTime.Milliseconds;
+            int sleep = (int) (SleepTimer * 1000) - executionTime.Milliseconds;
             if (sleep > 0)
+            {
                 Thread.Sleep(sleep);
+            }
         }
 
         protected override void Run()
         {
-            var frame = Stream.QueryFrame();
+            Mat frame = Stream.QueryFrame();
 
             while (frame != null && IsRunning)
             {
-                var startTime = DateTime.Now;
+                DateTime startTime = DateTime.Now;
                 using (frame = ProcessFrame(frame))
                 {
                     if (Stack.Count > 0)

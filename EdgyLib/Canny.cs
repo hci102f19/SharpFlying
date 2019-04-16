@@ -21,6 +21,7 @@ namespace EdgyLib
         protected BoxContainer BoxContainer;
         protected int CannyThreshold = 55;
         protected int CannyThresholdModifier = 3;
+        protected float Confidence;
 
         protected Image<Bgr, byte> CurrentFrame;
 
@@ -31,7 +32,6 @@ namespace EdgyLib
 
         protected int? LastFrameCount;
         protected Response LatestResponse = new Response(false, null, 0);
-        protected float Confidence = 0;
 
         protected int LineMax = 100;
 
@@ -50,7 +50,9 @@ namespace EdgyLib
         public override void Input(Image<Bgr, byte> frame)
         {
             if (CurrentFrame == null)
+            {
                 CurrentFrame = frame;
+            }
         }
 
         protected override void Run()
@@ -78,12 +80,16 @@ namespace EdgyLib
                     int lines = vector.Size;
 
                     if (lines == 0)
+                    {
                         continue;
+                    }
 
                     CalculateTheta(lines);
 
                     if (lines < LineMax)
+                    {
                         Clustering(GetLines(vector), frame);
+                    }
                 }
             }
         }
@@ -96,7 +102,9 @@ namespace EdgyLib
                 modifier = (float) LastFrameCount / lines * 2;
 
                 if (modifier <= 1)
+                {
                     modifier = 1;
+                }
             }
 
             if (lines < LowerLineThreshold && HoughLinesTheta > ThetaModifier * modifier)
@@ -122,7 +130,9 @@ namespace EdgyLib
                 Line line = new Line(vector[i]);
 
                 if (line.IsValid())
+                {
                     lines.Add(line);
+                }
             }
 
             return lines;
@@ -133,18 +143,18 @@ namespace EdgyLib
             List<Point> intersections = new List<Point>();
 
             foreach (Line inLine in lines)
+            foreach (Line cmpLine in lines)
             {
-                foreach (Line cmpLine in lines)
+                if (inLine == cmpLine)
                 {
-                    if (inLine == cmpLine)
-                        continue;
+                    continue;
+                }
 
-                    Point intersection = inLine.Intersect(cmpLine);
+                Point intersection = inLine.Intersect(cmpLine);
 
-                    if (intersection != null && !intersections.Contains(intersection))
-                    {
-                        intersections.Add(intersection);
-                    }
+                if (intersection != null && !intersections.Contains(intersection))
+                {
+                    intersections.Add(intersection);
                 }
             }
 
@@ -158,17 +168,19 @@ namespace EdgyLib
                 );
 
                 if (clusters.IsValid())
+                {
                     if (Filtering.Add(clusters.GetBestCluster().GetMean()))
                     {
                         if (Confidence < 1)
                         {
-                            Confidence = (Confidence >= 1) ? 1 : Confidence + 0.25f;
+                            Confidence = Confidence >= 100 ? 100 : Confidence + 0.25f;
                         }
                     }
                     else
                     {
-                        Confidence = 0;
+                        Confidence = 1;
                     }
+                }
 
                 Vector vector = BoxContainer.Hit(Filtering.GetMean());
 
