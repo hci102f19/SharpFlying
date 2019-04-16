@@ -1,4 +1,6 @@
-﻿namespace FlightLib
+﻿using System;
+
+namespace FlightLib
 {
     public class Vector
     {
@@ -74,10 +76,10 @@
 
         public Vector TimesConstant(float constant)
         {
-            Roll = (int)(Roll * constant);
-            Pitch = (int)(Pitch * constant);
-            Yaw = (int)(Yaw * constant);
-            Gaz = (int)(Gaz * constant);
+            Roll = (int)Math.Round(Roll * constant, 0);
+            Pitch = (int)Math.Round(Pitch * constant, 0);
+            Yaw = (int)Math.Round(Yaw * constant, 0);
+            Gaz = (int)Math.Round(Gaz * constant,0);
 
             return this;
         }

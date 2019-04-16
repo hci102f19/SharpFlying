@@ -79,7 +79,7 @@ namespace VidBuffLib
                 Response response = service.GetLatestResult();
                 if (response != null && response.IsValid)
                 {
-                    Vector responseVector = response.Vector.TimesConstant(response.Confidence);
+                    Vector responseVector = response.Vector.TimesConstant(response.Confidence / 100);
                     movement.Add(responseVector);
                 }
             }
