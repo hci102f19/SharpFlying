@@ -38,10 +38,14 @@ namespace EdgyLib.HitBox
         public bool Hit(Point point, Vector vector)
         {
             if (InternalPolygon.Contains(point))
+            {
                 return false;
+            }
 
             if (0 <= point.X && point.X <= Width)
+            {
                 vector.Yaw = HorizontalMovement(point.X) * 2;
+            }
 
             return true;
         }

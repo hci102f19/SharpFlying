@@ -22,8 +22,10 @@ namespace RenderGeometry.Base
 
         public void Render(Image<Bgr, byte> frame, MCvScalar color = default(MCvScalar))
         {
-            foreach (var line in Polygon.InternalPolygon.EdgeLines)
+            foreach (Line2d line in Polygon.InternalPolygon.EdgeLines)
+            {
                 CvInvoke.Line(frame, AsPoint(line.P0), AsPoint(line.P1), color);
+            }
         }
 
         public static explicit operator PolyRender(Polygon v)

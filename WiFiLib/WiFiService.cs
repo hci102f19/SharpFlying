@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Runtime.InteropServices;
-using Newtonsoft.Json;
 using ServiceLib;
 using UDPBase;
 using UDPBase.exceptions;
@@ -29,7 +27,10 @@ namespace WiFiLib
                 {
                     Network data = Client.ReceiveData<Network>();
                     if (data == null)
+                    {
                         continue;
+                    }
+
                     Network = data;
                 }
                 catch (ServerStoppedRespondingException)

@@ -41,7 +41,9 @@ namespace Geometry.Dampening
                 Point listPercentagePoint = PointToPercent(listPoint);
                 if (Math.Abs(listPercentagePoint.X - percentPoint.X) >= DeviationMax ||
                     Math.Abs(listPercentagePoint.Y - percentPoint.Y) >= DeviationMax)
+                {
                     return true;
+                }
             }
 
             return false;
@@ -50,10 +52,13 @@ namespace Geometry.Dampening
         public Point GetMean()
         {
             if (CurrentPoints.Count > 0)
+            {
                 return new Point(
                     CurrentPoints.Select(point => point.X).Average(),
                     CurrentPoints.Select(point => point.Y).Average()
                 );
+            }
+
             return new Point(0, 0);
         }
 

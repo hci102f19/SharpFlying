@@ -1,6 +1,4 @@
-﻿using System.Runtime.InteropServices;
-
-namespace FlightLib
+﻿namespace FlightLib
 {
     public class Vector
     {
@@ -70,6 +68,16 @@ namespace FlightLib
             Pitch *= constant;
             Yaw *= constant;
             Gaz *= constant;
+
+            return this;
+        }
+
+        public Vector TimesConstant(float constant)
+        {
+            Roll = (int)(Roll * constant);
+            Pitch = (int)(Pitch * constant);
+            Yaw = (int)(Yaw * constant);
+            Gaz = (int)(Gaz * constant);
 
             return this;
         }

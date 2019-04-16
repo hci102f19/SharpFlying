@@ -31,9 +31,13 @@ namespace Geometry.Extended
                 double area = GetBoundingBox().Area;
 
                 if (area > 0 && Math.Log(area) > 0)
+                {
                     ClusterDensity = Math.Log(ClusterSize) * Modifier / Math.Log(area);
+                }
                 else
+                {
                     ClusterDensity = 0;
+                }
             }
 
             return (double) ClusterDensity;

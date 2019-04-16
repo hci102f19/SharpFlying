@@ -17,8 +17,8 @@ namespace UDPBase
         protected IPEndPoint EndPoint;
 
         protected bool IsConnected;
-        protected int ReconnectionCount;
         protected int PacketsDropped;
+        protected int ReconnectionCount;
 
         public UDPClient(string host, int port)
         {
@@ -44,7 +44,10 @@ namespace UDPBase
         public void Connect()
         {
             if (IsConnected)
+            {
                 return;
+            }
+
             Client.Connect(EndPoint);
             SendHELO();
         }
@@ -69,10 +72,11 @@ namespace UDPBase
                         IsConnected = true;
                         return default(T);
                     }
-                    else
-                        throw new NoAcknowledgementException("Server did not acknowledge client");
+
+                    throw new NoAcknowledgementException("Server did not acknowledge client");
                 }
-                else if (receivedData == BYEMessage)
+
+                if (receivedData == BYEMessage)
                 {
                     throw new ServerStoppingException("Server is stopping.");
                 }
@@ -82,7 +86,9 @@ namespace UDPBase
             catch (SocketException e)
             {
                 if (PacketsDropped++ >= 3)
+                {
                     throw new ServerStoppedRespondingException("Server stopped responding.");
+                }
             }
 
             return default(T);

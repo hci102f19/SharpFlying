@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading;
-using System.Threading.Tasks;
 using Emgu.CV;
 using Emgu.CV.Structure;
 
@@ -27,7 +26,9 @@ namespace ServiceLib
         public virtual void Input(Image<Bgr, byte> frame)
         {
             if (!IgnoreInput)
+            {
                 throw new NotImplementedException();
+            }
         }
 
         public virtual Response GetLatestResult()

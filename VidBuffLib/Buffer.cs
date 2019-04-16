@@ -38,9 +38,16 @@ namespace VidBuffLib
 
         public Image<Bgr, byte> GetLastFrame()
         {
-            if (!IsRunning) return null;
+            if (!IsRunning)
+            {
+                return null;
+            }
+
             Retry:
-            while (Stack.Count == 0 && IsRunning) Thread.Yield();
+            while (Stack.Count == 0 && IsRunning)
+            {
+                Thread.Yield();
+            }
 
             if (Stack.Count > 0 && Stack.Peek() == null && IsRunning)
             {
@@ -53,9 +60,16 @@ namespace VidBuffLib
 
         public Image<Bgr, byte> PopLastFrame()
         {
-            if (!IsRunning) return null;
+            if (!IsRunning)
+            {
+                return null;
+            }
+
             Retry:
-            while (Stack.Count == 0 && IsRunning) Thread.Yield();
+            while (Stack.Count == 0 && IsRunning)
+            {
+                Thread.Yield();
+            }
 
             if (Stack.Count > 0 && Stack.Peek() == null && IsRunning)
             {
@@ -83,7 +97,9 @@ namespace VidBuffLib
         {
             //Start all connected services
             foreach (Service service in Services)
+            {
                 service.Start();
+            }
 
             BufferThread = new Thread(Run);
             BufferThread.Start();
@@ -98,7 +114,9 @@ namespace VidBuffLib
         public void TransmitFrame(Image<Bgr, byte> frame)
         {
             foreach (Service service in Services)
+            {
                 service.Input(frame);
+            }
         }
     }
 }
