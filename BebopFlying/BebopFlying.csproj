@@ -39,6 +39,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Bebop Classes\CommandSet.cs" />
+    <Compile Include="Bebop Classes\StructConverter.cs" />
     <Compile Include="Bebop Classes\Structs\Command.cs" />
     <Compile Include="Bebop.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

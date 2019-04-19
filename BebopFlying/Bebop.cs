@@ -231,14 +231,9 @@ namespace BebopFlying
             {
                 try
                 {
-                    //AskForStateUpdate();
                     data = _droneDataClient.Receive(ref _droneData);
 
                     HandleData(data);
-                    //Console.WriteLine("Datatype: " + stuctData.DataType);
-                    //Console.WriteLine("BufferID: " + stuctData.BufferID);
-                    //Console.WriteLine("PacketSequenceID:" + stuctData.PacketSequenceID);
-                    //Console.WriteLine("PacketSize: " + stuctData.PacketSize);
                 }
                 catch (SocketException ex)
                 {
@@ -261,50 +256,67 @@ namespace BebopFlying
         private void HandleData(byte[] data)
         {
             const int size = 7;
-            while (data.Length > 0)
+            while (data.Length > 7)
             {
-                byte[] buffer = new byte[size];
-                buffer = data.Take(size).ToArray();
-                BebopData dataStruct = new BebopData
+                var datalist = StructConverter.Unpack("<BBBI", data.Take(7).ToArray());
+                byte datatype = (byte) datalist[0];
+                byte bufferID = (byte)datalist[1];
+                byte packetSeqID = (byte)datalist[2];
+                object packetSize = datalist[3];
+                //TEST SHITTY TYPES
+                uint intermediateConv = (uint) packetSize;
+                int actualSize = (int) intermediateConv;
+                if (actualSize > 1000)
                 {
-                    DataType = buffer[0],
-                    BufferID = buffer[1],
-                    PacketSequenceID = buffer[2],
-                    PacketSize = BitConverter.ToInt32(buffer, 3)
-                };
-                dataStruct.data = new byte[dataStruct.PacketSize];
-                dataStruct.data = data.Skip(size).Take(dataStruct.PacketSize).ToArray();
-                HandleFrameData(dataStruct);
-                data = data.Skip(dataStruct.PacketSize + size).ToArray();
+                    Console.WriteLine("Conversion error");
+                }
+                byte[] recvData = new byte[actualSize];
+                recvData = data.Skip(size).Take(actualSize).ToArray();
+                HandleFrameData(datatype, bufferID, packetSeqID, actualSize, recvData);
+                data = data.Skip((actualSize + size)).ToArray();
             }
         }
 
-        private void HandleFrameData(BebopData data)
+        private void HandleFrameData(byte datatype, byte bufferID, byte packetSeqID,int packetSize, byte[] data)
         {
             //If the drone is pinging us -> Send back pong
-            if (data.BufferID == CommandSet.ARNETWORK_MANAGER_INTERNAL_BUFFER_ID_PING)
+            if (bufferID == CommandSet.ARNETWORK_MANAGER_INTERNAL_BUFFER_ID_PING && data.Length > 0)
             {
-                SendPong(data.data);
+                SendPong(data);
+                _logger.Debug("Pong");
             }
 
             //Drone is asking for us to acknowledge the receival of the packet
-            if (data.DataType == CommandSet.ARNETWORKAL_FRAME_TYPE_ACK)
+            if (datatype == CommandSet.ARNETWORKAL_FRAME_TYPE_ACK && data.Length > 0)
             {
-                int ackSeqNumber = data.data[0];
-                _commandReceived.Add(new Tuple<string, int>("SEND_WITH_ACK", ackSeqNumber), true);
-                AckPacket(data.BufferID, ackSeqNumber);
+                int ackSeqNumber = data[0];
+                var tuple = new Tuple<string, int>("SEND_WITH_ACK", ackSeqNumber);
+                _commandReceived.TryGetValue(tuple, out var exists);
+                if (exists)
+                {
+                    _commandReceived[tuple] = true;
+                }
+                else
+                {
+                    _commandReceived.Add(tuple, true);
+                }
+                AckPacket(bufferID, ackSeqNumber);
+                _logger.Debug("Send Ack");
+
             }
             //Drone just sent us sensor data -> No acknowledge required
-            else if (data.DataType == CommandSet.ARNETWORKAL_FRAME_TYPE_DATA)
+            else if (datatype == CommandSet.ARNETWORKAL_FRAME_TYPE_DATA)
             {
-                if (data.BufferID == CommandSet.BD_NET_DC_NAVDATA_ID || data.BufferID == CommandSet.BD_NET_DC_EVENT_ID)
+                if (bufferID == CommandSet.BD_NET_DC_NAVDATA_ID || bufferID == CommandSet.BD_NET_DC_EVENT_ID)
                 {
-                    UpdateSensorData(data.data, data.BufferID, data.PacketSequenceID, false);
+                    UpdateSensorData(data, bufferID, packetSeqID, false);
+                    _logger.Debug("Sensor update");
+
                 }
             }
             else
             {
-                _logger.Fatal("Unknown data type received from drone!");
+                //_logger.Fatal("Unknown data type received from drone!");
             }
         }
 
@@ -324,6 +336,7 @@ namespace BebopFlying
             else
             {
                 _commandReceived[new Tuple<string, int>("ACK", (newbufferId + 1) % 256)] = true;
+                packet.cmd = new byte[5];
                 packet.cmd[0] = CommandSet.ARNETWORKAL_FRAME_TYPE_ACK;
                 packet.cmd[1] = (byte)newbufferId;
                 packet.cmd[2] = (byte)((newbufferId + 1) % 256);
@@ -343,37 +356,18 @@ namespace BebopFlying
             int seq = _sequenceDictionary["PONG"];
 
             _sequenceDictionary["PONG"] = seq + 1 % 256;
-
-            BebopData pongPacket = new BebopData
-            {
-                BufferID = CommandSet.ARNETWORK_MANAGER_INTERNAL_BUFFER_ID_PONG,
-                DataType = CommandSet.ARNETWORKAL_FRAME_TYPE_DATA,
-                PacketSequenceID = (byte)_sequenceDictionary["PONG"],
-                PacketSize = size + 7,
-                data = data
-            };
-
-            SafeSendDroneCMD(pongPacket);
-        }
-
-        private void SafeSendDroneCMD(BebopData DroneCMD)
-        {
-            bool packetSent = false;
-            int attemptNo = 0;
-
-            while (!packetSent && attemptNo < 2)
-            {
-                try
-                {
-                    _droneUdpClient.Send(StructureToByteArray(DroneCMD), DroneCMD.PacketSize);
-                    packetSent = true;
-                }
-                catch (Exception e)
-                {
-                    packetSent = false;
-                    attemptNo += 1;
-                }
-            }
+            Command packet = new Command();
+            
+            byte[] cmd = new byte[size+7];
+            //Construct packet
+            cmd[0] = CommandSet.ARNETWORK_MANAGER_INTERNAL_BUFFER_ID_PONG; //BufferID
+            cmd[1] = CommandSet.ARNETWORKAL_FRAME_TYPE_DATA; //DataType
+            cmd[2] = (byte) _sequenceDictionary["PONG"]; //Sequence ID
+            cmd[3] = (byte) (size + 7); //Total packet size
+            data.CopyTo(cmd,4); //Pong data
+            packet.cmd = cmd;
+            packet.size = size + 7;
+            SafeSendDroneCMD(packet);
         }
 
         private void SafeSendDroneCMD(Command DroneCMD)
@@ -385,7 +379,7 @@ namespace BebopFlying
             {
                 try
                 {
-                    _droneUdpClient.Send(StructureToByteArray(DroneCMD), DroneCMD.size);
+                    _droneUdpClient.Send(DroneCMD.cmd, DroneCMD.size);
                     packetSent = true;
                 }
                 catch (Exception e)
