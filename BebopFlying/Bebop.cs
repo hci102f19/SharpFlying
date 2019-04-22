@@ -59,22 +59,18 @@ namespace BebopFlying
         private Vector _flyVector = new Vector();
         private IPEndPoint _remoteIpEndPoint;
 
-        private Thread _StreamReader;
+        private Thread _StreamReaderThread;
         private Thread _threadWatcher;
 
         public bool IsRunning { get; protected set; } = true;
 
-        private StreamReader streamReader;
-        //{
-        //    {new Tuple<string,int>("SEND_WITH_ACK", 0), false },
-        //    {new Tuple<string,int>("SEND_HIGH_PRIORITY", 0), false },
-        //    {new Tuple<string,int>("ACK_COMMAND", 0), false },
-        //};
+        private StreamReader _streamReader;
+
 
         /// <summary>
         ///     Initializes the bebop object at a specific updaterate
         /// </summary>
-        /// <param name="updaterate">Numer of updates per second</param>
+        /// <param name="updaterate">Number of updates per second</param>
         public Bebop(int updaterate)
         {
             if (updaterate <= 0)
@@ -93,6 +89,8 @@ namespace BebopFlying
         }
 
         protected int Updaterate { get; }
+
+        #region Public methods
 
         public void TakeOff()
         {
@@ -155,13 +153,13 @@ namespace BebopFlying
 
                 //initialize reader and writer
                 StreamWriter streamWriter = new StreamWriter(stream);
-                streamReader = new StreamReader(stream);
+                _streamReader = new StreamReader(stream);
                 //when the drone receive the message below, it will return the confirmation
                 streamWriter.WriteLine(CommandSet.HandshakeMessage);
                 streamWriter.Flush();
-                _StreamReader = new Thread(ReadDroneOutput);
+                _StreamReaderThread = new Thread(ReadDroneOutput);
 
-                string droneHandshakeResponse = streamReader.ReadLine();
+                string droneHandshakeResponse = _streamReader.ReadLine();
 
                 if (droneHandshakeResponse == null)
                 {
@@ -182,7 +180,6 @@ namespace BebopFlying
 
                 //enable video streaming
                 VideoEnable();
-                //InitArStream();
             }
             catch (SocketException ex)
             {
@@ -194,7 +191,7 @@ namespace BebopFlying
             _commandGeneratorThread.Start();
             _threadWatcher = new Thread(ThreadManager);
             _threadWatcher.Start();
-            _StreamReader.Start();
+            _StreamReaderThread.Start();
             _logger.Debug("Successfully connected to the drone");
             return ConnectionStatus.Success;
         }
@@ -209,7 +206,10 @@ namespace BebopFlying
             _droneDataClient.Close();
 
         }
+        #endregion
 
+
+        #region Dronedata Handling
         private void CreateSocket()
         {
             Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
@@ -222,11 +222,13 @@ namespace BebopFlying
             _droneDataClient.Client = socket;
         }
 
+        /// <summary>
+        /// Method that reads the output from the drone and handles the data accordingly
+        /// </summary>
         private void ReadDroneOutput()
         {
             CreateSocket();
             byte[] data = new byte[0];
-            string message = "";
             while (IsRunning)
             {
                 try
@@ -253,31 +255,53 @@ namespace BebopFlying
             }
         }
 
+        /// <summary>
+        /// Based on the data, extracts the framedata 
+        /// </summary>
+        /// <param name="data">full data</param>
         private void HandleData(byte[] data)
         {
             const int size = 7;
             while (data.Length > 7)
             {
+                //Unpact struct from array
                 var datalist = StructConverter.Unpack("<BBBI", data.Take(7).ToArray());
+
+                //Extract datatypes
                 byte datatype = (byte) datalist[0];
                 byte bufferID = (byte)datalist[1];
                 byte packetSeqID = (byte)datalist[2];
+
+                //Int behaves weirdly, so have to convert explicitly
                 object packetSize = datalist[3];
-                //TEST SHITTY TYPES
                 uint intermediateConv = (uint) packetSize;
                 int actualSize = (int) intermediateConv;
+                //todo:Test against drone
                 if (actualSize > 1000)
                 {
                     Console.WriteLine("Conversion error");
                 }
+
+                //Extract the non-header data from the drone
                 byte[] recvData = new byte[actualSize];
                 recvData = data.Skip(size).Take(actualSize).ToArray();
-                HandleFrameData(datatype, bufferID, packetSeqID, actualSize, recvData);
+
+                //Handle frame data
+                HandleFrameData(datatype, bufferID, packetSeqID, recvData);
+
+                //Skip extracted data to handle remaining packet size
                 data = data.Skip((actualSize + size)).ToArray();
             }
         }
 
-        private void HandleFrameData(byte datatype, byte bufferID, byte packetSeqID,int packetSize, byte[] data)
+        /// <summary>
+        /// Handles the dataframe
+        /// </summary>
+        /// <param name="datatype">Datatype of packet</param>
+        /// <param name="bufferID">The bufferID of the packet</param>
+        /// <param name="packetSeqID">The sequence ID of the packet</param>
+        /// <param name="data">The actual non-header-data of the packet</param>
+        private void HandleFrameData(byte datatype, byte bufferID, byte packetSeqID, byte[] data)
         {
             //If the drone is pinging us -> Send back pong
             if (bufferID == CommandSet.ARNETWORK_MANAGER_INTERNAL_BUFFER_ID_PING && data.Length > 0)
@@ -311,19 +335,36 @@ namespace BebopFlying
                 {
                     UpdateSensorData(data, bufferID, packetSeqID, false);
                     _logger.Debug("Sensor update");
-
                 }
+            }
+            else if (datatype == CommandSet.ARNETWORKAL_FRAME_TYPE_DATA_LOW_LATENCY)
+            {
+                _logger.Debug("Handle low latency data?");
+            }
+            else if (datatype == CommandSet.ARNETWORKAL_FRAME_TYPE_MAX)
+            {
+                _logger.Debug("Received a maxframe(Technically unknown?)");
+            }
+            else if(datatype == CommandSet.ARNETWORKAL_FRAME_TYPE_UNINITIALIZED)
+            {
+                _logger.Debug("Received an uninitialized frame");
             }
             else
             {
-                //_logger.Fatal("Unknown data type received from drone!");
+                _logger.Fatal("Unknown data type received from drone!");
             }
         }
 
         private void UpdateSensorData(byte[] rawDataPacket, byte bufferId, int seqNumber, bool ack)
         {
+            //todo not doing?
         }
 
+        /// <summary>
+        /// Method used to send back an acknowledge packet to the drone when it requests it
+        /// </summary>
+        /// <param name="bufferID">The bufferID of the packet to acknowledge</param>
+        /// <param name="packetID">The packetID of the packet to acknowledge</param>
         private void AckPacket(byte bufferID, int packetID)
         {
             int newbufferId = bufferID + 128 % 256;
@@ -348,7 +389,11 @@ namespace BebopFlying
             SafeSendDroneCMD(packet);
         }
 
-
+        /// <summary>
+        /// Sends a "Pong" back to the drone
+        /// used by the drone as a IsAlive request
+        /// </summary>
+        /// <param name="data">The pingdata to pong back</param>
         private void SendPong(byte[] data)
         {
             int size = data.Length;
@@ -370,7 +415,11 @@ namespace BebopFlying
             SafeSendDroneCMD(packet);
         }
 
-        private void SafeSendDroneCMD(Command DroneCMD)
+        /// <summary>
+        /// Sends a DroneCMD to the drone - Retries if the attempt is unsuccessful
+        /// </summary>
+        /// <param name="droneCmd"The command to send></param>
+        private void SafeSendDroneCMD(Command droneCmd)
         {
             bool packetSent = false;
             int attemptNo = 0;
@@ -379,7 +428,7 @@ namespace BebopFlying
             {
                 try
                 {
-                    _droneUdpClient.Send(DroneCMD.cmd, DroneCMD.size);
+                    _droneUdpClient.Send(droneCmd.cmd, droneCmd.size);
                     packetSent = true;
                 }
                 catch (Exception e)
@@ -388,23 +437,6 @@ namespace BebopFlying
                     attemptNo += 1;
                 }
             }
-        }
-
-
-        private static BebopData ByteArrayToStructure(byte[] bytes)
-        {
-            BebopData data = new BebopData
-            {
-                data = new byte[bytes.Length + 7],
-                DataType = bytes[1],
-                BufferID = bytes[2],
-                PacketSequenceID = bytes[3],
-                PacketSize = BitConverter.ToInt32(bytes, 4)
-            };
-
-            bytes.CopyTo(data.data, 7);
-
-            return data;
         }
 
         /// <summary>
@@ -447,9 +479,9 @@ namespace BebopFlying
             }
         }
 
+
         private void AskForStateUpdate()
         {
-            //_logger.Debug("Generated all states");
             _cmd = default(Command);
             _cmd.size = 4;
             _cmd.cmd = new byte[4];
@@ -461,7 +493,13 @@ namespace BebopFlying
 
             SendCommand(ref _cmd, CommandSet.ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK, CommandSet.BD_NET_CD_ACK_ID);
         }
+        #endregion
 
+
+        /// <summary>
+        /// Drone command thread
+        /// Generates and sends movement commands received
+        /// </summary>
         private void PcmdThreadActive()
         {
             _logger.Debug("Started command generator thread");
@@ -472,22 +510,10 @@ namespace BebopFlying
             }
         }
 
-        private static byte[] StructureToByteArray(object obj)
-        {
-            int length = Marshal.SizeOf(obj);
 
-            byte[] array = new byte[length];
-
-            IntPtr pointer = Marshal.AllocHGlobal(length);
-
-            Marshal.StructureToPtr(obj, pointer, true);
-            Marshal.Copy(pointer, array, 0, length);
-            Marshal.FreeHGlobal(pointer);
-
-            return array;
-        }
-
-
+        /// <summary>
+        /// Threadwatcher to make sure the command generation thread is alive and well
+        /// </summary>
         private void ThreadManager()
         {
             _logger.Debug("Started Threadwatcher");
@@ -505,6 +531,7 @@ namespace BebopFlying
             }
         }
 
+        #region CommandGeneration
         /// <summary>
         ///     Generates the command for the drone
         /// </summary>
@@ -567,11 +594,6 @@ namespace BebopFlying
             SendCommand(ref _cmd, CommandSet.ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK, CommandSet.BD_NET_CD_ACK_ID);
         }
 
-        public void InitArStream()
-        {
-            _arstreamClient = new UdpClient(55004);
-            _remoteIpEndPoint = new IPEndPoint(IPAddress.Any, 0);
-        }
 
         private void VideoEnable()
         {
@@ -587,5 +609,6 @@ namespace BebopFlying
 
             SendCommand(ref _cmd, CommandSet.ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK, CommandSet.BD_NET_CD_ACK_ID);
         }
+        #endregion
     }
 }
