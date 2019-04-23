@@ -79,9 +79,17 @@ namespace FlightLib
             Roll = (int)Math.Round(Roll * constant, 0);
             Pitch = (int)Math.Round(Pitch * constant, 0);
             Yaw = (int)Math.Round(Yaw * constant, 0);
-            Gaz = (int)Math.Round(Gaz * constant,0);
+            Gaz = (int)Math.Round(Gaz * constant, 0);
 
             return this;
+        }
+
+        public void ResetVector()
+        {
+            Roll = 0;
+            Pitch = 0;
+            Yaw = 0;
+            Gaz = 0;
         }
     }
 }

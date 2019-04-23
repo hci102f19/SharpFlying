@@ -5,10 +5,9 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Runtime.InteropServices;
 using System.Threading;
-using BebopFlying.Bebop_Classes;
-using BebopFlying.Bebop_Classes.Structs;
+using BebopFlying.BebopClasses;
+using BebopFlying.BebopClasses.Structs;
 using Flight.Enums;
 using FlightLib;
 using NLog;
@@ -27,7 +26,10 @@ namespace BebopFlying
 
         private readonly Dictionary<Tuple<string, int>, bool> _commandReceived = new Dictionary<Tuple<string, int>, bool>();
 
+        // TODO: Look at using int instead.
         private readonly int[] _seq = new int[256];
+
+        protected int MaxPacketRetries = 1;
 
         //Dictionary for storing secquence counter
         private readonly Dictionary<string, int> _sequenceDictionary = new Dictionary<string, int>
@@ -79,12 +81,16 @@ namespace BebopFlying
             }
 
             LoggingConfiguration config = new LoggingConfiguration();
-            FileTarget logfile = new FileTarget("logfile") { FileName = "BebopFileLog.txt" };
-            ConsoleTarget logconsole = new ConsoleTarget("logconsole");
+            FileTarget logfile = new FileTarget("logfile") {FileName = "BebopFileLog.txt"};
+
+            //ConsoleTarget logconsole = new ConsoleTarget("logconsole");
+            //config.AddRule(LogLevel.Debug, LogLevel.Fatal, logconsole);
+
             config.AddRule(LogLevel.Debug, LogLevel.Fatal, logfile);
-            config.AddRule(LogLevel.Debug, LogLevel.Fatal, logconsole);
+
             LogManager.Configuration = config;
             _logger = LogManager.GetCurrentClassLogger();
+
             Updaterate = 1000 / updaterate;
         }
 
@@ -107,7 +113,7 @@ namespace BebopFlying
             SendCommand(ref _cmd, CommandSet.ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK, CommandSet.BD_NET_CD_ACK_ID);
         }
 
-        public void Landing()
+        public void Land()
         {
             _logger.Debug("Landing...");
             _cmd = default(Command);
@@ -204,12 +210,13 @@ namespace BebopFlying
 
             _droneUdpClient.Close();
             _droneDataClient.Close();
-
         }
+
         #endregion
 
 
         #region Dronedata Handling
+
         private void CreateSocket()
         {
             Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
@@ -269,8 +276,8 @@ namespace BebopFlying
 
                 //Extract datatypes
                 byte datatype = (byte) datalist[0];
-                byte bufferID = (byte)datalist[1];
-                byte packetSeqID = (byte)datalist[2];
+                byte bufferID = (byte) datalist[1];
+                byte packetSeqID = (byte) datalist[2];
 
                 //Int behaves weirdly, so have to convert explicitly
                 object packetSize = datalist[3];
@@ -314,19 +321,11 @@ namespace BebopFlying
             if (datatype == CommandSet.ARNETWORKAL_FRAME_TYPE_ACK && data.Length > 0)
             {
                 int ackSeqNumber = data[0];
-                var tuple = new Tuple<string, int>("SEND_WITH_ACK", ackSeqNumber);
-                _commandReceived.TryGetValue(tuple, out var exists);
-                if (exists)
-                {
-                    _commandReceived[tuple] = true;
-                }
-                else
-                {
-                    _commandReceived.Add(tuple, true);
-                }
+
+                SetCommandReceived("SEND_WITH_ACK", ackSeqNumber, true);
+
                 AckPacket(bufferID, ackSeqNumber);
                 _logger.Debug("Send Ack");
-
             }
             //Drone just sent us sensor data -> No acknowledge required
             else if (datatype == CommandSet.ARNETWORKAL_FRAME_TYPE_DATA)
@@ -345,7 +344,7 @@ namespace BebopFlying
             {
                 _logger.Debug("Received a maxframe(Technically unknown?)");
             }
-            else if(datatype == CommandSet.ARNETWORKAL_FRAME_TYPE_UNINITIALIZED)
+            else if (datatype == CommandSet.ARNETWORKAL_FRAME_TYPE_UNINITIALIZED)
             {
                 _logger.Debug("Received an uninitialized frame");
             }
@@ -367,7 +366,8 @@ namespace BebopFlying
         /// <param name="packetID">The packetID of the packet to acknowledge</param>
         private void AckPacket(byte bufferID, int packetID)
         {
-            int newbufferId = bufferID + 128 % 256;
+            int newbufferId = (bufferID + 128) % 256;
+
             Tuple<string, int> tupledata = new Tuple<string, int>("ACK", newbufferId);
             Command packet = new Command();
             if (_commandReceived.ContainsKey(tupledata))
@@ -379,10 +379,10 @@ namespace BebopFlying
                 _commandReceived[new Tuple<string, int>("ACK", (newbufferId + 1) % 256)] = true;
                 packet.cmd = new byte[5];
                 packet.cmd[0] = CommandSet.ARNETWORKAL_FRAME_TYPE_ACK;
-                packet.cmd[1] = (byte)newbufferId;
-                packet.cmd[2] = (byte)((newbufferId + 1) % 256);
+                packet.cmd[1] = (byte) newbufferId;
+                packet.cmd[2] = (byte) ((newbufferId + 1) % 256);
                 packet.cmd[3] = 8;
-                packet.cmd[4] = (byte)packetID;
+                packet.cmd[4] = (byte) packetID;
                 packet.size = 5;
             }
 
@@ -402,14 +402,14 @@ namespace BebopFlying
 
             _sequenceDictionary["PONG"] = seq + 1 % 256;
             Command packet = new Command();
-            
-            byte[] cmd = new byte[size+7];
+
+            byte[] cmd = new byte[size + 7];
             //Construct packet
             cmd[0] = CommandSet.ARNETWORK_MANAGER_INTERNAL_BUFFER_ID_PONG; //BufferID
             cmd[1] = CommandSet.ARNETWORKAL_FRAME_TYPE_DATA; //DataType
             cmd[2] = (byte) _sequenceDictionary["PONG"]; //Sequence ID
             cmd[3] = (byte) (size + 7); //Total packet size
-            data.CopyTo(cmd,4); //Pong data
+            data.CopyTo(cmd, 4); //Pong data
             packet.cmd = cmd;
             packet.size = size + 7;
             SafeSendDroneCMD(packet);
@@ -445,40 +445,65 @@ namespace BebopFlying
         /// <param name="cmd">The command to send</param>
         /// <param name="type">The type of command to send, defaults to a fly command</param>
         /// <param name="id">The id of the command, defaults to not receiving an acknowledge</param>
-        private void SendCommand(ref Command cmd, int type = CommandSet.ARNETWORKAL_FRAME_TYPE_DATA, int id = CommandSet.BD_NET_CD_NONACK_ID)
+        private bool SendCommand(ref Command cmd, int type = CommandSet.ARNETWORKAL_FRAME_TYPE_DATA, int id = CommandSet.BD_NET_CD_NONACK_ID)
         {
             int bufSize = cmd.size + 7;
             byte[] buf = new byte[bufSize];
 
-            _seq[id]++;
-            if (_seq[id] > 255)
-            {
-                _seq[id] = 0;
-            }
+            _seq[id] = (_seq[id] + 1) % 256;
 
-            buf[0] = (byte)type;
-            buf[1] = (byte)id;
-            buf[2] = (byte)_seq[id];
-            buf[3] = (byte)(bufSize & 0xff);
-            buf[4] = (byte)((bufSize & 0xff00) >> 8);
-            buf[5] = (byte)((bufSize & 0xff0000) >> 16);
-            buf[6] = (byte)((bufSize & 0xff000000) >> 24);
+            buf[0] = (byte) type;
+            buf[1] = (byte) id;
+            buf[2] = (byte) _seq[id];
+            buf[3] = (byte) (bufSize & 0xff);
+            buf[4] = (byte) ((bufSize & 0xff00) >> 8);
+            buf[5] = (byte) ((bufSize & 0xff0000) >> 16);
+            buf[6] = (byte) ((bufSize & 0xff000000) >> 24);
 
             cmd.cmd.CopyTo(buf, 7);
 
-            //Send buffer to drone
-            _droneUdpClient.Send(buf, buf.Length);
+            int tryNum = 0;
+            SetCommandReceived("SEND_WITH_ACK", _seq[id], false);
+
+            while (tryNum < MaxPacketRetries && !IsCommandReceived("SEND_WITH_ACK", _seq[id]))
+            {
+                _logger.Debug("Trying to send package to drone.");
+                SafeSend(buf);
+
+                tryNum++;
+
+                SmartSleep(500);
+            }
 
             //Reset flyvector
             lock (ThisLock)
             {
-                _flyVector.Flag = 0;
-                _flyVector.Pitch = 0;
-                _flyVector.Roll = 0;
-                _flyVector.Yaw = 0;
+                _flyVector.ResetVector();
             }
+
+            return IsCommandReceived("SEND_WITH_ACK", _seq[id]);
         }
 
+
+        protected void SafeSend(byte[] buffer)
+        {
+            bool packetSent = false;
+            int tryNum = 0;
+
+            while (!packetSent && tryNum < MaxPacketRetries)
+            {
+                try
+                {
+                    _droneUdpClient.Send(buffer, buffer.Length);
+                    packetSent = true;
+                }
+                catch (Exception e)
+                {
+                    // TODO: Reconnect.
+                    tryNum++;
+                }
+            }
+        }
 
         private void AskForStateUpdate()
         {
@@ -493,6 +518,7 @@ namespace BebopFlying
 
             SendCommand(ref _cmd, CommandSet.ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK, CommandSet.BD_NET_CD_ACK_ID);
         }
+
         #endregion
 
 
@@ -503,7 +529,7 @@ namespace BebopFlying
         private void PcmdThreadActive()
         {
             _logger.Debug("Started command generator thread");
-            while (true)
+            while (IsRunning)
             {
                 GenerateDroneCommand();
                 SmartSleep(Updaterate);
@@ -517,7 +543,7 @@ namespace BebopFlying
         private void ThreadManager()
         {
             _logger.Debug("Started Threadwatcher");
-            while (true)
+            while (IsRunning)
             {
                 if (_commandGeneratorThread.IsAlive)
                 {
@@ -526,12 +552,13 @@ namespace BebopFlying
                 else
                 {
                     _logger.Fatal("Bebop command thread is not alive, initializing emergency procedure!");
-                    Landing();
+                    Land();
                 }
             }
         }
 
         #region CommandGeneration
+
         /// <summary>
         ///     Generates the command for the drone
         /// </summary>
@@ -548,11 +575,11 @@ namespace BebopFlying
                 _cmd.cmd[1] = CommandSet.ARCOMMANDS_ID_ARDRONE3_CLASS_PILOTING;
                 _cmd.cmd[2] = CommandSet.ARCOMMANDS_ID_ARDRONE3_PILOTING_CMD_PCMD;
                 _cmd.cmd[3] = 0;
-                _cmd.cmd[4] = (byte)_flyVector.Flag; // flag
-                _cmd.cmd[5] = _flyVector.Roll >= 0 ? (byte)_flyVector.Roll : (byte)(256 + _flyVector.Roll); // roll: fly left or right [-100 ~ 100]
-                _cmd.cmd[6] = _flyVector.Pitch >= 0 ? (byte)_flyVector.Pitch : (byte)(256 + _flyVector.Pitch); // pitch: backward or forward [-100 ~ 100]
-                _cmd.cmd[7] = _flyVector.Yaw >= 0 ? (byte)_flyVector.Yaw : (byte)(256 + _flyVector.Yaw); // yaw: rotate left or right [-100 ~ 100]
-                _cmd.cmd[8] = _flyVector.Gaz >= 0 ? (byte)_flyVector.Gaz : (byte)(256 + _flyVector.Gaz); // gaze: down or up [-100 ~ 100]
+                _cmd.cmd[4] = (byte) _flyVector.Flag; // flag
+                _cmd.cmd[5] = _flyVector.Roll >= 0 ? (byte) _flyVector.Roll : (byte) (256 + _flyVector.Roll); // roll: fly left or right [-100 ~ 100]
+                _cmd.cmd[6] = _flyVector.Pitch >= 0 ? (byte) _flyVector.Pitch : (byte) (256 + _flyVector.Pitch); // pitch: backward or forward [-100 ~ 100]
+                _cmd.cmd[7] = _flyVector.Yaw >= 0 ? (byte) _flyVector.Yaw : (byte) (256 + _flyVector.Yaw); // yaw: rotate left or right [-100 ~ 100]
+                _cmd.cmd[8] = _flyVector.Gaz >= 0 ? (byte) _flyVector.Gaz : (byte) (256 + _flyVector.Gaz); // gaze: down or up [-100 ~ 100]
 
                 // for Debug Mode
                 _cmd.cmd[9] = 0;
@@ -568,7 +595,7 @@ namespace BebopFlying
         ///     Busy sleeps for the specified amount of time.
         /// </summary>
         /// <param name="milliseconds">Number of milliseconds to sleep</param>
-        private void SmartSleep(int milliseconds)
+        public void SmartSleep(int milliseconds)
         {
             Stopwatch sw = new Stopwatch();
             sw.Start();
@@ -609,6 +636,23 @@ namespace BebopFlying
 
             SendCommand(ref _cmd, CommandSet.ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK, CommandSet.BD_NET_CD_ACK_ID);
         }
+
+        #endregion
+
+        #region Command Handler
+
+        protected void SetCommandReceived(string channel, int seqId, bool val)
+        {
+            var key = new Tuple<string, int>(channel, seqId);
+            _commandReceived[key] = val;
+        }
+
+        protected bool IsCommandReceived(string channel, int seqId)
+        {
+            var key = new Tuple<string, int>(channel, seqId);
+            return _commandReceived[key];
+        }
+
         #endregion
     }
 }

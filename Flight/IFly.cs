@@ -6,7 +6,7 @@ namespace FlightLib
     {
         ConnectionStatus Connect();
         void TakeOff();
-        void Landing();
+        void Land();
         void Move(Vector flightVector);
         bool IsAlive();
     }
