@@ -24,11 +24,6 @@ namespace BebopFlying
         //Log to ensure that access to flyvector is fine during multithreading
         private static readonly object ThisLock = new object();
 
-        private readonly Dictionary<Tuple<string, int>, bool> _commandReceived = new Dictionary<Tuple<string, int>, bool>();
-
-        // TODO: Look at using int instead.
-        private readonly int[] _seq = new int[256];
-
         protected int MaxPacketRetries = 1;
 
         //Dictionary for storing secquence counter
@@ -47,7 +42,7 @@ namespace BebopFlying
         private UdpClient _arstreamClient;
 
         //Command struct used for sending commands to the drone
-        private Command _cmd;
+        // private Command _cmd;
 
         private Thread _commandGeneratorThread;
 
@@ -68,17 +63,19 @@ namespace BebopFlying
 
         private StreamReader _streamReader;
 
+        public Bebop() : this(30)
+        {
+        }
 
         /// <summary>
-        ///     Initializes the bebop object at a specific updaterate
+        ///     Initializes the bebop object at a specific updateRate
         /// </summary>
-        /// <param name="updaterate">Number of updates per second</param>
-        public Bebop(int updaterate)
+        /// <param name="updateRate">Number of updates per second</param>
+        public Bebop(int updateRate)
         {
-            if (updaterate <= 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(updaterate));
-            }
+            if (updateRate <= 0)
+                throw new ArgumentOutOfRangeException(nameof(updateRate));
+            UpdateRate = 1000 / updateRate;
 
             LoggingConfiguration config = new LoggingConfiguration();
             FileTarget logfile = new FileTarget("logfile") {FileName = "BebopFileLog.txt"};
@@ -90,42 +87,37 @@ namespace BebopFlying
 
             LogManager.Configuration = config;
             _logger = LogManager.GetCurrentClassLogger();
-
-            Updaterate = 1000 / updaterate;
         }
 
-        protected int Updaterate { get; }
+        public int UpdateRate { get; protected set; }
 
         #region Public methods
 
         public void TakeOff()
         {
             _logger.Debug("Performing takeoff...");
-            _cmd = default(Command);
-            _cmd.size = 4;
-            _cmd.cmd = new byte[4];
+            Command _cmd = new Command(4, CommandSet.ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK, CommandSet.BD_NET_CD_ACK_ID);
 
-            _cmd.cmd[0] = CommandSet.ARCOMMANDS_ID_PROJECT_ARDRONE3;
-            _cmd.cmd[1] = CommandSet.ARCOMMANDS_ID_ARDRONE3_CLASS_PILOTING;
-            _cmd.cmd[2] = CommandSet.ARCOMMANDS_ID_ARDRONE3_PILOTING_CMD_TAKEOFF;
-            _cmd.cmd[3] = 0;
+            _cmd.InsertData(CommandSet.ARCOMMANDS_ID_PROJECT_ARDRONE3);
+            _cmd.InsertData(CommandSet.ARCOMMANDS_ID_ARDRONE3_CLASS_PILOTING);
+            _cmd.InsertData(CommandSet.ARCOMMANDS_ID_ARDRONE3_PILOTING_CMD_TAKEOFF);
+            _cmd.InsertData(0);
 
-            SendCommand(ref _cmd, CommandSet.ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK, CommandSet.BD_NET_CD_ACK_ID);
+            SendCommand(_cmd);
         }
 
         public void Land()
         {
             _logger.Debug("Landing...");
-            _cmd = default(Command);
-            _cmd.size = 4;
-            _cmd.cmd = new byte[4];
 
-            _cmd.cmd[0] = CommandSet.ARCOMMANDS_ID_PROJECT_ARDRONE3;
-            _cmd.cmd[1] = CommandSet.ARCOMMANDS_ID_ARDRONE3_CLASS_PILOTING;
-            _cmd.cmd[2] = CommandSet.ARCOMMANDS_ID_ARDRONE3_PILOTING_CMD_LANDING;
-            _cmd.cmd[3] = 0;
+            Command _cmd = new Command(4, CommandSet.ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK, CommandSet.BD_NET_CD_ACK_ID);
 
-            SendCommand(ref _cmd, CommandSet.ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK, CommandSet.BD_NET_CD_ACK_ID);
+            _cmd.InsertData(CommandSet.ARCOMMANDS_ID_PROJECT_ARDRONE3);
+            _cmd.InsertData(CommandSet.ARCOMMANDS_ID_ARDRONE3_CLASS_PILOTING);
+            _cmd.InsertData(CommandSet.ARCOMMANDS_ID_ARDRONE3_PILOTING_CMD_LANDING);
+            _cmd.InsertData(0);
+
+            SendCommand(_cmd);
         }
 
         public void Move(Vector flightVector)
@@ -174,10 +166,6 @@ namespace BebopFlying
                 }
 
                 _logger.Debug("The message from the drone shows: " + droneHandshakeResponse);
-
-                //initialize command struct and movement vector
-                _cmd = default(Command);
-                _flyVector = new Vector();
 
 
                 //All State setting
@@ -322,7 +310,7 @@ namespace BebopFlying
             {
                 int ackSeqNumber = data[0];
 
-                SetCommandReceived("SEND_WITH_ACK", ackSeqNumber, true);
+                CommandReceiver.SetCommandReceived("SEND_WITH_ACK", ackSeqNumber, true);
 
                 AckPacket(bufferID, ackSeqNumber);
                 _logger.Debug("Send Ack");
@@ -368,25 +356,24 @@ namespace BebopFlying
         {
             int newbufferId = (bufferID + 128) % 256;
 
-            Tuple<string, int> tupledata = new Tuple<string, int>("ACK", newbufferId);
-            Command packet = new Command();
-            if (_commandReceived.ContainsKey(tupledata))
+            if (CommandReceiver.HasKey("ACK", newbufferId))
             {
-                _commandReceived[new Tuple<string, int>("ACK", 0)] = false;
+                CommandReceiver.SetCommandReceived("ACK", 0, false);
             }
             else
             {
-                _commandReceived[new Tuple<string, int>("ACK", (newbufferId + 1) % 256)] = true;
-                packet.cmd = new byte[5];
-                packet.cmd[0] = CommandSet.ARNETWORKAL_FRAME_TYPE_ACK;
-                packet.cmd[1] = (byte) newbufferId;
-                packet.cmd[2] = (byte) ((newbufferId + 1) % 256);
-                packet.cmd[3] = 8;
-                packet.cmd[4] = (byte) packetID;
-                packet.size = 5;
-            }
+                CommandReceiver.SetCommandReceived("ACK", (newbufferId + 1) % 256, true);
 
-            SafeSendDroneCMD(packet);
+                Command packet = new Command(5);
+
+                packet.InsertData(CommandSet.ARNETWORKAL_FRAME_TYPE_ACK);
+                packet.InsertData((byte) newbufferId);
+                packet.InsertData((byte) ((newbufferId + 1) % 256));
+                packet.InsertData(8);
+                packet.InsertData((byte) packetID);
+
+                SafeSendDroneCMD(packet);
+            }
         }
 
         /// <summary>
@@ -401,17 +388,15 @@ namespace BebopFlying
             int seq = _sequenceDictionary["PONG"];
 
             _sequenceDictionary["PONG"] = seq + 1 % 256;
-            Command packet = new Command();
 
-            byte[] cmd = new byte[size + 7];
-            //Construct packet
-            cmd[0] = CommandSet.ARNETWORK_MANAGER_INTERNAL_BUFFER_ID_PONG; //BufferID
-            cmd[1] = CommandSet.ARNETWORKAL_FRAME_TYPE_DATA; //DataType
-            cmd[2] = (byte) _sequenceDictionary["PONG"]; //Sequence ID
-            cmd[3] = (byte) (size + 7); //Total packet size
-            data.CopyTo(cmd, 4); //Pong data
-            packet.cmd = cmd;
-            packet.size = size + 7;
+            Command packet = new Command(size + 7);
+
+            packet.InsertData(CommandSet.ARNETWORK_MANAGER_INTERNAL_BUFFER_ID_PONG);
+            packet.InsertData(CommandSet.ARNETWORKAL_FRAME_TYPE_DATA);
+            packet.InsertData((byte) _sequenceDictionary["PONG"]);
+            packet.InsertData((byte) (size + 7));
+            packet.CopyData(data, 4);
+
             SafeSendDroneCMD(packet);
         }
 
@@ -428,7 +413,7 @@ namespace BebopFlying
             {
                 try
                 {
-                    _droneUdpClient.Send(droneCmd.cmd, droneCmd.size);
+                    _droneUdpClient.Send(droneCmd.Cmd, droneCmd.Size);
                     packetSent = true;
                 }
                 catch (Exception e)
@@ -445,30 +430,16 @@ namespace BebopFlying
         /// <param name="cmd">The command to send</param>
         /// <param name="type">The type of command to send, defaults to a fly command</param>
         /// <param name="id">The id of the command, defaults to not receiving an acknowledge</param>
-        private bool SendCommand(ref Command cmd, int type = CommandSet.ARNETWORKAL_FRAME_TYPE_DATA, int id = CommandSet.BD_NET_CD_NONACK_ID)
+        private bool SendCommand(Command cmd)
         {
-            int bufSize = cmd.size + 7;
-            byte[] buf = new byte[bufSize];
-
-            _seq[id] = (_seq[id] + 1) % 256;
-
-            buf[0] = (byte) type;
-            buf[1] = (byte) id;
-            buf[2] = (byte) _seq[id];
-            buf[3] = (byte) (bufSize & 0xff);
-            buf[4] = (byte) ((bufSize & 0xff00) >> 8);
-            buf[5] = (byte) ((bufSize & 0xff0000) >> 16);
-            buf[6] = (byte) ((bufSize & 0xff000000) >> 24);
-
-            cmd.cmd.CopyTo(buf, 7);
 
             int tryNum = 0;
-            SetCommandReceived("SEND_WITH_ACK", _seq[id], false);
+            CommandReceiver.SetCommandReceived("SEND_WITH_ACK", cmd.SequenceID(), false);
 
-            while (tryNum < MaxPacketRetries && !IsCommandReceived("SEND_WITH_ACK", _seq[id]))
+            while (tryNum < MaxPacketRetries && !CommandReceiver.IsCommandReceived("SEND_WITH_ACK", cmd.SequenceID()))
             {
                 _logger.Debug("Trying to send package to drone.");
-                SafeSend(buf);
+                SafeSend(cmd.ExportCommand());
 
                 tryNum++;
 
@@ -481,7 +452,7 @@ namespace BebopFlying
                 _flyVector.ResetVector();
             }
 
-            return IsCommandReceived("SEND_WITH_ACK", _seq[id]);
+            return CommandReceiver.IsCommandReceived("SEND_WITH_ACK", cmd.SequenceID());
         }
 
 
@@ -497,7 +468,7 @@ namespace BebopFlying
                     _droneUdpClient.Send(buffer, buffer.Length);
                     packetSent = true;
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     // TODO: Reconnect.
                     tryNum++;
@@ -507,16 +478,14 @@ namespace BebopFlying
 
         private void AskForStateUpdate()
         {
-            _cmd = default(Command);
-            _cmd.size = 4;
-            _cmd.cmd = new byte[4];
+            Command _cmd = new Command(4, CommandSet.ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK, CommandSet.BD_NET_CD_ACK_ID);
 
-            _cmd.cmd[0] = CommandSet.ARCOMMANDS_ID_PROJECT_COMMON;
-            _cmd.cmd[1] = CommandSet.ARCOMMANDS_ID_COMMON_CLASS_COMMON;
-            _cmd.cmd[2] = CommandSet.ARCOMMANDS_ID_COMMON_COMMON_CMD_ALLSTATES & 0xff;
-            _cmd.cmd[3] = CommandSet.ARCOMMANDS_ID_COMMON_COMMON_CMD_ALLSTATES & (0xff00 >> 8);
+            _cmd.InsertData(CommandSet.ARCOMMANDS_ID_PROJECT_COMMON);
+            _cmd.InsertData(CommandSet.ARCOMMANDS_ID_COMMON_CLASS_COMMON);
+            _cmd.InsertData(CommandSet.ARCOMMANDS_ID_COMMON_COMMON_CMD_ALLSTATES & 0xff);
+            _cmd.InsertData(CommandSet.ARCOMMANDS_ID_COMMON_COMMON_CMD_ALLSTATES & (0xff00 >> 8));
 
-            SendCommand(ref _cmd, CommandSet.ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK, CommandSet.BD_NET_CD_ACK_ID);
+            SendCommand(_cmd);
         }
 
         #endregion
@@ -532,7 +501,7 @@ namespace BebopFlying
             while (IsRunning)
             {
                 GenerateDroneCommand();
-                SmartSleep(Updaterate);
+                SmartSleep(UpdateRate);
             }
         }
 
@@ -567,27 +536,25 @@ namespace BebopFlying
             lock (ThisLock)
             {
                 //if(_flyVector.IsNull())return;
-                _cmd = default(Command);
-                _cmd.size = 13;
-                _cmd.cmd = new byte[13];
+                Command _cmd = new Command(13);
 
-                _cmd.cmd[0] = CommandSet.ARCOMMANDS_ID_PROJECT_ARDRONE3;
-                _cmd.cmd[1] = CommandSet.ARCOMMANDS_ID_ARDRONE3_CLASS_PILOTING;
-                _cmd.cmd[2] = CommandSet.ARCOMMANDS_ID_ARDRONE3_PILOTING_CMD_PCMD;
-                _cmd.cmd[3] = 0;
-                _cmd.cmd[4] = (byte) _flyVector.Flag; // flag
-                _cmd.cmd[5] = _flyVector.Roll >= 0 ? (byte) _flyVector.Roll : (byte) (256 + _flyVector.Roll); // roll: fly left or right [-100 ~ 100]
-                _cmd.cmd[6] = _flyVector.Pitch >= 0 ? (byte) _flyVector.Pitch : (byte) (256 + _flyVector.Pitch); // pitch: backward or forward [-100 ~ 100]
-                _cmd.cmd[7] = _flyVector.Yaw >= 0 ? (byte) _flyVector.Yaw : (byte) (256 + _flyVector.Yaw); // yaw: rotate left or right [-100 ~ 100]
-                _cmd.cmd[8] = _flyVector.Gaz >= 0 ? (byte) _flyVector.Gaz : (byte) (256 + _flyVector.Gaz); // gaze: down or up [-100 ~ 100]
+                _cmd.InsertData(CommandSet.ARCOMMANDS_ID_PROJECT_ARDRONE3);
+                _cmd.InsertData(CommandSet.ARCOMMANDS_ID_ARDRONE3_CLASS_PILOTING);
+                _cmd.InsertData(CommandSet.ARCOMMANDS_ID_ARDRONE3_PILOTING_CMD_PCMD);
+                _cmd.InsertData(0);
+                _cmd.InsertData((byte) _flyVector.Flag); // flag
+                _cmd.InsertData(_flyVector.Roll >= 0 ? (byte) _flyVector.Roll : (byte) (256 + _flyVector.Roll)); // roll: fly left or right [-100 ~ 100]
+                _cmd.InsertData(_flyVector.Pitch >= 0 ? (byte) _flyVector.Pitch : (byte) (256 + _flyVector.Pitch)); // pitch: backward or forward [-100 ~ 100]
+                _cmd.InsertData(_flyVector.Yaw >= 0 ? (byte) _flyVector.Yaw : (byte) (256 + _flyVector.Yaw)); // yaw: rotate left or right [-100 ~ 100]
+                _cmd.InsertData(_flyVector.Gaz >= 0 ? (byte) _flyVector.Gaz : (byte) (256 + _flyVector.Gaz)); // gaze: down or up [-100 ~ 100]
 
                 // for Debug Mode
-                _cmd.cmd[9] = 0;
-                _cmd.cmd[10] = 0;
-                _cmd.cmd[11] = 0;
-                _cmd.cmd[12] = 0;
+                _cmd.InsertData(0);
+                _cmd.InsertData(0);
+                _cmd.InsertData(0);
+                _cmd.InsertData(0);
 
-                SendCommand(ref _cmd);
+                SendCommand(_cmd);
             }
         }
 
@@ -609,48 +576,28 @@ namespace BebopFlying
 
         private void GenerateAllSettings()
         {
-            _cmd = default(Command);
-            _cmd.size = 4;
-            _cmd.cmd = new byte[4];
+            Command _cmd = new Command(4, CommandSet.ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK, CommandSet.BD_NET_CD_ACK_ID);
 
-            _cmd.cmd[0] = CommandSet.ARCOMMANDS_ID_PROJECT_COMMON;
-            _cmd.cmd[1] = CommandSet.ARCOMMANDS_ID_COMMON_CLASS_SETTINGS;
-            _cmd.cmd[2] = 0 & 0xff; // ARCOMMANDS_ID_COMMON_CLASS_SETTINGS_CMD_ALLSETTINGS = 0
-            _cmd.cmd[3] = 0 & (0xff00 >> 8);
+            _cmd.InsertData(CommandSet.ARCOMMANDS_ID_PROJECT_COMMON);
+            _cmd.InsertData(CommandSet.ARCOMMANDS_ID_COMMON_CLASS_SETTINGS);
+            _cmd.InsertData(0 & 0xff); // ARCOMMANDS_ID_COMMON_CLASS_SETTINGS_CMD_ALLSETTINGS = 0
+            _cmd.InsertData(0 & (0xff00 >> 8));
 
-            SendCommand(ref _cmd, CommandSet.ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK, CommandSet.BD_NET_CD_ACK_ID);
+            SendCommand(_cmd);
         }
 
 
         private void VideoEnable()
         {
-            _cmd = default(Command);
-            _cmd.size = 5;
-            _cmd.cmd = new byte[5];
+            Command _cmd = new Command(5, CommandSet.ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK, CommandSet.BD_NET_CD_ACK_ID);
 
-            _cmd.cmd[0] = CommandSet.ARCOMMANDS_ID_PROJECT_ARDRONE3;
-            _cmd.cmd[1] = CommandSet.ARCOMMANDS_ID_ARDRONE3_CLASS_MEDIASTREAMING;
-            _cmd.cmd[2] = 0 & 0xff; // ARCOMMANDS_ID_COMMON_CLASS_SETTINGS_CMD_VIDEOENABLE = 0
-            _cmd.cmd[3] = 0 & (0xff00 >> 8);
-            _cmd.cmd[4] = 1; //arg: Enable
+            _cmd.InsertData(CommandSet.ARCOMMANDS_ID_PROJECT_ARDRONE3);
+            _cmd.InsertData(CommandSet.ARCOMMANDS_ID_ARDRONE3_CLASS_MEDIASTREAMING);
+            _cmd.InsertData(0 & 0xff); // ARCOMMANDS_ID_COMMON_CLASS_SETTINGS_CMD_VIDEOENABLE = 0
+            _cmd.InsertData(0 & (0xff00 >> 8));
+            _cmd.InsertData(1); //arg: Enable
 
-            SendCommand(ref _cmd, CommandSet.ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK, CommandSet.BD_NET_CD_ACK_ID);
-        }
-
-        #endregion
-
-        #region Command Handler
-
-        protected void SetCommandReceived(string channel, int seqId, bool val)
-        {
-            var key = new Tuple<string, int>(channel, seqId);
-            _commandReceived[key] = val;
-        }
-
-        protected bool IsCommandReceived(string channel, int seqId)
-        {
-            var key = new Tuple<string, int>(channel, seqId);
-            return _commandReceived[key];
+            SendCommand(_cmd);
         }
 
         #endregion

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using BebopFlying;
 using EdgyLib;
 using Emgu.CV;
@@ -14,7 +15,7 @@ namespace SharpFlying
     {
         private static void Main(string[] args)
         {
-            Bebop bebop = new Bebop(30);
+            Bebop bebop = new Bebop();
 
             if (bebop.Connect() == ConnectionStatus.Success)
             {
