@@ -24,15 +24,12 @@ namespace BebopFlying.BebopClasses
 
         public static bool IsCommandReceived(string channel, int seqId)
         {
-            try
-            {
-                var key = new Tuple<string, int>(channel, seqId);
-                return _commandReceived[key];
-            }
-            catch (KeyNotFoundException)
-            {
+            if (!HasKey(channel, seqId))
                 return false;
-            }
+
+            var key = new Tuple<string, int>(channel, seqId);
+            return _commandReceived[key];
+
         }
     }
 }

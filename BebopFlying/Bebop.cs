@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Reflection.Emit;
 using System.Threading;
 using BebopFlying.BebopClasses;
 using BebopFlying.BebopClasses.Structs;
@@ -80,8 +81,8 @@ namespace BebopFlying
             LoggingConfiguration config = new LoggingConfiguration();
             FileTarget logfile = new FileTarget("logfile") {FileName = "BebopFileLog.txt"};
 
-            //ConsoleTarget logconsole = new ConsoleTarget("logconsole");
-            //config.AddRule(LogLevel.Debug, LogLevel.Fatal, logconsole);
+            ConsoleTarget logconsole = new ConsoleTarget("logconsole");
+            config.AddRule(LogLevel.Debug, LogLevel.Fatal, logconsole);
 
             config.AddRule(LogLevel.Debug, LogLevel.Fatal, logfile);
 
@@ -229,7 +230,6 @@ namespace BebopFlying
                 try
                 {
                     data = _droneDataClient.Receive(ref _droneData);
-
                     HandleData(data);
                 }
                 catch (SocketException ex)
@@ -256,36 +256,26 @@ namespace BebopFlying
         /// <param name="data">full data</param>
         private void HandleData(byte[] data)
         {
+            var data2 = data.Clone();
             const int size = 7;
-            while (data.Length > 7)
+            while (data.Length > size)
             {
-                //Unpact struct from array
-                var datalist = StructConverter.Unpack("<BBBI", data.Take(7).ToArray());
-
-                //Extract datatypes
-                byte datatype = (byte) datalist[0];
-                byte bufferID = (byte) datalist[1];
-                byte packetSeqID = (byte) datalist[2];
-
-                //Int behaves weirdly, so have to convert explicitly
-                object packetSize = datalist[3];
-                uint intermediateConv = (uint) packetSize;
-                int actualSize = (int) intermediateConv;
-                //todo:Test against drone
-                if (actualSize > 1000)
-                {
-                    Console.WriteLine("Conversion error");
-                }
+                int datatype = (byte) data[0];
+                int bufferID = (byte) data[1];
+                int packetSeqID = (byte) data[2];
+                int packetSize = BitConverter.ToInt32(data, 3);
 
                 //Extract the non-header data from the drone
-                byte[] recvData = new byte[actualSize];
-                recvData = data.Skip(size).Take(actualSize).ToArray();
+                byte[] recvData = new byte[packetSize];
+                recvData = data.Skip(size).Take(packetSize - size).ToArray();
+
+                // Console.WriteLine("packetSize: {0}", packetSize);
 
                 //Handle frame data
                 HandleFrameData(datatype, bufferID, packetSeqID, recvData);
 
                 //Skip extracted data to handle remaining packet size
-                data = data.Skip((actualSize + size)).ToArray();
+                data = data.Skip(packetSize).ToArray();
             }
         }
 
@@ -296,7 +286,7 @@ namespace BebopFlying
         /// <param name="bufferID">The bufferID of the packet</param>
         /// <param name="packetSeqID">The sequence ID of the packet</param>
         /// <param name="data">The actual non-header-data of the packet</param>
-        private void HandleFrameData(byte datatype, byte bufferID, byte packetSeqID, byte[] data)
+        private void HandleFrameData(int datatype, int bufferID, int packetSeqID, byte[] data)
         {
             //If the drone is pinging us -> Send back pong
             if (bufferID == CommandSet.ARNETWORK_MANAGER_INTERNAL_BUFFER_ID_PING && data.Length > 0)
@@ -342,7 +332,7 @@ namespace BebopFlying
             }
         }
 
-        private void UpdateSensorData(byte[] rawDataPacket, byte bufferId, int seqNumber, bool ack)
+        private void UpdateSensorData(byte[] rawDataPacket, int bufferId, int seqNumber, bool ack)
         {
             //todo not doing?
         }
@@ -352,7 +342,7 @@ namespace BebopFlying
         /// </summary>
         /// <param name="bufferID">The bufferID of the packet to acknowledge</param>
         /// <param name="packetID">The packetID of the packet to acknowledge</param>
-        private void AckPacket(byte bufferID, int packetID)
+        private void AckPacket(int bufferID, int packetID)
         {
             int newbufferId = (bufferID + 128) % 256;
 
@@ -432,7 +422,6 @@ namespace BebopFlying
         /// <param name="id">The id of the command, defaults to not receiving an acknowledge</param>
         private bool SendCommand(Command cmd)
         {
-
             int tryNum = 0;
             CommandReceiver.SetCommandReceived("SEND_WITH_ACK", cmd.SequenceID(), false);
 

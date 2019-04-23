@@ -20,15 +20,15 @@ namespace SharpFlying
             if (bebop.Connect() == ConnectionStatus.Success)
             {
                 Console.WriteLine("CONNECTED!");
-                bebop.TakeOff();
+                // bebop.TakeOff();
 
                 Console.WriteLine("STARTING SLEEP");
 
-                bebop.SmartSleep(2500);
+                bebop.SmartSleep(25000);
 
                 Console.WriteLine("ENDING SLEEP");
 
-                bebop.Land();
+                //bebop.Land();
 
                 Console.WriteLine("STARTING SLEEP");
                 bebop.SmartSleep(1500);
