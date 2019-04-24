@@ -40,7 +40,7 @@
   <ItemGroup>
     <Compile Include="BebopClasses\CommandReceiver.cs" />
     <Compile Include="BebopClasses\CommandSet.cs" />
-    <Compile Include="BebopClasses\Structs\Command.cs" />
+    <Compile Include="BebopClasses\Command.cs" />
     <Compile Include="Bebop.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

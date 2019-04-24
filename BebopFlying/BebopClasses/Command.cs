@@ -1,4 +1,4 @@
-﻿namespace BebopFlying.BebopClasses.Structs
+﻿namespace BebopFlying.BebopClasses
 {
     public class Command
     {

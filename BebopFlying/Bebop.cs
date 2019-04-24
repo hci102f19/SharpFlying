@@ -8,7 +8,6 @@ using System.Net.Sockets;
 using System.Reflection.Emit;
 using System.Threading;
 using BebopFlying.BebopClasses;
-using BebopFlying.BebopClasses.Structs;
 using Flight.Enums;
 using FlightLib;
 using NLog;
@@ -81,8 +80,8 @@ namespace BebopFlying
             LoggingConfiguration config = new LoggingConfiguration();
             FileTarget logfile = new FileTarget("logfile") {FileName = "BebopFileLog.txt"};
 
-            ConsoleTarget logconsole = new ConsoleTarget("logconsole");
-            config.AddRule(LogLevel.Debug, LogLevel.Fatal, logconsole);
+//            ConsoleTarget logconsole = new ConsoleTarget("logconsole");
+//            config.AddRule(LogLevel.Debug, LogLevel.Fatal, logconsole);
 
             config.AddRule(LogLevel.Debug, LogLevel.Fatal, logfile);
 
@@ -258,7 +257,7 @@ namespace BebopFlying
         {
             var data2 = data.Clone();
             const int size = 7;
-            while (data.Length > size)
+            while (data.Length > 0)
             {
                 int datatype = (byte) data[0];
                 int bufferID = (byte) data[1];
@@ -282,59 +281,80 @@ namespace BebopFlying
         /// <summary>
         /// Handles the dataframe
         /// </summary>
-        /// <param name="datatype">Datatype of packet</param>
-        /// <param name="bufferID">The bufferID of the packet</param>
-        /// <param name="packetSeqID">The sequence ID of the packet</param>
+        /// <param name="dataType">Datatype of packet</param>
+        /// <param name="bufferId">The bufferID of the packet</param>
+        /// <param name="packetSeqId">The sequence ID of the packet</param>
         /// <param name="data">The actual non-header-data of the packet</param>
-        private void HandleFrameData(int datatype, int bufferID, int packetSeqID, byte[] data)
+        private void HandleFrameData(int dataType, int bufferId, int packetSeqId, byte[] data)
         {
             //If the drone is pinging us -> Send back pong
-            if (bufferID == CommandSet.ARNETWORK_MANAGER_INTERNAL_BUFFER_ID_PING && data.Length > 0)
+            if (bufferId == CommandSet.ARNETWORK_MANAGER_INTERNAL_BUFFER_ID_PING && data.Length > 0)
             {
                 SendPong(data);
                 _logger.Debug("Pong");
             }
 
-            //Drone is asking for us to acknowledge the receival of the packet
-            if (datatype == CommandSet.ARNETWORKAL_FRAME_TYPE_ACK && data.Length > 0)
+            switch (dataType)
             {
-                int ackSeqNumber = data[0];
+                //Drone is asking for us to acknowledge the receival of the packet
+                case CommandSet.ARNETWORKAL_FRAME_TYPE_ACK:
+                    int ackSeqNumber = data[0];
 
-                CommandReceiver.SetCommandReceived("SEND_WITH_ACK", ackSeqNumber, true);
+                    CommandReceiver.SetCommandReceived("SEND_WITH_ACK", ackSeqNumber, true);
 
-                AckPacket(bufferID, ackSeqNumber);
-                _logger.Debug("Send Ack");
-            }
-            //Drone just sent us sensor data -> No acknowledge required
-            else if (datatype == CommandSet.ARNETWORKAL_FRAME_TYPE_DATA)
-            {
-                if (bufferID == CommandSet.BD_NET_DC_NAVDATA_ID || bufferID == CommandSet.BD_NET_DC_EVENT_ID)
-                {
-                    UpdateSensorData(data, bufferID, packetSeqID, false);
-                    _logger.Debug("Sensor update");
-                }
-            }
-            else if (datatype == CommandSet.ARNETWORKAL_FRAME_TYPE_DATA_LOW_LATENCY)
-            {
-                _logger.Debug("Handle low latency data?");
-            }
-            else if (datatype == CommandSet.ARNETWORKAL_FRAME_TYPE_MAX)
-            {
-                _logger.Debug("Received a maxframe(Technically unknown?)");
-            }
-            else if (datatype == CommandSet.ARNETWORKAL_FRAME_TYPE_UNINITIALIZED)
-            {
-                _logger.Debug("Received an uninitialized frame");
-            }
-            else
-            {
-                _logger.Fatal("Unknown data type received from drone!");
+                    AckPacket(bufferId, ackSeqNumber);
+                    _logger.Debug("Send Ack");
+                    break;
+
+                //Drone just sent us sensor data -> No acknowledge required
+                case CommandSet.ARNETWORKAL_FRAME_TYPE_DATA:
+                    if (bufferId == CommandSet.BD_NET_DC_NAVDATA_ID || bufferId == CommandSet.BD_NET_DC_EVENT_ID)
+                    {
+                        UpdateSensorData(data, bufferId, packetSeqId, false);
+                        _logger.Debug("Sensor update");
+                    }
+
+                    break;
+
+                case CommandSet.ARNETWORKAL_FRAME_TYPE_DATA_LOW_LATENCY:
+                    _logger.Debug("Handle low latency data?");
+                    break;
+
+                case CommandSet.ARNETWORKAL_FRAME_TYPE_MAX:
+                    _logger.Debug("Received a maxframe(Technically unknown?)");
+                    break;
+
+                case CommandSet.ARNETWORKAL_FRAME_TYPE_UNINITIALIZED:
+                    _logger.Debug("Received an uninitialized frame");
+                    break;
+
+                default:
+                    _logger.Fatal("Unknown data type received from drone!");
+                    break;
             }
         }
 
         private void UpdateSensorData(byte[] rawDataPacket, int bufferId, int seqNumber, bool ack)
         {
-            //todo not doing?
+            int projectId = (byte) rawDataPacket[0], classId = (byte) rawDataPacket[1];
+            short cmdId = BitConverter.ToInt16(rawDataPacket, 2);
+
+            // project_id, class_id, cmd_id
+            // 1,4,1 // Flying state
+            // 0,5,1 // Battery Level
+
+            if (projectId == 1 && classId == 4 && cmdId == 1)
+            {
+                Console.WriteLine("FLYING");
+            }
+            else if (projectId == 0 && classId == 5 && cmdId == 1)
+            {
+                Console.WriteLine("BATTERY");
+            }
+            else
+            {
+                // Console.WriteLine("projectId: {0}, classId: {1}, cmdId: {2}", projectId, classId, cmdId);
+            }
         }
 
         /// <summary>
@@ -465,7 +485,7 @@ namespace BebopFlying
             }
         }
 
-        private void AskForStateUpdate()
+        public void AskForStateUpdate()
         {
             Command _cmd = new Command(4, CommandSet.ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK, CommandSet.BD_NET_CD_ACK_ID);
 
