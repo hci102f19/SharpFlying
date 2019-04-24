@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using BebopFlying;
 using EdgyLib;
@@ -16,19 +17,17 @@ namespace SharpFlying
         private static void Main(string[] args)
         {
             Bebop bebop = new Bebop();
+            int i = 0;
 
             if (bebop.Connect() == ConnectionStatus.Success)
             {
                 Console.WriteLine("CONNECTED!");
-                bebop.AskForStateUpdate();
-
-//                bebop.SmartSleep(2500);
-//                //bebop.TakeOff();
-//                bebop.AskForStateUpdate();
-//                bebop.SmartSleep(5000);
-//                //bebop.Land();
-//                bebop.AskForStateUpdate();
-//                bebop.SmartSleep(2500);
+                while (i < 10)
+                {
+                    bebop.AskForStateUpdate();
+                    bebop.SmartSleep(1000);
+                    i++;
+                }
             }
 
             Console.ReadLine();

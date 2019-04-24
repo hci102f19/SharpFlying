@@ -255,23 +255,17 @@ namespace BebopFlying
         /// <param name="data">full data</param>
         private void HandleData(byte[] data)
         {
-            var data2 = data.Clone();
             const int size = 7;
-            while (data.Length > 0)
+            while (data.Length > size)
             {
-                int datatype = (byte) data[0];
-                int bufferID = (byte) data[1];
-                int packetSeqID = (byte) data[2];
-                int packetSize = BitConverter.ToInt32(data, 3);
+                int dataType = (int) ((byte) data[0]), bufferId = (int) ((byte) data[1]), packetSeqId = (int) ((byte) data[2]), packetSize = BitConverter.ToInt32(data, 3);
 
                 //Extract the non-header data from the drone
-                byte[] recvData = new byte[packetSize];
+                byte[] recvData = new byte[packetSize - size];
                 recvData = data.Skip(size).Take(packetSize - size).ToArray();
 
-                // Console.WriteLine("packetSize: {0}", packetSize);
-
                 //Handle frame data
-                HandleFrameData(datatype, bufferID, packetSeqID, recvData);
+                HandleFrameData(dataType, bufferId, packetSeqId, recvData);
 
                 //Skip extracted data to handle remaining packet size
                 data = data.Skip(packetSize).ToArray();
@@ -298,6 +292,7 @@ namespace BebopFlying
             {
                 //Drone is asking for us to acknowledge the receival of the packet
                 case CommandSet.ARNETWORKAL_FRAME_TYPE_ACK:
+                    Console.WriteLine("ACK!");
                     int ackSeqNumber = data[0];
 
                     CommandReceiver.SetCommandReceived("SEND_WITH_ACK", ackSeqNumber, true);
@@ -306,14 +301,15 @@ namespace BebopFlying
                     _logger.Debug("Send Ack");
                     break;
 
-                //Drone just sent us sensor data -> No acknowledge required
+                // Drone just sent us sensor data
                 case CommandSet.ARNETWORKAL_FRAME_TYPE_DATA:
                     if (bufferId == CommandSet.BD_NET_DC_NAVDATA_ID || bufferId == CommandSet.BD_NET_DC_EVENT_ID)
-                    {
-                        UpdateSensorData(data, bufferId, packetSeqId, false);
-                        _logger.Debug("Sensor update");
-                    }
+                        UpdateSensorData(dataType, bufferId, packetSeqId, data, false);
+                    break;
 
+                case CommandSet.ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK:
+                    if (bufferId == CommandSet.BD_NET_DC_NAVDATA_ID || bufferId == CommandSet.BD_NET_DC_EVENT_ID)
+                        UpdateSensorData(dataType, bufferId, packetSeqId, data, true);
                     break;
 
                 case CommandSet.ARNETWORKAL_FRAME_TYPE_DATA_LOW_LATENCY:
@@ -329,15 +325,17 @@ namespace BebopFlying
                     break;
 
                 default:
+                    Console.WriteLine("Unknown data type received from drone!");
                     _logger.Fatal("Unknown data type received from drone!");
                     break;
             }
         }
 
-        private void UpdateSensorData(byte[] rawDataPacket, int bufferId, int seqNumber, bool ack)
+        private void UpdateSensorData(int dataType, int bufferId, int packetSeqId, byte[] data, bool ack)
         {
-            int projectId = (byte) rawDataPacket[0], classId = (byte) rawDataPacket[1];
-            short cmdId = BitConverter.ToInt16(rawDataPacket, 2);
+            _logger.Debug("Sensor update");
+
+            int projectId = (byte) data[0], classId = (byte) data[1], cmdId = BitConverter.ToInt16(data, 2);
 
             // project_id, class_id, cmd_id
             // 1,4,1 // Flying state
