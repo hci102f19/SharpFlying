@@ -19,15 +19,15 @@ namespace BebopFlying
     public class Bebop : IFly
     {
         //Logger
-        private static Logger _logger;
+        protected static Logger _logger;
 
         //Log to ensure that access to flyvector is fine during multithreading
-        private static readonly object ThisLock = new object();
+        protected static readonly object ThisLock = new object();
 
         protected int MaxPacketRetries = 1;
 
         //Dictionary for storing secquence counter
-        private readonly Dictionary<string, int> _sequenceDictionary = new Dictionary<string, int>
+        protected readonly Dictionary<string, int> sequenceDictionary = new Dictionary<string, int>
         {
             {"PONG", 0},
             {"SEND_NO_ACK", 0},
@@ -39,32 +39,47 @@ namespace BebopFlying
             {"VIDEO_DATA", 0}
         };
 
-        private UdpClient _arstreamClient;
+        protected Dictionary<string, int> BufferIds = new Dictionary<string, int>()
+        {
+            {"PING", 0},
+            {"PONG", 1},
+            {"SEND_NO_ACK", 10},
+            {"SEND_WITH_ACK", 11},
+            {"SEND_HIGH_PRIORITY", 12},
+            {"VIDEO_ACK", 13},
+            {"ACK_DRONE_DATA", 127},
+            {"NO_ACK_DRONE_DATA", 126},
+            {"VIDEO_DATA", 125},
+            {"ACK_FROM_SEND_WITH_ACK", 139}
+        };
+
+        protected Dictionary<string, int> DataTypesByName = new Dictionary<string, int>()
+        {
+            {"ACK", 1},
+            {"DATA_NO_ACK", 2},
+            {"LOW_LATENCY_DATA", 3},
+            {"DATA_WITH_ACK", 4}
+        };
+
+        protected UdpClient _arstreamClient;
 
         //Command struct used for sending commands to the drone
-        // private Command _cmd;
+        protected Thread _commandGeneratorThread;
+        protected Thread _streamReaderThread;
+        protected Thread _threadWatcher;
 
-        private Thread _commandGeneratorThread;
-
-        private IPEndPoint _droneData = new IPEndPoint(IPAddress.Any, 43210);
-        private UdpClient _droneDataClient;
+        protected IPEndPoint _droneData = new IPEndPoint(IPAddress.Any, 43210);
+        protected UdpClient _droneDataClient = new UdpClient(CommandSet.IP, 43210);
 
         //UDP client to send data to the drone
-        private UdpClient _droneUdpClient;
+        protected UdpClient _droneUdpClient= new UdpClient(CommandSet.IP, 54321);
 
         //Bebop vector set by the move command to fly
-        private Vector _flyVector = new Vector();
-        private IPEndPoint _remoteIpEndPoint;
-        private Thread _StreamReaderThread;
-        private Thread _threadWatcher;
+        protected IPEndPoint _remoteIpEndPoint;
+
+        protected Vector FlyVector=new Vector();
 
         public bool IsRunning { get; protected set; } = true;
-
-        private StreamReader _streamReader;
-
-        // TEST!
-        protected readonly int[] _seq = new int[256];
-
 
         public Bebop() : this(30)
         {
@@ -125,7 +140,7 @@ namespace BebopFlying
 
         public void Move(Vector flightVector)
         {
-            _flyVector = flightVector;
+            FlyVector = flightVector;
         }
 
         public bool IsAlive()
@@ -142,41 +157,9 @@ namespace BebopFlying
             try
             {
                 _logger.Debug("Attempting to connect to drone...");
-                //Initialize the drone udp client
-                _droneUdpClient = new UdpClient(CommandSet.IP, 54321);
-                _droneDataClient = new UdpClient(CommandSet.IP, 43210);
 
-                //make handshake with TCP_client, and the port is set to be 4444
-                TcpClient tcpClient = new TcpClient(CommandSet.IP, CommandSet.DISCOVERY_PORT);
-
-                //Initialize the network stream for the handshake
-                NetworkStream stream = new NetworkStream(tcpClient.Client);
-
-                //initialize reader and writer
-                StreamWriter streamWriter = new StreamWriter(stream);
-                _streamReader = new StreamReader(stream);
-                //when the drone receive the message below, it will return the confirmation
-                streamWriter.WriteLine(CommandSet.HandshakeMessage);
-                streamWriter.Flush();
-                _StreamReaderThread = new Thread(ReadDroneOutput);
-
-                string droneHandshakeResponse = _streamReader.ReadLine();
-
-                if (droneHandshakeResponse == null)
-                {
-                    _logger.Fatal("Connection failed");
+                if (!DoHandshake())
                     return ConnectionStatus.Failed;
-                }
-
-                _logger.Debug("The message from the drone shows: " + droneHandshakeResponse);
-
-
-                //All State setting
-                // AskForStateUpdate();
-                // TODO: GenerateAllSettings();
-
-                //enable video streaming
-                // TODO: VideoEnable();
             }
             catch (SocketException ex)
             {
@@ -185,12 +168,47 @@ namespace BebopFlying
             }
 
             _commandGeneratorThread = new Thread(PcmdThreadActive);
-            _commandGeneratorThread.Start();
             _threadWatcher = new Thread(ThreadManager);
+            _streamReaderThread = new Thread(ReadDroneOutput);
+
+            _commandGeneratorThread.Start();
             _threadWatcher.Start();
-            _StreamReaderThread.Start();
+            _streamReaderThread.Start();
+
             _logger.Debug("Successfully connected to the drone");
             return ConnectionStatus.Success;
+        }
+
+        protected bool DoHandshake()
+        {
+            //make handshake with TCP_client, and the port is set to be 4444
+            TcpClient tcpClient = new TcpClient(CommandSet.IP, CommandSet.DISCOVERY_PORT);
+
+            //Initialize the network stream for the handshake
+            NetworkStream stream = new NetworkStream(tcpClient.Client);
+
+            //initialize reader and writer
+            StreamWriter streamWriter = new StreamWriter(stream);
+            StreamReader streamReader = new StreamReader(stream);
+
+            //when the drone receive the message below, it will return the confirmation
+            streamWriter.WriteLine(CommandSet.HandshakeMessage);
+            streamWriter.Flush();
+
+            string droneHandshakeResponse = streamReader.ReadLine();
+
+            if (droneHandshakeResponse == null)
+            {
+                _logger.Fatal("Connection failed");
+                return false;
+            }
+
+            streamWriter.Close();
+            streamReader.Close();
+            stream.Close();
+            tcpClient.Close();
+
+            return true;
         }
 
         public void Disconnect()
@@ -208,7 +226,7 @@ namespace BebopFlying
 
         #region Dronedata Handling
 
-        private void CreateSocket()
+        protected void CreateSocket()
         {
             Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
 
@@ -223,7 +241,7 @@ namespace BebopFlying
         /// <summary>
         /// Method that reads the output from the drone and handles the data accordingly
         /// </summary>
-        private void ReadDroneOutput()
+        protected void ReadDroneOutput()
         {
             CreateSocket();
             byte[] data = new byte[0];
@@ -252,7 +270,7 @@ namespace BebopFlying
         /// Based on the data, extracts the framedata 
         /// </summary>
         /// <param name="data">full data</param>
-        private void HandleData(byte[] data)
+        protected void HandleData(byte[] data)
         {
             const int size = 7;
             while (data.Length > size)
@@ -278,7 +296,7 @@ namespace BebopFlying
         /// <param name="bufferId">The bufferID of the packet</param>
         /// <param name="packetSeqId">The sequence ID of the packet</param>
         /// <param name="data">The actual non-header-data of the packet</param>
-        private void HandleFrameData(int dataType, int bufferId, int packetSeqId, byte[] data)
+        protected void HandleFrameData(int dataType, int bufferId, int packetSeqId, byte[] data)
         {
             //If the drone is pinging us -> Send back pong
             if (bufferId == CommandSet.ARNETWORK_MANAGER_INTERNAL_BUFFER_ID_PING)
@@ -331,7 +349,7 @@ namespace BebopFlying
         protected List<string> states = new List<string>() {"landed", "takingoff", "hovering", "flying", "landing", "emergency", "usertakeoff", "motor_ramping", "emergency_landing"};
 
 
-        private void UpdateSensorData(int dataType, int bufferId, int packetSeqId, byte[] data, bool ack)
+        protected void UpdateSensorData(int dataType, int bufferId, int packetSeqId, byte[] data, bool ack)
         {
             _logger.Debug("Sensor update");
 
@@ -386,19 +404,19 @@ namespace BebopFlying
         /// used by the drone as a IsAlive request
         /// </summary>
         /// <param name="data">The ping data to pong back</param>
-        private void SendPong(byte[] data)
+        protected void SendPong(byte[] data)
         {
             int size = data.Length;
 
-            int seq = _sequenceDictionary["PONG"];
+            int seq = sequenceDictionary["PONG"];
 
-            _sequenceDictionary["PONG"] = seq + 1 % 256;
+            sequenceDictionary["PONG"] = seq + 1 % 256;
 
             Command packet = new Command(size + 7);
 
             packet.InsertData(CommandSet.ARNETWORK_MANAGER_INTERNAL_BUFFER_ID_PONG);
             packet.InsertData(CommandSet.ARNETWORKAL_FRAME_TYPE_DATA);
-            packet.InsertData((byte) _sequenceDictionary["PONG"]);
+            packet.InsertData((byte) sequenceDictionary["PONG"]);
             packet.InsertData((byte) (size + 7));
             packet.CopyData(data, 4);
 
@@ -409,7 +427,7 @@ namespace BebopFlying
         /// Sends a DroneCMD to the drone - Retries if the attempt is unsuccessful
         /// </summary>
         /// <param name="droneCmd"The command to send></param>
-        private void SafeSendDroneCMD(Command droneCmd)
+        protected void SafeSendDroneCMD(Command droneCmd)
         {
             bool packetSent = false;
             int attemptNo = 0;
@@ -435,7 +453,7 @@ namespace BebopFlying
         /// <param name="cmd">The command to send</param>
         /// <param name="type">The type of command to send, defaults to a fly command</param>
         /// <param name="id">The id of the command, defaults to not receiving an acknowledge</param>
-        private bool SendCommand(Command cmd)
+        protected bool SendCommand(Command cmd)
         {
             int tryNum = 0;
             CommandReceiver.SetCommandReceived("SEND_WITH_ACK", cmd.SequenceID(), false);
@@ -453,79 +471,11 @@ namespace BebopFlying
             //Reset flyvector
             lock (ThisLock)
             {
-                _flyVector.ResetVector();
+                //flyVector.ResetVector();
             }
 
             return CommandReceiver.IsCommandReceived("SEND_WITH_ACK", cmd.SequenceID());
         }
-
-        #region New Send
-
-        protected Dictionary<string, int> SequenceCounter = new Dictionary<string, int>()
-        {
-            {"PONG", 0},
-            {"SEND_NO_ACK", 0},
-            {"SEND_WITH_ACK", 0},
-            {"SEND_HIGH_PRIORITY", 0},
-            {"VIDEO_ACK", 0},
-            {"ACK_DRONE_DATA", 0},
-            {"NO_ACK_DRONE_DATA", 0},
-            {"VIDEO_DATA", 0}
-        };
-
-        protected Dictionary<string, int> BufferIds = new Dictionary<string, int>()
-        {
-            {"PING", 0},
-            {"PONG", 1},
-            {"SEND_NO_ACK", 10},
-            {"SEND_WITH_ACK", 11},
-            {"SEND_HIGH_PRIORITY", 12},
-            {"VIDEO_ACK", 13},
-            {"ACK_DRONE_DATA", 127},
-            {"NO_ACK_DRONE_DATA", 126},
-            {"VIDEO_DATA", 125},
-            {"ACK_FROM_SEND_WITH_ACK", 139}
-        };
-
-        protected Dictionary<string, int> DataTypesByName = new Dictionary<string, int>()
-        {
-            {"ACK", 1},
-            {"DATA_NO_ACK", 2},
-            {"LOW_LATENCY_DATA", 3},
-            {"DATA_WITH_ACK", 4}
-        };
-
-        protected bool SendNoParamCommandPacketAck(Command command)
-        {
-            SequenceCounter["SEND_WITH_ACK"] = (SequenceCounter["SEND_WITH_ACK"] + 1) % 256;
-
-            Command cmd = new Command(7, padding: false);
-            cmd.InsertData((byte) DataTypesByName["DATA_WITH_ACK"]);
-            cmd.InsertData((byte) BufferIds["SEND_WITH_ACK"]);
-            cmd.InsertData((byte) SequenceCounter["SEND_WITH_ACK"]);
-            cmd.InsertData(11);
-            cmd.CopyData(command.Cmd, 0, 3);
-
-            return SendCommandPacketAck(cmd, SequenceCounter["SEND_WITH_ACK"]);
-        }
-
-        protected bool SendCommandPacketAck(Command cmd, int packetSeqId)
-        {
-            int _tryNum = 0;
-            CommandReceiver.SetCommandReceived("SEND_WITH_ACK", packetSeqId, false);
-
-            while (_tryNum < MaxPacketRetries && !CommandReceiver.IsCommandReceived("SEND_WITH_ACK", packetSeqId))
-            {
-                SafeSend(cmd.ExportCommand());
-                _tryNum++;
-                SmartSleep(500);
-            }
-
-            return CommandReceiver.IsCommandReceived("SEND_WITH_ACK", packetSeqId);
-        }
-
-        #endregion
-
 
         protected void SafeSend(byte[] buffer)
         {
@@ -556,7 +506,8 @@ namespace BebopFlying
             _cmd.InsertData(CommandSet.ARCOMMANDS_ID_COMMON_CLASS_COMMON);
             _cmd.InsertData(CommandSet.ARCOMMANDS_ID_COMMON_COMMON_CMD_ALLSTATES & 0xff);
 
-            SendNoParamCommandPacketAck(_cmd);
+            throw new NotImplementedException();
+            // SendNoParamCommandPacketAck(_cmd);
         }
 
         #endregion
@@ -566,7 +517,7 @@ namespace BebopFlying
         /// Drone command thread
         /// Generates and sends movement commands received
         /// </summary>
-        private void PcmdThreadActive()
+        protected void PcmdThreadActive()
         {
             _logger.Debug("Started command generator thread");
             while (IsRunning)
@@ -580,7 +531,7 @@ namespace BebopFlying
         /// <summary>
         /// Threadwatcher to make sure the command generation thread is alive and well
         /// </summary>
-        private void ThreadManager()
+        protected void ThreadManager()
         {
             _logger.Debug("Started Threadwatcher");
             while (IsRunning)
@@ -602,7 +553,7 @@ namespace BebopFlying
         /// <summary>
         ///     Generates the command for the drone
         /// </summary>
-        private void GenerateDroneCommand()
+        protected void GenerateDroneCommand()
         {
             lock (ThisLock)
             {
@@ -613,11 +564,11 @@ namespace BebopFlying
                 _cmd.InsertData(CommandSet.ARCOMMANDS_ID_ARDRONE3_CLASS_PILOTING);
                 _cmd.InsertData(CommandSet.ARCOMMANDS_ID_ARDRONE3_PILOTING_CMD_PCMD);
                 _cmd.InsertData(0);
-                _cmd.InsertData((byte) _flyVector.Flag); // flag
-                _cmd.InsertData(_flyVector.Roll >= 0 ? (byte) _flyVector.Roll : (byte) (256 + _flyVector.Roll)); // roll: fly left or right [-100 ~ 100]
-                _cmd.InsertData(_flyVector.Pitch >= 0 ? (byte) _flyVector.Pitch : (byte) (256 + _flyVector.Pitch)); // pitch: backward or forward [-100 ~ 100]
-                _cmd.InsertData(_flyVector.Yaw >= 0 ? (byte) _flyVector.Yaw : (byte) (256 + _flyVector.Yaw)); // yaw: rotate left or right [-100 ~ 100]
-                _cmd.InsertData(_flyVector.Gaz >= 0 ? (byte) _flyVector.Gaz : (byte) (256 + _flyVector.Gaz)); // gaze: down or up [-100 ~ 100]
+                _cmd.InsertData((byte)FlyVector.Flag); // flag
+                _cmd.InsertData(FlyVector.Roll >= 0 ? (byte)FlyVector.Roll : (byte) (256 + FlyVector.Roll)); // roll: fly left or right [-100 ~ 100]
+                _cmd.InsertData(FlyVector.Pitch >= 0 ? (byte)FlyVector.Pitch : (byte) (256 + FlyVector.Pitch)); // pitch: backward or forward [-100 ~ 100]
+                _cmd.InsertData(FlyVector.Yaw >= 0 ? (byte)FlyVector.Yaw : (byte) (256 + FlyVector.Yaw)); // yaw: rotate left or right [-100 ~ 100]
+                _cmd.InsertData(FlyVector.Gaz >= 0 ? (byte)FlyVector.Gaz : (byte) (256 + FlyVector.Gaz)); // gaze: down or up [-100 ~ 100]
 
                 // for Debug Mode
                 _cmd.InsertData(0);
@@ -643,7 +594,7 @@ namespace BebopFlying
             sw.Stop();
         }
 
-        private void GenerateAllSettings()
+        protected void GenerateAllSettings()
         {
             Command _cmd = new Command(4, CommandSet.ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK, CommandSet.BD_NET_CD_ACK_ID);
 
@@ -656,7 +607,7 @@ namespace BebopFlying
         }
 
 
-        private void VideoEnable()
+        protected void VideoEnable()
         {
             Command _cmd = new Command(5, CommandSet.ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK, CommandSet.BD_NET_CD_ACK_ID);
 
