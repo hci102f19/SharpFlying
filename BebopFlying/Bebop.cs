@@ -27,7 +27,7 @@ namespace BebopFlying
         protected int MaxPacketRetries = 1;
 
         //Dictionary for storing secquence counter
-        protected readonly Dictionary<string, int> sequenceDictionary = new Dictionary<string, int>
+        protected readonly Dictionary<string, int> sequenceCounter = new Dictionary<string, int>
         {
             {"PONG", 0},
             {"SEND_NO_ACK", 0},
@@ -379,6 +379,7 @@ namespace BebopFlying
         #endregion
 
         #region Drone Responses
+
         protected void AckPacket(int bufferId, int packetId)
         {
             int newBufferId = (bufferId + 128) % 256;
@@ -391,31 +392,28 @@ namespace BebopFlying
             packet.InsertData(8);
             packet.InsertData((byte) packetId);
 
-            var kage = packet.ExportCommand();
-
-            Console.WriteLine("ACK! {0}", String.Join(", ", kage));
-
-            SafeSend(kage);
+            SafeSend(packet.ExportCommand());
         }
 
         protected void SendPong(byte[] data)
         {
             int size = data.Length;
 
-            int seq = sequenceDictionary["PONG"];
+            int seq = sequenceCounter["PONG"];
 
-            sequenceDictionary["PONG"] = seq + 1 % 256;
+            sequenceCounter["PONG"] = seq + 1 % 256;
 
             Command packet = new Command(size + 7);
 
             packet.InsertData(CommandSet.ARNETWORK_MANAGER_INTERNAL_BUFFER_ID_PONG);
             packet.InsertData(CommandSet.ARNETWORKAL_FRAME_TYPE_DATA);
-            packet.InsertData((byte) sequenceDictionary["PONG"]);
+            packet.InsertData((byte)sequenceCounter["PONG"]);
             packet.InsertData((byte) (size + 7));
             packet.CopyData(data, 4);
 
             SendCommand(packet);
         }
+
         #endregion
 
         #region Send Data To Drone
