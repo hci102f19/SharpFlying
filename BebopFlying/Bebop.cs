@@ -292,7 +292,7 @@ namespace BebopFlying
             {
                 //Drone is asking for us to acknowledge the receival of the packet
                 case CommandSet.ARNETWORKAL_FRAME_TYPE_ACK:
-                    Console.WriteLine("ACK!");
+                    // Console.WriteLine("ACK!");
                     int ackSeqNumber = data[0];
 
                     CommandReceiver.SetCommandReceived("SEND_WITH_ACK", ackSeqNumber, true);
