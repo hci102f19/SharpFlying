@@ -9,7 +9,7 @@ namespace UltraSonicLib
     public class UltraSonicService : Service
     {
         protected const int MinDistanceToWall = 20;
-        protected readonly UDPClient Client = new UDPClient("192.168.1.102", 20002);
+        protected readonly UDPClient Client = new UDPClient("192.168.4.1", 20002);
         protected Response Response;
         protected Sensors Sensors;
 

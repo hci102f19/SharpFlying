@@ -331,23 +331,26 @@ namespace BebopFlying
             }
         }
 
+        protected List<string> states = new List<string>() {"landed", "takingoff", "hovering", "flying", "landing", "emergency", "usertakeoff", "motor_ramping", "emergency_landing"};
+
+
         private void UpdateSensorData(int dataType, int bufferId, int packetSeqId, byte[] data, bool ack)
         {
             _logger.Debug("Sensor update");
 
             int projectId = (byte) data[0], classId = (byte) data[1], cmdId = BitConverter.ToInt16(data, 2);
 
-            // project_id, class_id, cmd_id
-            // 1,4,1 // Flying state
-            // 0,5,1 // Battery Level
+            const int offset = 4;
+            byte[] sensorData = data.Skip(offset).ToArray();
 
             if (projectId == 1 && classId == 4 && cmdId == 1)
             {
-                Console.WriteLine("FLYING");
+                Console.WriteLine("FLYING: {0}", (byte) sensorData[0]);
+                Console.WriteLine("FLYING State: {0}", states[(byte) sensorData[0]]);
             }
             else if (projectId == 0 && classId == 5 && cmdId == 1)
             {
-                Console.WriteLine("BATTERY");
+                Console.WriteLine("BATTERY: {0}%", (byte) sensorData[0]);
             }
             else
             {
@@ -358,27 +361,27 @@ namespace BebopFlying
         /// <summary>
         /// Method used to send back an acknowledge packet to the drone when it requests it
         /// </summary>
-        /// <param name="bufferID">The bufferID of the packet to acknowledge</param>
-        /// <param name="packetID">The packetID of the packet to acknowledge</param>
-        private void AckPacket(int bufferID, int packetID)
+        /// <param name="bufferId">The bufferID of the packet to acknowledge</param>
+        /// <param name="packetId">The packetID of the packet to acknowledge</param>
+        private void AckPacket(int bufferId, int packetId)
         {
-            int newbufferId = (bufferID + 128) % 256;
+            int newBufferId = (bufferId + 128) % 256;
 
-            if (CommandReceiver.HasKey("ACK", newbufferId))
+            if (CommandReceiver.HasKey("ACK", newBufferId))
             {
                 CommandReceiver.SetCommandReceived("ACK", 0, false);
             }
             else
             {
-                CommandReceiver.SetCommandReceived("ACK", (newbufferId + 1) % 256, true);
+                CommandReceiver.SetCommandReceived("ACK", (newBufferId + 1) % 256, true);
 
                 Command packet = new Command(5);
 
                 packet.InsertData(CommandSet.ARNETWORKAL_FRAME_TYPE_ACK);
-                packet.InsertData((byte) newbufferId);
-                packet.InsertData((byte) ((newbufferId + 1) % 256));
+                packet.InsertData((byte) newBufferId);
+                packet.InsertData((byte) ((newBufferId + 1) % 256));
                 packet.InsertData(8);
-                packet.InsertData((byte) packetID);
+                packet.InsertData((byte) packetId);
 
                 SafeSendDroneCMD(packet);
             }
@@ -388,7 +391,7 @@ namespace BebopFlying
         /// Sends a "Pong" back to the drone
         /// used by the drone as a IsAlive request
         /// </summary>
-        /// <param name="data">The pingdata to pong back</param>
+        /// <param name="data">The ping data to pong back</param>
         private void SendPong(byte[] data)
         {
             int size = data.Length;

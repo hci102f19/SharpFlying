@@ -24,8 +24,18 @@ namespace SharpFlying
                 Console.WriteLine("CONNECTED!");
                 while (i < 10)
                 {
-                    bebop.AskForStateUpdate();
+                    // bebop.AskForStateUpdate();
                     bebop.SmartSleep(1000);
+                    if (i == 2)
+                    {
+                        bebop.TakeOff();
+                    }
+
+                    if (i == 9)
+                    {
+                        bebop.Land();
+                    }
+
                     i++;
                 }
             }

@@ -8,7 +8,7 @@ namespace WiFiLib
 {
     public class WiFiService : Service
     {
-        protected readonly UDPClient Client = new UDPClient("192.168.1.102", 20001);
+        protected readonly UDPClient Client = new UDPClient("192.168.4.1", 20001);
 
         protected Network Network = new Network();
 
