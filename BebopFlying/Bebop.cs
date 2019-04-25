@@ -55,13 +55,16 @@ namespace BebopFlying
         //Bebop vector set by the move command to fly
         private Vector _flyVector = new Vector();
         private IPEndPoint _remoteIpEndPoint;
-
         private Thread _StreamReaderThread;
         private Thread _threadWatcher;
 
         public bool IsRunning { get; protected set; } = true;
 
         private StreamReader _streamReader;
+
+        // TEST!
+        protected readonly int[] _seq = new int[256];
+
 
         public Bebop() : this(30)
         {
@@ -169,11 +172,11 @@ namespace BebopFlying
 
 
                 //All State setting
-                AskForStateUpdate();
-                GenerateAllSettings();
+                // AskForStateUpdate();
+                // TODO: GenerateAllSettings();
 
                 //enable video streaming
-                VideoEnable();
+                // TODO: VideoEnable();
             }
             catch (SocketException ex)
             {
@@ -242,10 +245,6 @@ namespace BebopFlying
                         _logger.Debug("Timed out - Trying again");
                     }
                 }
-                finally
-                {
-                    SmartSleep(100);
-                }
             }
         }
 
@@ -282,7 +281,7 @@ namespace BebopFlying
         private void HandleFrameData(int dataType, int bufferId, int packetSeqId, byte[] data)
         {
             //If the drone is pinging us -> Send back pong
-            if (bufferId == CommandSet.ARNETWORK_MANAGER_INTERNAL_BUFFER_ID_PING && data.Length > 0)
+            if (bufferId == CommandSet.ARNETWORK_MANAGER_INTERNAL_BUFFER_ID_PING)
             {
                 SendPong(data);
                 _logger.Debug("Pong");
@@ -292,7 +291,6 @@ namespace BebopFlying
             {
                 //Drone is asking for us to acknowledge the receival of the packet
                 case CommandSet.ARNETWORKAL_FRAME_TYPE_ACK:
-                    // Console.WriteLine("ACK!");
                     int ackSeqNumber = data[0];
 
                     CommandReceiver.SetCommandReceived("SEND_WITH_ACK", ackSeqNumber, true);
@@ -307,13 +305,13 @@ namespace BebopFlying
                         UpdateSensorData(dataType, bufferId, packetSeqId, data, false);
                     break;
 
+                case CommandSet.ARNETWORKAL_FRAME_TYPE_DATA_LOW_LATENCY:
+                    _logger.Debug("Handle low latency data?");
+                    break;
+
                 case CommandSet.ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK:
                     if (bufferId == CommandSet.BD_NET_DC_NAVDATA_ID || bufferId == CommandSet.BD_NET_DC_EVENT_ID)
                         UpdateSensorData(dataType, bufferId, packetSeqId, data, true);
-                    break;
-
-                case CommandSet.ARNETWORKAL_FRAME_TYPE_DATA_LOW_LATENCY:
-                    _logger.Debug("Handle low latency data?");
                     break;
 
                 case CommandSet.ARNETWORKAL_FRAME_TYPE_MAX:
@@ -325,7 +323,6 @@ namespace BebopFlying
                     break;
 
                 default:
-                    Console.WriteLine("Unknown data type received from drone!");
                     _logger.Fatal("Unknown data type received from drone!");
                     break;
             }
@@ -345,9 +342,9 @@ namespace BebopFlying
 
             if (projectId == 1 && classId == 4 && cmdId == 1)
             {
-                Console.WriteLine("------------------------------");
+                Console.WriteLine("--------------------");
                 Console.WriteLine("Length: {0}", sensorData.Length);
-                Console.WriteLine("ALL: {0}", String.Join(", ", sensorData));
+                Console.WriteLine("ALL: {0}", String.Join(", ", data));
                 Console.WriteLine("FLYING: {0}", (byte) sensorData[0]);
                 Console.WriteLine("FLYING State: {0}", states[(byte) sensorData[0]]);
             }
@@ -355,10 +352,9 @@ namespace BebopFlying
             {
                 Console.WriteLine("BATTERY: {0}%", (byte) sensorData[0]);
             }
-            else
-            {
-                // Console.WriteLine("projectId: {0}, classId: {1}, cmdId: {2}", projectId, classId, cmdId);
-            }
+
+            if (ack)
+                AckPacket(bufferId, packetSeqId);
         }
 
         /// <summary>
@@ -366,28 +362,23 @@ namespace BebopFlying
         /// </summary>
         /// <param name="bufferId">The bufferID of the packet to acknowledge</param>
         /// <param name="packetId">The packetID of the packet to acknowledge</param>
-        private void AckPacket(int bufferId, int packetId)
+        protected void AckPacket(int bufferId, int packetId)
         {
             int newBufferId = (bufferId + 128) % 256;
 
-            if (CommandReceiver.HasKey("ACK", newBufferId))
-            {
-                CommandReceiver.SetCommandReceived("ACK", 0, false);
-            }
-            else
-            {
-                CommandReceiver.SetCommandReceived("ACK", (newBufferId + 1) % 256, true);
+            Command packet = new Command(5, id: newBufferId, padding: false);
 
-                Command packet = new Command(5);
+            packet.InsertData(CommandSet.ARNETWORKAL_FRAME_TYPE_ACK);
+            packet.InsertData((byte) newBufferId);
+            packet.InsertData((byte) (packet.SequenceID() + 1) % 256);
+            packet.InsertData(8);
+            packet.InsertData((byte) packetId);
 
-                packet.InsertData(CommandSet.ARNETWORKAL_FRAME_TYPE_ACK);
-                packet.InsertData((byte) newBufferId);
-                packet.InsertData((byte) ((newBufferId + 1) % 256));
-                packet.InsertData(8);
-                packet.InsertData((byte) packetId);
+            var kage = packet.ExportCommand();
 
-                SafeSendDroneCMD(packet);
-            }
+            Console.WriteLine("ACK! {0}", String.Join(", ", kage));
+
+            SafeSend(kage);
         }
 
         /// <summary>
@@ -468,6 +459,73 @@ namespace BebopFlying
             return CommandReceiver.IsCommandReceived("SEND_WITH_ACK", cmd.SequenceID());
         }
 
+        #region New Send
+
+        protected Dictionary<string, int> SequenceCounter = new Dictionary<string, int>()
+        {
+            {"PONG", 0},
+            {"SEND_NO_ACK", 0},
+            {"SEND_WITH_ACK", 0},
+            {"SEND_HIGH_PRIORITY", 0},
+            {"VIDEO_ACK", 0},
+            {"ACK_DRONE_DATA", 0},
+            {"NO_ACK_DRONE_DATA", 0},
+            {"VIDEO_DATA", 0}
+        };
+
+        protected Dictionary<string, int> BufferIds = new Dictionary<string, int>()
+        {
+            {"PING", 0},
+            {"PONG", 1},
+            {"SEND_NO_ACK", 10},
+            {"SEND_WITH_ACK", 11},
+            {"SEND_HIGH_PRIORITY", 12},
+            {"VIDEO_ACK", 13},
+            {"ACK_DRONE_DATA", 127},
+            {"NO_ACK_DRONE_DATA", 126},
+            {"VIDEO_DATA", 125},
+            {"ACK_FROM_SEND_WITH_ACK", 139}
+        };
+
+        protected Dictionary<string, int> DataTypesByName = new Dictionary<string, int>()
+        {
+            {"ACK", 1},
+            {"DATA_NO_ACK", 2},
+            {"LOW_LATENCY_DATA", 3},
+            {"DATA_WITH_ACK", 4}
+        };
+
+        protected bool SendNoParamCommandPacketAck(Command command)
+        {
+            SequenceCounter["SEND_WITH_ACK"] = (SequenceCounter["SEND_WITH_ACK"] + 1) % 256;
+
+            Command cmd = new Command(7, padding: false);
+            cmd.InsertData((byte) DataTypesByName["DATA_WITH_ACK"]);
+            cmd.InsertData((byte) BufferIds["SEND_WITH_ACK"]);
+            cmd.InsertData((byte) SequenceCounter["SEND_WITH_ACK"]);
+            cmd.InsertData(11);
+            cmd.CopyData(command.Cmd, 0, 3);
+
+            return SendCommandPacketAck(cmd, SequenceCounter["SEND_WITH_ACK"]);
+        }
+
+        protected bool SendCommandPacketAck(Command cmd, int packetSeqId)
+        {
+            int _tryNum = 0;
+            CommandReceiver.SetCommandReceived("SEND_WITH_ACK", packetSeqId, false);
+
+            while (_tryNum < MaxPacketRetries && !CommandReceiver.IsCommandReceived("SEND_WITH_ACK", packetSeqId))
+            {
+                SafeSend(cmd.ExportCommand());
+                _tryNum++;
+                SmartSleep(500);
+            }
+
+            return CommandReceiver.IsCommandReceived("SEND_WITH_ACK", packetSeqId);
+        }
+
+        #endregion
+
 
         protected void SafeSend(byte[] buffer)
         {
@@ -489,16 +547,16 @@ namespace BebopFlying
             }
         }
 
+
         public void AskForStateUpdate()
         {
-            Command _cmd = new Command(4, CommandSet.ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK, CommandSet.BD_NET_CD_ACK_ID);
+            Command _cmd = new Command(3, CommandSet.ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK, CommandSet.BD_NET_CD_ACK_ID);
 
             _cmd.InsertData(CommandSet.ARCOMMANDS_ID_PROJECT_COMMON);
             _cmd.InsertData(CommandSet.ARCOMMANDS_ID_COMMON_CLASS_COMMON);
             _cmd.InsertData(CommandSet.ARCOMMANDS_ID_COMMON_COMMON_CMD_ALLSTATES & 0xff);
-            _cmd.InsertData(CommandSet.ARCOMMANDS_ID_COMMON_COMMON_CMD_ALLSTATES & (0xff00 >> 8));
 
-            SendCommand(_cmd);
+            SendNoParamCommandPacketAck(_cmd);
         }
 
         #endregion
@@ -514,7 +572,7 @@ namespace BebopFlying
             while (IsRunning)
             {
                 GenerateDroneCommand();
-                SmartSleep(UpdateRate);
+                //SmartSleep(UpdateRate);
             }
         }
 
@@ -580,9 +638,7 @@ namespace BebopFlying
             Stopwatch sw = new Stopwatch();
             sw.Start();
             while (sw.ElapsedMilliseconds < milliseconds)
-            {
-                Thread.Yield();
-            }
+                Thread.Sleep(100);
 
             sw.Stop();
         }

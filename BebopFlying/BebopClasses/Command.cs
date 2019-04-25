@@ -1,16 +1,20 @@
-﻿namespace BebopFlying.BebopClasses
+﻿using System.Linq;
+
+namespace BebopFlying.BebopClasses
 {
     public class Command
     {
         private static readonly int[] _seq = new int[256];
+        protected bool Padding;
 
-        public Command(int size, int type = CommandSet.ARNETWORKAL_FRAME_TYPE_DATA, int id = CommandSet.BD_NET_CD_NONACK_ID)
+        public Command(int size, int type = CommandSet.ARNETWORKAL_FRAME_TYPE_DATA, int id = CommandSet.BD_NET_CD_NONACK_ID, bool padding = true)
         {
             Size = size;
             Cmd = new byte[size];
 
             Type = type;
             Id = id;
+            Padding = padding;
         }
 
         public byte[] Cmd { get; protected set; }
@@ -29,9 +33,13 @@
             Cmd[CurIndex++] = (byte) data;
         }
 
-        public void CopyData(byte[] data, int idx)
+        public void CopyData(byte[] data, int idx, int limit = -1)
         {
-            data.CopyTo(Cmd, idx);
+            if(limit == -1)
+                data.CopyTo(Cmd, idx);
+            else
+                data.Take(limit).ToArray().CopyTo(Cmd, idx);
+
         }
 
         public int SequenceID()
@@ -39,25 +47,30 @@
             return _seq[Id];
         }
 
+
         public byte[] ExportCommand()
         {
+            _seq[Id] = (_seq[Id] + 1) % 256;
+
+            if (!Padding)
+                return Cmd;
+
             int bufSize = Size + 7;
             byte[] buf = new byte[bufSize];
 
             _seq[Id] = (_seq[Id] + 1) % 256;
 
-            buf[0] = (byte)Type;
-            buf[1] = (byte)Id;
-            buf[2] = (byte)SequenceID();
-            buf[3] = (byte)(bufSize & 0xff);
-            buf[4] = (byte)((bufSize & 0xff00) >> 8);
-            buf[5] = (byte)((bufSize & 0xff0000) >> 16);
-            buf[6] = (byte)((bufSize & 0xff000000) >> 24);
+            buf[0] = (byte) Type;
+            buf[1] = (byte) Id;
+            buf[2] = (byte) SequenceID();
+            buf[3] = (byte) (bufSize & 0xff);
+            buf[4] = (byte) ((bufSize & 0xff00) >> 8);
+            buf[5] = (byte) ((bufSize & 0xff0000) >> 16);
+            buf[6] = (byte) ((bufSize & 0xff000000) >> 24);
 
             Cmd.CopyTo(buf, 7);
 
             return buf;
-
         }
     }
 }
