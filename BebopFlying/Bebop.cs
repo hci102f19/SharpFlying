@@ -345,6 +345,9 @@ namespace BebopFlying
 
             if (projectId == 1 && classId == 4 && cmdId == 1)
             {
+                Console.WriteLine("------------------------------");
+                Console.WriteLine("Length: {0}", sensorData.Length);
+                Console.WriteLine("ALL: {0}", String.Join(", ", sensorData));
                 Console.WriteLine("FLYING: {0}", (byte) sensorData[0]);
                 Console.WriteLine("FLYING State: {0}", states[(byte) sensorData[0]]);
             }
