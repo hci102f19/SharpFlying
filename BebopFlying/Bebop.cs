@@ -18,6 +18,8 @@ namespace BebopFlying
 {
     public class Bebop : IFly
     {
+        #region Properties
+
         //Logger
         protected static Logger _logger;
 
@@ -61,8 +63,6 @@ namespace BebopFlying
             {"DATA_WITH_ACK", 4}
         };
 
-        // protected UdpClient _arstreamClient;
-
         //Command struct used for sending commands to the drone
         protected Thread CommandGeneratorThread;
         protected Thread StreamReaderThread;
@@ -77,6 +77,8 @@ namespace BebopFlying
         protected Vector FlyVector = new Vector();
 
         public bool IsRunning { get; protected set; } = true;
+
+        #endregion
 
         public Bebop()
         {
@@ -407,7 +409,7 @@ namespace BebopFlying
 
             packet.InsertData(CommandSet.ARNETWORK_MANAGER_INTERNAL_BUFFER_ID_PONG);
             packet.InsertData(CommandSet.ARNETWORKAL_FRAME_TYPE_DATA);
-            packet.InsertData((byte)sequenceCounter["PONG"]);
+            packet.InsertData((byte) sequenceCounter["PONG"]);
             packet.InsertData((byte) (size + 7));
             packet.CopyData(data, 4);
 
