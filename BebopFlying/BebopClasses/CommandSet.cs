@@ -206,6 +206,6 @@
         public const int C2D_PORT = 54321;
         public const int client_stream_port = 55004;
         public const int client_control_port = 55005;
-        public const string IP = "192.168.42.1";
+        public const string Ip = "192.168.42.1";
     }
 }

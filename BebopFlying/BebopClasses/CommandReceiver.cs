@@ -8,18 +8,18 @@ namespace BebopFlying.BebopClasses
 {
     public static class CommandReceiver
     {
-        private static readonly Dictionary<Tuple<string, int>, bool> _commandReceived = new Dictionary<Tuple<string, int>, bool>();
+        private static readonly Dictionary<Tuple<string, int>, bool> CommandReceived = new Dictionary<Tuple<string, int>, bool>();
 
         public static bool HasKey(string channel, int seqId)
         {
-            var key = new Tuple<string, int>(channel, seqId);
-            return _commandReceived.ContainsKey(key);
+            Tuple<string, int> key = new Tuple<string, int>(channel, seqId);
+            return CommandReceived.ContainsKey(key);
         }
 
         public static void SetCommandReceived(string channel, int seqId, bool val)
         {
-            var key = new Tuple<string, int>(channel, seqId);
-            _commandReceived[key] = val;
+            Tuple<string, int> key = new Tuple<string, int>(channel, seqId);
+            CommandReceived[key] = val;
         }
 
         public static bool IsCommandReceived(string channel, int seqId)
@@ -27,8 +27,8 @@ namespace BebopFlying.BebopClasses
             if (!HasKey(channel, seqId))
                 return false;
 
-            var key = new Tuple<string, int>(channel, seqId);
-            return _commandReceived[key];
+            Tuple<string, int> key = new Tuple<string, int>(channel, seqId);
+            return CommandReceived[key];
 
         }
     }

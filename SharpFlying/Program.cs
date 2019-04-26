@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using BebopFlying;
+using BebopFlying.BebopClasses;
 using EdgyLib;
 using Emgu.CV;
 using Emgu.CV.Structure;
@@ -24,26 +25,27 @@ namespace SharpFlying
                 Console.WriteLine("CONNECTED!");
                 while (i < 10)
                 {
-                    bebop.AskForStateUpdate();
-
-                    Console.WriteLine("Going to sleep");
                     bebop.SmartSleep(1000);
-//                    if (i == 2)
-//                    {
-//                        bebop.TakeOff();
-//                    }
-//
-//                    if (i == 9)
-//                    {
-//                        bebop.Land();
-//                    }
+
+                    if (i == 2)
+                    {
+                        Console.WriteLine("STARTING VIDEO");
+                        bebop.StartVideo();
+                    }
+
+                    if (i == 9)
+                    {
+                        Console.WriteLine("STOPPING VIDEO");
+                        bebop.StopVideo();
+                    }
 
                     i++;
                 }
             }
 
-            Console.ReadLine();
+            Console.WriteLine("DONE");
             bebop.Disconnect();
+            Console.ReadLine();
         }
 
         //        private static void Main(string[] args)

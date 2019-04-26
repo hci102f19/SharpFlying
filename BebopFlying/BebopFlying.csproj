@@ -38,11 +38,17 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BebopClasses\CommandParam.cs" />
     <Compile Include="BebopClasses\CommandReceiver.cs" />
     <Compile Include="BebopClasses\CommandSet.cs" />
     <Compile Include="BebopClasses\Command.cs" />
     <Compile Include="Bebop.cs" />
+    <Compile Include="BebopClasses\CommandTuple.cs" />
+    <Compile Include="BebopClasses\StructConverter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Sensors\Battery.cs" />
+    <Compile Include="Sensors\FlyingState.cs" />
+    <Compile Include="Sensors\Sensor.cs" />
   </ItemGroup>
   <ItemGroup>
     <WCFMetadata Include="Connected Services\" />
