@@ -25,11 +25,5 @@ namespace BebopFlying.BebopClasses
 
             return fmt;
         }
-
-        public int PacketSize()
-        {
-            return StructConverter.PacketSize(Format());
-        }
-
     }
 }

@@ -189,12 +189,27 @@ namespace BebopFlying
 
         public void TakeOff()
         {
+            TakeOff(5000);
+        }
+
+        public void TakeOff(int timeout)
+        {
             _logger.Debug("Performing takeoff...");
             CommandTuple cmdTuple = new CommandTuple(1, 0, 1);
 
+            if (FlyingState.GetState() == FlyingState.State.Landed || FlyingState.GetState() == FlyingState.State.UnKn0wn)
+                SendNoParam(cmdTuple);
 
-            // TODO: Make Safe
-            SendNoParam(cmdTuple);
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+            while (FlyingState.GetState() != FlyingState.State.Hovering && FlyingState.GetState() != FlyingState.State.Flying && sw.ElapsedMilliseconds < timeout)
+            {
+                if (FlyingState.GetState() == FlyingState.State.Emergency)
+                    break;
+                SmartSleep(100);
+            }
+
+            sw.Stop();
         }
 
         public void Land()
@@ -202,7 +217,6 @@ namespace BebopFlying
             _logger.Debug("Landing...");
             CommandTuple cmdTuple = new CommandTuple(1, 0, 3);
 
-            // TODO: Make Safe
             SendNoParam(cmdTuple);
         }
 
@@ -239,6 +253,11 @@ namespace BebopFlying
         public bool IsAlive()
         {
             return ThreadWatcher.IsAlive;
+        }
+
+        public bool IsLanded()
+        {
+            return FlyingState.GetState() == FlyingState.State.Emergency || FlyingState.GetState() == FlyingState.State.Landed;
         }
 
         #endregion

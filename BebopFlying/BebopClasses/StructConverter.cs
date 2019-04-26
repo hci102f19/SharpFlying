@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Diagnostics;
 
 namespace BebopFlying.BebopClasses
 {
@@ -53,15 +52,12 @@ namespace BebopFlying.BebopClasses
         /// <remarks>You are responsible for casting the objects in the array back to their proper types.</remarks>
         public static object[] Unpack(string fmt, byte[] bytes)
         {
-            Debug.WriteLine("Format string is length {0}, {1} bytes provided.", fmt.Length, bytes.Length);
-
             // First we parse the format string to make sure it's proper.
             if (fmt.Length < 1) throw new ArgumentException("Format string cannot be empty.");
 
             bool endianFlip = false;
             if (fmt.Substring(0, 1) == "<")
             {
-                Debug.WriteLine("  Endian marker found: little endian");
                 // Little endian.
                 // Do we need to flip endianness?
                 if (BitConverter.IsLittleEndian == false) endianFlip = true;
@@ -69,7 +65,6 @@ namespace BebopFlying.BebopClasses
             }
             else if (fmt.Substring(0, 1) == ">")
             {
-                Debug.WriteLine("  Endian marker found: big endian");
                 // Big endian.
                 // Do we need to flip endianness?
                 if (BitConverter.IsLittleEndian == true) endianFlip = true;
@@ -80,7 +75,6 @@ namespace BebopFlying.BebopClasses
             int totalByteLength = 0;
             foreach (char c in fmt.ToCharArray())
             {
-                Debug.WriteLine("  Format character found: {0}", c);
                 switch (c)
                 {
                     case 'q':
@@ -105,9 +99,6 @@ namespace BebopFlying.BebopClasses
                 }
             }
 
-            Debug.WriteLine("Endianness will {0}be flipped.", (object) (endianFlip == true ? "" : "NOT "));
-            Debug.WriteLine("The byte array is expected to be {0} bytes long.", totalByteLength);
-
             // Test the byte array length to see if it contains as many bytes as is needed for the string.
             if (bytes.Length != totalByteLength) throw new ArgumentException("The number of bytes provided does not match the total length of the format string.");
 
@@ -116,7 +107,6 @@ namespace BebopFlying.BebopClasses
             List<object> outputList = new List<object>();
             byte[] buf;
 
-            Debug.WriteLine("Processing byte array...");
             foreach (char c in fmt.ToCharArray())
             {
                 switch (c)
@@ -124,50 +114,41 @@ namespace BebopFlying.BebopClasses
                     case 'q':
                         outputList.Add((object) (long) BitConverter.ToInt64(bytes, byteArrayPosition));
                         byteArrayPosition += 8;
-                        Debug.WriteLine("  Added signed 64-bit integer.");
                         break;
                     case 'Q':
                         outputList.Add((object) (ulong) BitConverter.ToUInt64(bytes, byteArrayPosition));
                         byteArrayPosition += 8;
-                        Debug.WriteLine("  Added unsigned 64-bit integer.");
                         break;
                     case 'i':
                         outputList.Add((object) (int) BitConverter.ToInt32(bytes, byteArrayPosition));
                         byteArrayPosition += 4;
-                        Debug.WriteLine("  Added signed 32-bit integer.");
                         break;
                     case 'I':
                         outputList.Add((object) (uint) BitConverter.ToUInt32(bytes, byteArrayPosition));
                         byteArrayPosition += 4;
-                        Debug.WriteLine("  Added unsigned 32-bit integer.");
                         break;
                     case 'h':
                         outputList.Add((object) (short) BitConverter.ToInt16(bytes, byteArrayPosition));
                         byteArrayPosition += 2;
-                        Debug.WriteLine("  Added signed 16-bit integer.");
                         break;
                     case 'H':
                         outputList.Add((object) (ushort) BitConverter.ToUInt16(bytes, byteArrayPosition));
                         byteArrayPosition += 2;
-                        Debug.WriteLine("  Added unsigned 16-bit integer.");
                         break;
                     case 'b':
                         buf = new byte[1];
                         Array.Copy(bytes, byteArrayPosition, buf, 0, 1);
                         outputList.Add((object) (sbyte) buf[0]);
                         byteArrayPosition++;
-                        Debug.WriteLine("  Added signed byte");
                         break;
                     case 'B':
                         buf = new byte[1];
                         Array.Copy(bytes, byteArrayPosition, buf, 0, 1);
                         outputList.Add((object) (byte) buf[0]);
                         byteArrayPosition++;
-                        Debug.WriteLine("  Added unsigned byte");
                         break;
                     case 'x':
                         byteArrayPosition++;
-                        Debug.WriteLine("  Ignoring a byte");
                         break;
                     default:
                         throw new ArgumentException("You should not be here.");
