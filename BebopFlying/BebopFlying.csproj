@@ -42,6 +42,7 @@
     <Compile Include="BebopClasses\CommandSet.cs" />
     <Compile Include="BebopClasses\Command.cs" />
     <Compile Include="Bebop.cs" />
+    <Compile Include="BebopClasses\CommandTuple.cs" />
     <Compile Include="BebopClasses\StructConverter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

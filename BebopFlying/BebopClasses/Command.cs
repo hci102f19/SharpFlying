@@ -1,76 +1,80 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace BebopFlying.BebopClasses
 {
     public class Command
     {
-        private static readonly int[] _seq = new int[256];
-        protected bool Padding;
+        private static readonly int[] _seq = Enumerable.Repeat(-1, 256).ToArray();
 
-        public Command(int size, int type = CommandSet.ARNETWORKAL_FRAME_TYPE_DATA, int id = CommandSet.BD_NET_CD_NONACK_ID, bool padding = true)
+        public Command()
         {
-            Size = size;
-            Cmd = new byte[size];
-
-            Type = type;
-            Id = id;
-            Padding = padding;
         }
 
-        public byte[] Cmd { get; protected set; }
-        public int Size { get; protected set; }
+        public List<object> Cmd { get; protected set; } = new List<object>();
 
-        protected int CurIndex = 0, Id, Type;
+        protected int CurIndex, SeqId = -1;
 
         public void SetData(int i, int data)
         {
-            Cmd[i] = (byte) data;
+            Cmd[i] = data;
             CurIndex = i + 1;
         }
 
         public void InsertData(int data)
         {
-            Cmd[CurIndex++] = (byte) data;
+            Cmd.Insert(CurIndex++, data);
         }
 
-        public void CopyData(byte[] data, int idx, int limit = -1)
+        public void InsertData(byte data)
         {
-            if(limit == -1)
-                data.CopyTo(Cmd, idx);
-            else
-                data.Take(limit).ToArray().CopyTo(Cmd, idx);
-
+            Cmd.Insert(CurIndex++, data);
         }
 
-        public int SequenceID()
+        public void InsertData(short data)
         {
-            return _seq[Id];
+            Cmd.Insert(CurIndex++, data);
         }
 
-
-        public byte[] ExportCommand()
+        public void CopyData(byte[] data, int limit = -1)
         {
-            _seq[Id] = (_seq[Id] + 1) % 256;
+            InsertArray(limit == -1 ? data : data.Take(limit).ToArray());
+        }
 
-            if (!Padding)
-                return Cmd;
+        protected void InsertArray(byte[] data)
+        {
+            foreach (byte obj in data)
+                InsertData(obj);
+        }
 
-            int bufSize = Size + 7;
-            byte[] buf = new byte[bufSize];
+        public void InsertTuple(CommandTuple cmdTuple)
+        {
+            foreach (int cmdVal in cmdTuple.GetTuple())
+                InsertData(cmdVal);
+        }
 
-            _seq[Id] = (_seq[Id] + 1) % 256;
+        public byte[] Export(string fmt)
+        {
+            return fmt == null ? StructConverter.Pack(Cmd.Cast<object>().ToArray()) : StructConverter.Pack(Cmd.Cast<object>().ToArray(), true, out fmt);
+        }
 
-            buf[0] = (byte) Type;
-            buf[1] = (byte) Id;
-            buf[2] = (byte) SequenceID();
-            buf[3] = (byte) (bufSize & 0xff);
-            buf[4] = (byte) ((bufSize & 0xff00) >> 8);
-            buf[5] = (byte) ((bufSize & 0xff0000) >> 16);
-            buf[6] = (byte) ((bufSize & 0xff000000) >> 24);
-
-            Cmd.CopyTo(buf, 7);
-
-            return buf;
+        public int SequenceId
+        {
+            set
+            {
+                SeqId = value;
+                if (_seq[value] == -1)
+                    _seq[value] = 0;
+                else
+                    _seq[value] = (_seq[value] + 1) % 256;
+            }
+            get
+            {
+                if (SeqId == -1)
+                    return -1;
+                return _seq[SeqId];
+            }
         }
     }
 }

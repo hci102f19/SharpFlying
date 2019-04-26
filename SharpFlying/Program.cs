@@ -22,11 +22,15 @@ namespace SharpFlying
             if (bebop.Connect() == ConnectionStatus.Success)
             {
                 Console.WriteLine("CONNECTED!");
-
-                bebop.SmartSleep(1000);
-                bebop.AskForStateUpdate();
+                while (i < 10)
+                {
+                    bebop.SmartSleep(1000);
+                    // bebop.AskForStateUpdate();
+                    i++;
+                }
             }
 
+            Console.WriteLine("DONE");
             bebop.Disconnect();
             Console.ReadLine();
         }

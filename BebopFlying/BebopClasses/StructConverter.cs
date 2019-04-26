@@ -21,14 +21,19 @@ namespace BebopFlying.BebopClasses
         // This means we can have much cleaner code below.
         private static byte[] TypeAgnosticGetBytes(object o)
         {
-            if (o is int) return BitConverter.GetBytes((int)o);
-            if (o is uint) return BitConverter.GetBytes((uint)o);
-            if (o is long) return BitConverter.GetBytes((long)o);
-            if (o is ulong) return BitConverter.GetBytes((ulong)o);
-            if (o is short) return BitConverter.GetBytes((short)o);
-            if (o is ushort) return BitConverter.GetBytes((ushort)o);
-            if (o is byte || o is sbyte) return new byte[] { (byte)o };
+            if (o is int) return BitConverter.GetBytes((int) o);
+            if (o is uint) return BitConverter.GetBytes((uint) o);
+            if (o is long) return BitConverter.GetBytes((long) o);
+            if (o is ulong) return BitConverter.GetBytes((ulong) o);
+            if (o is short) return BitConverter.GetBytes((short) o);
+            if (o is ushort) return BitConverter.GetBytes((ushort) o);
+            if (o is byte || o is sbyte) return new byte[] {(byte) o};
             throw new ArgumentException("Unsupported object type found");
+        }
+
+        internal static byte[] Pack(byte[] cmd)
+        {
+            throw new NotImplementedException();
         }
 
         private static string GetFormatSpecifierFor(object o)
@@ -105,7 +110,7 @@ namespace BebopFlying.BebopClasses
                 }
             }
 
-            Debug.WriteLine("Endianness will {0}be flipped.", (object)(endianFlip == true ? "" : "NOT "));
+            Debug.WriteLine("Endianness will {0}be flipped.", (object) (endianFlip == true ? "" : "NOT "));
             Debug.WriteLine("The byte array is expected to be {0} bytes long.", totalByteLength);
 
             // Test the byte array length to see if it contains as many bytes as is needed for the string.
@@ -122,46 +127,46 @@ namespace BebopFlying.BebopClasses
                 switch (c)
                 {
                     case 'q':
-                        outputList.Add((object)(long)BitConverter.ToInt64(bytes, byteArrayPosition));
+                        outputList.Add((object) (long) BitConverter.ToInt64(bytes, byteArrayPosition));
                         byteArrayPosition += 8;
                         Debug.WriteLine("  Added signed 64-bit integer.");
                         break;
                     case 'Q':
-                        outputList.Add((object)(ulong)BitConverter.ToUInt64(bytes, byteArrayPosition));
+                        outputList.Add((object) (ulong) BitConverter.ToUInt64(bytes, byteArrayPosition));
                         byteArrayPosition += 8;
                         Debug.WriteLine("  Added unsigned 64-bit integer.");
                         break;
                     case 'i':
-                        outputList.Add((object)(int)BitConverter.ToInt32(bytes, byteArrayPosition));
+                        outputList.Add((object) (int) BitConverter.ToInt32(bytes, byteArrayPosition));
                         byteArrayPosition += 4;
                         Debug.WriteLine("  Added signed 32-bit integer.");
                         break;
                     case 'I':
-                        outputList.Add((object)(uint)BitConverter.ToUInt32(bytes, byteArrayPosition));
+                        outputList.Add((object) (uint) BitConverter.ToUInt32(bytes, byteArrayPosition));
                         byteArrayPosition += 4;
                         Debug.WriteLine("  Added unsigned 32-bit integer.");
                         break;
                     case 'h':
-                        outputList.Add((object)(short)BitConverter.ToInt16(bytes, byteArrayPosition));
+                        outputList.Add((object) (short) BitConverter.ToInt16(bytes, byteArrayPosition));
                         byteArrayPosition += 2;
                         Debug.WriteLine("  Added signed 16-bit integer.");
                         break;
                     case 'H':
-                        outputList.Add((object)(ushort)BitConverter.ToUInt16(bytes, byteArrayPosition));
+                        outputList.Add((object) (ushort) BitConverter.ToUInt16(bytes, byteArrayPosition));
                         byteArrayPosition += 2;
                         Debug.WriteLine("  Added unsigned 16-bit integer.");
                         break;
                     case 'b':
                         buf = new byte[1];
                         Array.Copy(bytes, byteArrayPosition, buf, 0, 1);
-                        outputList.Add((object)(sbyte)buf[0]);
+                        outputList.Add((object) (sbyte) buf[0]);
                         byteArrayPosition++;
                         Debug.WriteLine("  Added signed byte");
                         break;
                     case 'B':
                         buf = new byte[1];
                         Array.Copy(bytes, byteArrayPosition, buf, 0, 1);
-                        outputList.Add((object)(byte)buf[0]);
+                        outputList.Add((object) (byte) buf[0]);
                         byteArrayPosition++;
                         Debug.WriteLine("  Added unsigned byte");
                         break;
@@ -173,6 +178,7 @@ namespace BebopFlying.BebopClasses
                         throw new ArgumentException("You should not be here.");
                 }
             }
+
             return outputList.ToArray();
         }
 
@@ -185,7 +191,6 @@ namespace BebopFlying.BebopClasses
         /// <returns>A Byte array containing the objects provided in binary format.</returns>
         public static byte[] Pack(object[] items, bool LittleEndian, out string NeededFormatStringToRecover)
         {
-
             // make a byte list to hold the bytes of output
             List<byte> outputBytes = new List<byte>();
 
@@ -199,7 +204,7 @@ namespace BebopFlying.BebopClasses
             foreach (object o in items)
             {
                 byte[] theseBytes = TypeAgnosticGetBytes(o);
-                if (endianFlip == true) theseBytes = (byte[])theseBytes.Reverse();
+                if (endianFlip == true) theseBytes = (byte[]) theseBytes.Reverse();
                 outString += GetFormatSpecifierFor(o);
                 outputBytes.AddRange(theseBytes);
             }
@@ -207,13 +212,42 @@ namespace BebopFlying.BebopClasses
             NeededFormatStringToRecover = outString;
 
             return outputBytes.ToArray();
-
         }
 
         public static byte[] Pack(object[] items)
         {
             string dummy = "";
             return Pack(items, true, out dummy);
+        }
+
+        protected static Dictionary<char, int> formatedChars = new Dictionary<char, int>()
+        {
+            {'c', 1},
+            {'b', 1},
+            {'B', 1},
+            {'?', 1},
+            {'h', 2},
+            {'H', 2},
+            {'i', 4},
+            {'I', 4},
+            {'l', 4},
+            {'L', 4},
+            {'q', 8},
+            {'Q', 8},
+            {'f', 4},
+            {'d', 8},
+        };
+
+        public static int PacketSize(string fmt)
+        {
+            int value = 0;
+            foreach (var c in fmt)
+            {
+                if (formatedChars.ContainsKey(c))
+                    value += formatedChars[c];
+            }
+
+            return value;
         }
     }
 }
