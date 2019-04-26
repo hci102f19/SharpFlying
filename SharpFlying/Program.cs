@@ -28,10 +28,16 @@ namespace SharpFlying
                     bebop.SmartSleep(1000);
 
                     if (i == 2)
+                    {
+                        Console.WriteLine("STARTING VIDEO");
                         bebop.StartVideo();
+                    }
 
                     if (i == 9)
+                    {
+                        Console.WriteLine("STOPPING VIDEO");
                         bebop.StopVideo();
+                    }
 
                     i++;
                 }
