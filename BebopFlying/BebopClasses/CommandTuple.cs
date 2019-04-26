@@ -18,15 +18,5 @@ namespace BebopFlying.BebopClasses
             ClassId = classId;
             CmdId = cmdId;
         }
-
-        public List<int> GetTuple()
-        {
-            return new List<int>()
-            {
-                ProjectId,
-                ClassId,
-                CmdId
-            };
-        }
     }
 }

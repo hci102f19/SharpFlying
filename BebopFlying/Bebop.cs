@@ -69,10 +69,10 @@ namespace BebopFlying
         protected Thread ThreadWatcher;
 
         protected IPEndPoint DroneData = new IPEndPoint(IPAddress.Any, 43210);
-        protected UdpClient DroneDataClient = new UdpClient(CommandSet.IP, 43210);
+        protected UdpClient DroneDataClient = new UdpClient(CommandSet.Ip, 43210);
 
         //UDP client to send data to the drone
-        protected UdpClient DroneUdpClient = new UdpClient(CommandSet.IP, 54321);
+        protected UdpClient DroneUdpClient = new UdpClient(CommandSet.Ip, 54321);
 
         protected Vector FlyVector = new Vector();
 
@@ -126,7 +126,7 @@ namespace BebopFlying
         protected bool DoHandshake()
         {
             //make handshake with TCP_client, and the port is set to be 4444
-            TcpClient tcpClient = new TcpClient(CommandSet.IP, CommandSet.DISCOVERY_PORT);
+            TcpClient tcpClient = new TcpClient(CommandSet.Ip, CommandSet.DISCOVERY_PORT);
 
             //Initialize the network stream for the handshake
             NetworkStream stream = new NetworkStream(tcpClient.Client);
@@ -268,7 +268,7 @@ namespace BebopFlying
         protected void HandleData(byte[] data)
         {
             const int size = 7;
-            while (data.Length > 0)
+            while (data.Length > size)
             {
                 int dataType = data[0],
                     bufferId = data[1],
@@ -302,7 +302,6 @@ namespace BebopFlying
                     int ackSeqNumber = data[0];
 
                     CommandReceiver.SetCommandReceived("SEND_WITH_ACK", ackSeqNumber, true);
-
                     AckPacket(bufferId, ackSeqNumber);
                     _logger.Debug("Send Ack");
                     break;
@@ -369,7 +368,7 @@ namespace BebopFlying
             }
             else
             {
-                Console.WriteLine("projectId: {0}, classId: {1}, cmdId: {2}", projectId, classId, cmdId);
+                // Console.WriteLine("projectId: {0}, classId: {1}, cmdId: {2}", projectId, classId, cmdId);
             }
 
             if (ack)
@@ -382,18 +381,17 @@ namespace BebopFlying
 
         protected void AckPacket(int bufferId, int packetId)
         {
-            Console.WriteLine("ACK!");
             string fmt = "<BBBIB";
             int newBufferId = (bufferId + 128) % 256;
 
             Command cmd = new Command();
             cmd.SequenceId = newBufferId;
 
-            cmd.InsertData(DataTypesByName["ACK"]);
-            cmd.InsertData(newBufferId);
-            cmd.InsertData(cmd.SequenceId);
-            cmd.InsertData(StructConverter.PacketSize(fmt));
-            cmd.InsertData(packetId);
+            cmd.InsertData((byte) DataTypesByName["ACK"]);
+            cmd.InsertData((byte) newBufferId);
+            cmd.InsertData((byte) cmd.SequenceId);
+            cmd.InsertData((uint) StructConverter.PacketSize(fmt));
+            cmd.InsertData((byte) packetId);
 
             SafeSend(cmd.Export(fmt));
         }
@@ -406,10 +404,10 @@ namespace BebopFlying
             SequenceCounter["PONG"] = (SequenceCounter["PONG"] + 1) % 256;
 
             Command cmd = new Command();
-            cmd.InsertData(DataTypesByName["DATA_NO_ACK"]);
-            cmd.InsertData(BufferIds["PONG"]);
-            cmd.InsertData(SequenceCounter["PONG"]);
-            cmd.InsertData(StructConverter.PacketSize(fmt) + data.Length);
+            cmd.InsertData((byte) DataTypesByName["DATA_NO_ACK"]);
+            cmd.InsertData((byte) BufferIds["PONG"]);
+            cmd.InsertData((byte) SequenceCounter["PONG"]);
+            cmd.InsertData((uint) (StructConverter.PacketSize(fmt) + data.Length));
 
             byte[] initCommand = cmd.Export(fmt);
             Array.Resize(ref initCommand, totalByteSize);
@@ -426,18 +424,17 @@ namespace BebopFlying
         protected bool SendNoParam(CommandTuple cmdTuple)
         {
             SequenceCounter["SEND_WITH_ACK"] = (SequenceCounter["SEND_WITH_ACK"] + 1) % 256;
-
-            string packetFormat = "<BBBIBBH";
+            string fmt = "<BBBIBBH";
 
             Command cmd = new Command();
 
-            cmd.InsertData(DataTypesByName["DATA_WITH_ACK"]);
-            cmd.InsertData(BufferIds["SEND_WITH_ACK"]);
-            cmd.InsertData(SequenceCounter["SEND_WITH_ACK"]);
-            cmd.InsertData(StructConverter.PacketSize(packetFormat));
+            cmd.InsertData((byte) DataTypesByName["DATA_WITH_ACK"]);
+            cmd.InsertData((byte) BufferIds["SEND_WITH_ACK"]);
+            cmd.InsertData((byte) SequenceCounter["SEND_WITH_ACK"]);
+            cmd.InsertData((uint) StructConverter.PacketSize(fmt));
             cmd.InsertTuple(cmdTuple);
 
-            return SendCommandAck(cmd.Export(packetFormat), SequenceCounter["SEND_WITH_ACK"]);
+            return SendCommandAck(cmd.Export(fmt), SequenceCounter["SEND_WITH_ACK"]);
         }
 
         protected bool SendCommandAck(byte[] cmd, int sequenceId)
@@ -455,34 +452,6 @@ namespace BebopFlying
             return CommandReceiver.IsCommandReceived("SEND_WITH_ACK", sequenceId);
         }
 
-
-        protected bool SendCommand(Command cmd)
-        {
-            return true;
-//            //TODO: Fix
-//            throw new NotImplementedException();
-//
-//            int tryNum = 0;
-//            CommandReceiver.SetCommandReceived("SEND_WITH_ACK", cmd.SequenceID(), false);
-//
-//            while (tryNum < MaxPacketRetries && !CommandReceiver.IsCommandReceived("SEND_WITH_ACK", cmd.SequenceID()))
-//            {
-//                _logger.Debug("Trying to send package to drone.");
-//                SafeSend(cmd.ExportCommand());
-//
-//                tryNum++;
-//
-//                SmartSleep(500);
-//            }
-//
-//            //Reset flyvector
-//            lock (ThisLock)
-//            {
-//                FlyVector.ResetVector();
-//            }
-//
-//            return CommandReceiver.IsCommandReceived("SEND_WITH_ACK", cmd.SequenceID());
-        }
 
         protected void SafeSend(byte[] buffer)
         {

@@ -27,12 +27,17 @@ namespace BebopFlying.BebopClasses
             Cmd.Insert(CurIndex++, data);
         }
 
-        public void InsertData(byte data)
+        public void InsertData(uint data)
         {
             Cmd.Insert(CurIndex++, data);
         }
 
-        public void InsertData(short data)
+        public void InsertData(ushort data)
+        {
+            Cmd.Insert(CurIndex++, data);
+        }
+
+        public void InsertData(byte data)
         {
             Cmd.Insert(CurIndex++, data);
         }
@@ -50,13 +55,18 @@ namespace BebopFlying.BebopClasses
 
         public void InsertTuple(CommandTuple cmdTuple)
         {
-            foreach (int cmdVal in cmdTuple.GetTuple())
-                InsertData(cmdVal);
+            InsertData((Byte) cmdTuple.ProjectId);
+            InsertData((Byte) cmdTuple.ClassId);
+            InsertData((ushort) cmdTuple.CmdId);
         }
 
         public byte[] Export(string fmt)
         {
-            return fmt == null ? StructConverter.Pack(Cmd.Cast<object>().ToArray()) : StructConverter.Pack(Cmd.Cast<object>().ToArray(), true, out fmt);
+            var bytes = StructConverter.Pack(Cmd.Cast<object>().ToArray(), true, out string internalFmt);
+
+            if (internalFmt != fmt)
+                throw new Exception("FK");
+            return bytes;
         }
 
         public int SequenceId
