@@ -8,6 +8,7 @@ using System.Net.Sockets;
 using System.Reflection.Emit;
 using System.Threading;
 using BebopFlying.BebopClasses;
+using BebopFlying.Sensors;
 using Flight.Enums;
 using FlightLib;
 using NLog;
@@ -26,7 +27,10 @@ namespace BebopFlying
         //Log to ensure that access to flyvector is fine during multithreading
         protected static readonly object ThisLock = new object();
 
-        protected int MaxPacketRetries = 1;
+        protected const int MaxPacketRetries = 1;
+        protected const int HandleSize = 7;
+        protected const int HandleOffset = 4;
+
 
         //Dictionary for storing secquence counter
         protected readonly Dictionary<string, int> SequenceCounter = new Dictionary<string, int>
@@ -78,6 +82,11 @@ namespace BebopFlying
 
         public bool IsRunning { get; protected set; } = true;
 
+        public Battery Battery { get; protected set; } = new Battery(0, 5, 1);
+        public FlyingState FlyingState { get; protected set; } = new FlyingState(1, 4, 1);
+
+        protected List<Sensor> sensors;
+
         #endregion
 
         public Bebop()
@@ -92,6 +101,13 @@ namespace BebopFlying
 
             LogManager.Configuration = config;
             _logger = LogManager.GetCurrentClassLogger();
+
+            // Set Bebop sensors
+            sensors = new List<Sensor>()
+            {
+                Battery,
+                FlyingState
+            };
         }
 
         #region Connection
@@ -118,6 +134,8 @@ namespace BebopFlying
             CommandGeneratorThread.Start();
             ThreadWatcher.Start();
             StreamReaderThread.Start();
+
+            AskForStateUpdate();
 
             _logger.Debug("Successfully connected to the drone");
             return ConnectionStatus.Success;
@@ -174,6 +192,8 @@ namespace BebopFlying
             _logger.Debug("Performing takeoff...");
             CommandTuple cmdTuple = new CommandTuple(1, 0, 1);
 
+
+            // TODO: Make Safe
             SendNoParam(cmdTuple);
         }
 
@@ -182,6 +202,7 @@ namespace BebopFlying
             _logger.Debug("Landing...");
             CommandTuple cmdTuple = new CommandTuple(1, 0, 3);
 
+            // TODO: Make Safe
             SendNoParam(cmdTuple);
         }
 
@@ -267,8 +288,7 @@ namespace BebopFlying
 
         protected void HandleData(byte[] data)
         {
-            const int size = 7;
-            while (data.Length > size)
+            while (data.Length > 0)
             {
                 int dataType = data[0],
                     bufferId = data[1],
@@ -276,7 +296,7 @@ namespace BebopFlying
                     packetSize = BitConverter.ToInt32(data, 3);
 
                 //Extract the non-header data from the drone
-                byte[] currentFrame = data.Skip(size).Take(packetSize - size).ToArray();
+                byte[] currentFrame = data.Skip(HandleSize).Take(packetSize - HandleSize).ToArray();
 
                 //Handle frame data
                 HandleFrame(dataType, bufferId, packetSeqId, currentFrame);
@@ -339,37 +359,20 @@ namespace BebopFlying
 
         #region Update Data
 
-        // TODO: Test data
-        protected List<string> states = new List<string>()
-        {
-            "landed", "takingoff", "hovering", "flying", "landing", "emergency", "usertakeoff", "motor_ramping", "emergency_landing"
-        };
-
         protected void UpdateSensorData(int dataType, int bufferId, int packetSeqId, byte[] data, bool ack)
         {
             _logger.Debug("Sensor update");
+            if (data.Length == 0)
+            {
+                _logger.Error("DATA IS NULL YOU FACKERS!");
+                return;
+            }
 
             int projectId = (byte) data[0], classId = (byte) data[1], cmdId = BitConverter.ToInt16(data, 2);
 
-            const int offset = 4;
-            byte[] sensorData = data.Skip(offset).ToArray();
-
-            if (projectId == 1 && classId == 4 && cmdId == 1)
-            {
-                Console.WriteLine("--------------------");
-                Console.WriteLine("Length: {0}", sensorData.Length);
-                Console.WriteLine("ALL: {0}", String.Join(", ", data));
-                Console.WriteLine("FLYING: {0}", (byte) sensorData[0]);
-                Console.WriteLine("FLYING State: {0}", states[(byte) sensorData[0]]);
-            }
-            else if (projectId == 0 && classId == 5 && cmdId == 1)
-            {
-                Console.WriteLine("BATTERY: {0}%", (byte) sensorData[0]);
-            }
-            else
-            {
-                // Console.WriteLine("projectId: {0}, classId: {1}, cmdId: {2}", projectId, classId, cmdId);
-            }
+            foreach (Sensor sensor in sensors)
+                if (sensor.Apply(projectId, classId, cmdId))
+                    sensor.Parse(data.Skip(HandleOffset).ToArray());
 
             if (ack)
                 AckPacket(bufferId, packetSeqId);

@@ -25,7 +25,13 @@ namespace SharpFlying
                 while (i < 10)
                 {
                     bebop.SmartSleep(1000);
-                    bebop.AskForStateUpdate();
+
+                    if (i == 2)
+                        bebop.TakeOff();
+
+                    if (i == 9)
+                        bebop.Land();
+
                     i++;
                 }
             }
