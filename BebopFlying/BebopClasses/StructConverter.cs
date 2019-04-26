@@ -31,12 +31,7 @@ namespace BebopFlying.BebopClasses
             throw new ArgumentException("Unsupported object type found");
         }
 
-        internal static byte[] Pack(byte[] cmd)
-        {
-            throw new NotImplementedException();
-        }
-
-        private static string GetFormatSpecifierFor(object o)
+        public static string GetFormatSpecifierFor(object o)
         {
             if (o is int) return "i";
             if (o is uint) return "I";

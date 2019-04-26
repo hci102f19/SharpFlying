@@ -6,21 +6,13 @@ namespace BebopFlying.BebopClasses
 {
     public class Command
     {
-        private static readonly int[] _seq = Enumerable.Repeat(-1, 256).ToArray();
-
-        public Command()
-        {
-        }
+        protected static readonly int[] Seq = Enumerable.Repeat(-1, 256).ToArray();
+        protected int CurIndex, SeqId = -1;
 
         public List<object> Cmd { get; protected set; } = new List<object>();
 
-        protected int CurIndex, SeqId = -1;
 
-        public void SetData(int i, int data)
-        {
-            Cmd[i] = data;
-            CurIndex = i + 1;
-        }
+        #region Insert data into command sequence
 
         public void InsertData(int data)
         {
@@ -42,16 +34,15 @@ namespace BebopFlying.BebopClasses
             Cmd.Insert(CurIndex++, data);
         }
 
-        public void CopyData(byte[] data, int limit = -1)
+        protected void InsertData(object data)
         {
-            InsertArray(limit == -1 ? data : data.Take(limit).ToArray());
+            Cmd.Insert(CurIndex++, data);
         }
 
-        protected void InsertArray(byte[] data)
-        {
-            foreach (byte obj in data)
-                InsertData(obj);
-        }
+        #endregion
+
+
+        #region Insert structured data
 
         public void InsertTuple(CommandTuple cmdTuple)
         {
@@ -60,9 +51,22 @@ namespace BebopFlying.BebopClasses
             InsertData((ushort) cmdTuple.CmdId);
         }
 
+        public void InsertParam(CommandParam cmdParam)
+        {
+            foreach (object obj in cmdParam.Parameters)
+            {
+                InsertData(obj);
+            }
+        }
+
+        #endregion
+
+
+        #region Export data
+
         public byte[] Export(string fmt)
         {
-            var bytes = StructConverter.Pack(Cmd.Cast<object>().ToArray(), true, out string internalFmt);
+            byte[] bytes = StructConverter.Pack(Cmd.Cast<object>().ToArray(), true, out string internalFmt);
 
             if (internalFmt != fmt)
                 throw new Exception("FK");
@@ -74,17 +78,19 @@ namespace BebopFlying.BebopClasses
             set
             {
                 SeqId = value;
-                if (_seq[value] == -1)
-                    _seq[value] = 0;
+                if (Seq[value] == -1)
+                    Seq[value] = 0;
                 else
-                    _seq[value] = (_seq[value] + 1) % 256;
+                    Seq[value] = (Seq[value] + 1) % 256;
             }
             get
             {
                 if (SeqId == -1)
                     return -1;
-                return _seq[SeqId];
+                return Seq[SeqId];
             }
         }
+
+        #endregion
     }
 }

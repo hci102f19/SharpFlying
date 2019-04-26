@@ -217,23 +217,19 @@ namespace BebopFlying
         public void StartVideo()
         {
             CommandTuple cmdTuple = new CommandTuple(1, 21, 0);
-            /*
-            param_tuple = [1] # Enable
-            param_type_tuple = ['u8']
-            SendParam(cmdTuple);
-            */
-            throw new NotImplementedException();
+            CommandParam cmdParam = new CommandParam();
+            cmdParam.AddData((byte) 1); // Enable Video
+
+            SendParam(cmdTuple, cmdParam);
         }
 
         public void StopVideo()
         {
             CommandTuple cmdTuple = new CommandTuple(1, 21, 0);
-            /*
-            param_tuple = [0]  # Disable
-            param_type_tuple = ['u8']
-            SendParam(cmdTuple);
-            */
-            throw new NotImplementedException();
+            CommandParam cmdParam = new CommandParam();
+            cmdParam.AddData((byte) 0); // Disable Video
+
+            SendParam(cmdTuple, cmdParam);
         }
 
         #endregion
@@ -440,19 +436,48 @@ namespace BebopFlying
             return SendCommandAck(cmd.Export(fmt), SequenceCounter["SEND_WITH_ACK"]);
         }
 
-        protected bool SendCommandAck(byte[] cmd, int sequenceId)
+        protected void SendParam(CommandTuple cmdTuple, CommandParam cmdParam, bool ack = true)
+        {
+            string ACK = (ack) ? "SEND_WITH_ACK" : "SEND_NO_ACK", DataACK = (ack) ? "DATA_WITH_ACK" : "DATA_NO_ACK";
+            string fmt = "<BBBIBBH" + cmdParam.Format();
+
+            SequenceCounter[ACK] = (SequenceCounter[ACK] + 1) % 256;
+
+
+            Command cmd = new Command();
+            cmd.InsertData((byte) DataTypesByName[DataACK]);
+            cmd.InsertData((byte) BufferIds[ACK]);
+            cmd.InsertData((byte) SequenceCounter[ACK]);
+            cmd.InsertData((uint) StructConverter.PacketSize(fmt));
+
+            cmd.InsertTuple(cmdTuple);
+            cmd.InsertParam(cmdParam);
+
+            if (ack)
+                SendCommandAck(cmd.Export(fmt), SequenceCounter["SEND_WITH_ACK"]);
+            else
+                SendCommandNoAck(cmd.Export(fmt));
+        }
+
+
+        protected bool SendCommandAck(byte[] packet, int sequenceId)
         {
             int tryNum = 0;
             CommandReceiver.SetCommandReceived("SEND_WITH_ACK", sequenceId, false);
 
             while (tryNum < MaxPacketRetries && !CommandReceiver.IsCommandReceived("SEND_WITH_ACK", sequenceId))
             {
-                SafeSend(cmd);
+                SafeSend(packet);
                 tryNum++;
                 SmartSleep(500);
             }
 
             return CommandReceiver.IsCommandReceived("SEND_WITH_ACK", sequenceId);
+        }
+
+        private void SendCommandNoAck(byte[] packet)
+        {
+            SafeSend(packet);
         }
 
 
