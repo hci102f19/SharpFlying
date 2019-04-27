@@ -15,6 +15,16 @@ namespace BebopFlying.BebopClasses
             Parameters.Add(data);
         }
 
+        public void AddData(uint data)
+        {
+            Parameters.Add(data);
+        }
+
+        public void AddData(sbyte data)
+        {
+            Parameters.Add(data);
+        }
+
         public string Format()
         {
             string fmt = "";

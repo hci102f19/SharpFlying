@@ -455,13 +455,12 @@ namespace BebopFlying
             return SendCommandAck(cmd.Export(fmt), SequenceCounter["SEND_WITH_ACK"]);
         }
 
-        protected void SendParam(CommandTuple cmdTuple, CommandParam cmdParam, bool ack = true)
+        protected bool SendParam(CommandTuple cmdTuple, CommandParam cmdParam, bool ack = true)
         {
             string ACK = (ack) ? "SEND_WITH_ACK" : "SEND_NO_ACK", DataACK = (ack) ? "DATA_WITH_ACK" : "DATA_NO_ACK";
             string fmt = "<BBBIBBH" + cmdParam.Format();
 
             SequenceCounter[ACK] = (SequenceCounter[ACK] + 1) % 256;
-
 
             Command cmd = new Command();
             cmd.InsertData((byte) DataTypesByName[DataACK]);
@@ -473,11 +472,27 @@ namespace BebopFlying
             cmd.InsertParam(cmdParam);
 
             if (ack)
-                SendCommandAck(cmd.Export(fmt), SequenceCounter["SEND_WITH_ACK"]);
-            else
-                SendCommandNoAck(cmd.Export(fmt));
+                return SendCommandAck(cmd.Export(fmt), SequenceCounter["SEND_WITH_ACK"]);
+            return SendCommandNoAck(cmd.Export(fmt));
         }
 
+        protected bool SendSinglePcmd(CommandTuple cmdTuple, CommandParam cmdParam)
+        {
+            SequenceCounter["SEND_NO_ACK"] = (SequenceCounter["SEND_NO_ACK"] + 1) % 256;
+            string fmt = "<BBBIBBH" + cmdParam.Format();
+
+            Command cmd = new Command();
+
+            cmd.InsertData((byte) DataTypesByName["DATA_NO_ACK"]);
+            cmd.InsertData((byte) BufferIds["SEND_NO_ACK"]);
+            cmd.InsertData((byte) SequenceCounter["SEND_NO_ACK"]);
+            cmd.InsertData((uint) StructConverter.PacketSize(fmt));
+
+            cmd.InsertTuple(cmdTuple);
+            cmd.InsertParam(cmdParam);
+
+            return SafeSend(cmd.Export(fmt));
+        }
 
         protected bool SendCommandAck(byte[] packet, int sequenceId)
         {
@@ -494,13 +509,13 @@ namespace BebopFlying
             return CommandReceiver.IsCommandReceived("SEND_WITH_ACK", sequenceId);
         }
 
-        private void SendCommandNoAck(byte[] packet)
+        private bool SendCommandNoAck(byte[] packet)
         {
-            SafeSend(packet);
+            return SafeSend(packet);
         }
 
 
-        protected void SafeSend(byte[] buffer)
+        protected bool SafeSend(byte[] packet)
         {
             bool packetSent = false;
             int tryNum = 0;
@@ -509,7 +524,7 @@ namespace BebopFlying
             {
                 try
                 {
-                    DroneUdpClient.Send(buffer, buffer.Length);
+                    DroneUdpClient.Send(packet, packet.Length);
                     packetSent = true;
                 }
                 catch (Exception)
@@ -518,6 +533,8 @@ namespace BebopFlying
                     tryNum++;
                 }
             }
+
+            return packetSent;
         }
 
         #endregion
@@ -556,6 +573,13 @@ namespace BebopFlying
 
         #region Movement Generation
 
+        public static T Clamp<T>(T val, T min, T max) where T : IComparable<T>
+        {
+            if (val.CompareTo(min) < 0) return min;
+            else if (val.CompareTo(max) > 0) return max;
+            else return val;
+        }
+
         protected void GenerateDroneCommand()
         {
             lock (ThisLock)
@@ -563,33 +587,25 @@ namespace BebopFlying
                 if (FlyVector.IsNull())
                     return;
 
-                Command _cmd = new Command();
+                const int min = -100, max = 100;
+                CommandTuple cmdTuple = new CommandTuple(1, 0, 2);
 
-                _cmd.InsertData(CommandSet.ARCOMMANDS_ID_PROJECT_ARDRONE3);
-                _cmd.InsertData(CommandSet.ARCOMMANDS_ID_ARDRONE3_CLASS_PILOTING);
-                _cmd.InsertData(CommandSet.ARCOMMANDS_ID_ARDRONE3_PILOTING_CMD_PCMD);
-                _cmd.InsertData(0);
-                _cmd.InsertData((byte) FlyVector.Flag); // flag
-                _cmd.InsertData(FlyVector.Roll >= 0
-                    ? (byte) FlyVector.Roll
-                    : (byte) (256 + FlyVector.Roll)); // roll: fly left or right [-100 ~ 100]
-                _cmd.InsertData(FlyVector.Pitch >= 0
-                    ? (byte) FlyVector.Pitch
-                    : (byte) (256 + FlyVector.Pitch)); // pitch: backward or forward [-100 ~ 100]
-                _cmd.InsertData(FlyVector.Yaw >= 0
-                    ? (byte) FlyVector.Yaw
-                    : (byte) (256 + FlyVector.Yaw)); // yaw: rotate left or right [-100 ~ 100]
-                _cmd.InsertData(FlyVector.Gaz >= 0
-                    ? (byte) FlyVector.Gaz
-                    : (byte) (256 + FlyVector.Gaz)); // gaze: down or up [-100 ~ 100]
+                int roll = Clamp(FlyVector.Roll, min, max);
+                int pitch = Clamp(FlyVector.Pitch, min, max);
+                int yaw = Clamp(FlyVector.Yaw, min, max);
+                int gaz = Clamp(FlyVector.Gaz, min, max);
 
-                // for Debug Mode
-                _cmd.InsertData(0);
-                _cmd.InsertData(0);
-                _cmd.InsertData(0);
-                _cmd.InsertData(0);
+                // fmt = BbbbbI
+                CommandParam cmdParam = new CommandParam();
 
-                // SendCommand(_cmd);
+                cmdParam.AddData((byte) 1);
+                cmdParam.AddData((sbyte) roll);
+                cmdParam.AddData((sbyte) pitch);
+                cmdParam.AddData((sbyte) yaw);
+                cmdParam.AddData((sbyte) gaz);
+                cmdParam.AddData((uint) 0);
+
+                SendSinglePcmd(cmdTuple, cmdParam);
             }
         }
 
