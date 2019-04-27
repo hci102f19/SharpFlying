@@ -575,7 +575,7 @@ namespace BebopFlying
 
         #region Movement Generation
 
-        public static T Clamp<T>(T val, T min, T max) where T : IComparable<T>
+        protected static T Clamp<T>(T val, T min, T max) where T : IComparable<T>
         {
             if (val.CompareTo(min) < 0) return min;
             else if (val.CompareTo(max) > 0) return max;
