@@ -88,6 +88,10 @@
       <Project>{8E56759D-04A4-4F62-B6BD-805A84C55A77}</Project>
       <Name>BebopFlying</Name>
     </ProjectReference>
+    <ProjectReference Include="..\DBSCAN\DBSCANLib.csproj">
+      <Project>{2ea4c8cf-0950-467f-983f-bc5ab2e00b13}</Project>
+      <Name>DBSCANLib</Name>
+    </ProjectReference>
     <ProjectReference Include="..\EdgyLib\EdgyLib.csproj">
       <Project>{c1ad2c09-9ecb-4b7a-bed1-d3474180b0de}</Project>
       <Name>EdgyLib</Name>
@@ -96,9 +100,21 @@
       <Project>{aeeb01c3-df18-440c-82b5-b3f7a7643901}</Project>
       <Name>FlightLib</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Geometry\Geometry.csproj">
+      <Project>{6d6fcc45-597e-49e2-934d-5ba6ecb217f3}</Project>
+      <Name>Geometry</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\RenderGeometry\RenderGeometry.csproj">
+      <Project>{4f0a69ca-9efe-4500-9d12-e27abaf8e405}</Project>
+      <Name>RenderGeometry</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ServiceLib\ServiceLib.csproj">
       <Project>{9df90151-0a5c-4d56-8f3c-9a890a76ed7a}</Project>
       <Name>ServiceLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\UDPBase\UDPBase.csproj">
+      <Project>{b77ab0f7-7c4b-4528-b89b-b989e5d6a3f2}</Project>
+      <Name>UDPBase</Name>
     </ProjectReference>
     <ProjectReference Include="..\UltraSonicLib\UltraSonicLib.csproj">
       <Project>{8CC2C5C8-F73D-4B4E-BF6B-BC018596287B}</Project>
@@ -107,6 +123,10 @@
     <ProjectReference Include="..\VidBuffLib\VidBuffLib.csproj">
       <Project>{129df76e-94fb-4098-809a-f2e58298c9c6}</Project>
       <Name>VidBuffLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\WiFiLib\WiFiLib.csproj">
+      <Project>{d26b14f4-8206-4476-a997-814d126d3def}</Project>
+      <Name>WiFiLib</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

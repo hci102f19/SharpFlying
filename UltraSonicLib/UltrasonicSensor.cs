@@ -1,13 +1,27 @@
-﻿using Newtonsoft.Json;
+﻿using System;
+using Newtonsoft.Json;
 
 namespace UltraSonicLib
 {
     public class UltrasonicSensor
     {
-        [JsonProperty("distance")]
-        public float Distance { get; protected set; }
+        protected static T Clamp<T>(T val, T min, T max) where T : IComparable<T>
+        {
+            if (val.CompareTo(min) < 0) return min;
+            else if (val.CompareTo(max) > 0) return max;
+            else return val;
+        }
 
-        [JsonProperty("value")]
-        public float Value { get; protected set; }
+        protected double iDistance = 0;
+
+        [JsonProperty("distance")]
+        //TODO: Should we do this?
+        public double Distance
+        {
+            get => iDistance;
+            protected set => iDistance = Clamp(value, 0, 200);
+        }
+
+        [JsonProperty("value")] public double Value { get; protected set; }
     }
 }
