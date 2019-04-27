@@ -85,6 +85,7 @@ namespace BebopFlying
 
         public Battery Battery { get; protected set; } = new Battery(0, 5, 1);
         public FlyingState FlyingState { get; protected set; } = new FlyingState(1, 4, 1);
+        public Altitude Altitude { get; protected set; } = new Altitude(1, 4, 8);
 
         protected List<Sensor> Sensors;
 
@@ -107,7 +108,8 @@ namespace BebopFlying
             Sensors = new List<Sensor>()
             {
                 Battery,
-                FlyingState
+                FlyingState,
+                Altitude
             };
         }
 
