@@ -30,6 +30,8 @@ namespace BebopFlying
         protected const int MaxPacketRetries = 1;
         protected const int HandleSize = 7;
         protected const int HandleOffset = 4;
+        protected const int VectorMin = -100, VectorMax = 100;
+
 
 
         //Dictionary for storing secquence counter
@@ -587,13 +589,12 @@ namespace BebopFlying
                 if (FlyVector.IsNull())
                     return;
 
-                const int min = -100, max = 100;
                 CommandTuple cmdTuple = new CommandTuple(1, 0, 2);
 
-                int roll = Clamp(FlyVector.Roll, min, max);
-                int pitch = Clamp(FlyVector.Pitch, min, max);
-                int yaw = Clamp(FlyVector.Yaw, min, max);
-                int gaz = Clamp(FlyVector.Gaz, min, max);
+                int roll = Clamp(FlyVector.Roll, VectorMin, VectorMax);
+                int pitch = Clamp(FlyVector.Pitch, VectorMin, VectorMax);
+                int yaw = Clamp(FlyVector.Yaw, VectorMin, VectorMax);
+                int gaz = Clamp(FlyVector.Gaz, VectorMin, VectorMax);
 
                 // fmt = BbbbbI
                 CommandParam cmdParam = new CommandParam();
