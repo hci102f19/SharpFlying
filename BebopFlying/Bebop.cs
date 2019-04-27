@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Reflection.Emit;
 using System.Threading;
 using BebopFlying.BebopClasses;
 using BebopFlying.Sensors;
@@ -22,9 +21,9 @@ namespace BebopFlying
         #region Properties
 
         //Logger
-        protected static Logger _logger;
+        protected static Logger Logger;
 
-        //Log to ensure that access to flyvector is fine during multithreading
+        //Log to ensure that access to fly vector is fine during multi threading
         protected static readonly object ThisLock = new object();
 
         protected const int MaxPacketRetries = 1;
@@ -34,7 +33,7 @@ namespace BebopFlying
 
 
 
-        //Dictionary for storing secquence counter
+        //Dictionary for storing sequence counter
         protected readonly Dictionary<string, int> SequenceCounter = new Dictionary<string, int>
         {
             {"PONG", 0},
@@ -87,7 +86,7 @@ namespace BebopFlying
         public Battery Battery { get; protected set; } = new Battery(0, 5, 1);
         public FlyingState FlyingState { get; protected set; } = new FlyingState(1, 4, 1);
 
-        protected List<Sensor> sensors;
+        protected List<Sensor> Sensors;
 
         #endregion
 
@@ -96,16 +95,16 @@ namespace BebopFlying
             LoggingConfiguration config = new LoggingConfiguration();
             FileTarget logfile = new FileTarget("logfile") {FileName = "BebopFileLog.txt"};
 
-//            ConsoleTarget logconsole = new ConsoleTarget("logconsole");
-//            config.AddRule(LogLevel.Debug, LogLevel.Fatal, logconsole);
+            ConsoleTarget consoleLog = new ConsoleTarget("logconsole");
+            config.AddRule(LogLevel.Info, LogLevel.Fatal, consoleLog);
 
             config.AddRule(LogLevel.Debug, LogLevel.Fatal, logfile);
 
             LogManager.Configuration = config;
-            _logger = LogManager.GetCurrentClassLogger();
+            Logger = LogManager.GetCurrentClassLogger();
 
             // Set Bebop sensors
-            sensors = new List<Sensor>()
+            Sensors = new List<Sensor>()
             {
                 Battery,
                 FlyingState
@@ -118,14 +117,14 @@ namespace BebopFlying
         {
             try
             {
-                _logger.Debug("Attempting to connect to drone...");
+                Logger.Debug("Attempting to connect to drone...");
 
                 if (!DoHandshake())
                     return ConnectionStatus.Failed;
             }
             catch (SocketException ex)
             {
-                _logger.Fatal(ex.Message);
+                Logger.Fatal(ex.Message);
                 throw;
             }
 
@@ -139,7 +138,7 @@ namespace BebopFlying
 
             AskForStateUpdate();
 
-            _logger.Debug("Successfully connected to the drone");
+            Logger.Debug("Successfully connected to the drone");
             return ConnectionStatus.Success;
         }
 
@@ -163,7 +162,7 @@ namespace BebopFlying
 
             if (droneHandshakeResponse == null)
             {
-                _logger.Fatal("Connection failed");
+                Logger.Fatal("Connection failed");
                 return false;
             }
 
@@ -196,7 +195,7 @@ namespace BebopFlying
 
         public void TakeOff(int timeout)
         {
-            _logger.Debug("Performing takeoff...");
+            Logger.Debug("Performing takeoff...");
             CommandTuple cmdTuple = new CommandTuple(1, 0, 1);
 
             if (FlyingState.GetState() == FlyingState.State.Landed || FlyingState.GetState() == FlyingState.State.UnKn0wn)
@@ -216,7 +215,7 @@ namespace BebopFlying
 
         public void Land()
         {
-            _logger.Debug("Landing...");
+            Logger.Debug("Landing...");
             CommandTuple cmdTuple = new CommandTuple(1, 0, 3);
 
             SendNoParam(cmdTuple);
@@ -286,18 +285,18 @@ namespace BebopFlying
             {
                 try
                 {
-                    var data = DroneDataClient.Receive(ref DroneData);
+                    byte[] data = DroneDataClient.Receive(ref DroneData);
                     HandleData(data);
                 }
                 catch (SocketException ex)
                 {
                     if (ex.ErrorCode != 10060)
                     {
-                        _logger.Fatal("Socket exception " + ex.Message);
+                        Logger.Fatal("Socket exception " + ex.Message);
                     }
                     else
                     {
-                        _logger.Debug("Timed out - Trying again");
+                        Logger.Debug("Timed out - Trying again");
                     }
                 }
             }
@@ -329,18 +328,18 @@ namespace BebopFlying
             if (bufferId == CommandSet.ARNETWORK_MANAGER_INTERNAL_BUFFER_ID_PING)
             {
                 SendPong(data);
-                _logger.Debug("Pong");
+                Logger.Debug("Pong");
             }
 
             switch (dataType)
             {
-                //Drone is asking for us to acknowledge the receival of the packet
+                //Drone is asking for us to acknowledge the retrieval of the packet
                 case CommandSet.ARNETWORKAL_FRAME_TYPE_ACK:
                     int ackSeqNumber = data[0];
 
                     CommandReceiver.SetCommandReceived("SEND_WITH_ACK", ackSeqNumber, true);
                     AckPacket(bufferId, ackSeqNumber);
-                    _logger.Debug("Send Ack");
+                    Logger.Debug("Send Ack");
                     break;
 
                 // Drone just sent us sensor data
@@ -350,7 +349,7 @@ namespace BebopFlying
                     break;
 
                 case CommandSet.ARNETWORKAL_FRAME_TYPE_DATA_LOW_LATENCY:
-                    _logger.Debug("Handle low latency data?");
+                    Logger.Debug("Handle low latency data?");
                     break;
 
                 case CommandSet.ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK:
@@ -359,15 +358,15 @@ namespace BebopFlying
                     break;
 
                 case CommandSet.ARNETWORKAL_FRAME_TYPE_MAX:
-                    _logger.Debug("Received a maxframe(Technically unknown?)");
+                    Logger.Debug("Received a maxframe(Technically unknown?)");
                     break;
 
                 case CommandSet.ARNETWORKAL_FRAME_TYPE_UNINITIALIZED:
-                    _logger.Debug("Received an uninitialized frame");
+                    Logger.Debug("Received an uninitialized frame");
                     break;
 
                 default:
-                    _logger.Fatal("Unknown data type received from drone!");
+                    Logger.Fatal("Unknown data type received from drone!");
                     break;
             }
         }
@@ -378,16 +377,16 @@ namespace BebopFlying
 
         protected void UpdateSensorData(int dataType, int bufferId, int packetSeqId, byte[] data, bool ack)
         {
-            _logger.Debug("Sensor update");
+            Logger.Debug("Sensor update");
             if (data.Length == 0)
             {
-                _logger.Error("DATA IS NULL YOU FACKERS!");
+                Logger.Error("DATA IS NULL YOU FACKERS!");
                 return;
             }
 
-            int projectId = (byte) data[0], classId = (byte) data[1], cmdId = BitConverter.ToInt16(data, 2);
+            int projectId = data[0], classId = data[1], cmdId = BitConverter.ToInt16(data, 2);
 
-            foreach (Sensor sensor in sensors)
+            foreach (Sensor sensor in Sensors)
                 if (sensor.Apply(projectId, classId, cmdId))
                     sensor.Parse(data.Skip(HandleOffset).ToArray());
 
@@ -401,11 +400,11 @@ namespace BebopFlying
 
         protected void AckPacket(int bufferId, int packetId)
         {
-            string fmt = "<BBBIB";
+            // ReSharper disable once StringLiteralTypo
+            const string fmt = "<BBBIB";
             int newBufferId = (bufferId + 128) % 256;
 
-            Command cmd = new Command();
-            cmd.SequenceId = newBufferId;
+            Command cmd = new Command {SequenceId = newBufferId};
 
             cmd.InsertData((byte) DataTypesByName["ACK"]);
             cmd.InsertData((byte) newBufferId);
@@ -419,7 +418,8 @@ namespace BebopFlying
         protected void SendPong(byte[] data)
         {
             int byteSize = 4, totalByteSize = byteSize + data.Length;
-            string fmt = "<BBBI";
+            // ReSharper disable once StringLiteralTypo
+            const string fmt = "<BBBI";
 
             SequenceCounter["PONG"] = (SequenceCounter["PONG"] + 1) % 256;
 
@@ -444,7 +444,8 @@ namespace BebopFlying
         protected bool SendNoParam(CommandTuple cmdTuple)
         {
             SequenceCounter["SEND_WITH_ACK"] = (SequenceCounter["SEND_WITH_ACK"] + 1) % 256;
-            string fmt = "<BBBIBBH";
+            // ReSharper disable once StringLiteralTypo
+            const string fmt = "<BBBIBBH";
 
             Command cmd = new Command();
 
@@ -459,7 +460,11 @@ namespace BebopFlying
 
         protected bool SendParam(CommandTuple cmdTuple, CommandParam cmdParam, bool ack = true)
         {
-            string ACK = (ack) ? "SEND_WITH_ACK" : "SEND_NO_ACK", DataACK = (ack) ? "DATA_WITH_ACK" : "DATA_NO_ACK";
+            // ReSharper disable once InconsistentNaming
+            string ACK = (ack) ? "SEND_WITH_ACK" : "SEND_NO_ACK";
+            // ReSharper disable once InconsistentNaming
+            string DataACK = (ack) ? "DATA_WITH_ACK" : "DATA_NO_ACK";
+            // ReSharper disable once StringLiteralTypo
             string fmt = "<BBBIBBH" + cmdParam.Format();
 
             SequenceCounter[ACK] = (SequenceCounter[ACK] + 1) % 256;
@@ -478,9 +483,11 @@ namespace BebopFlying
             return SendCommandNoAck(cmd.Export(fmt));
         }
 
+        // ReSharper disable once IdentifierTypo
         protected bool SendSinglePcmd(CommandTuple cmdTuple, CommandParam cmdParam)
         {
             SequenceCounter["SEND_NO_ACK"] = (SequenceCounter["SEND_NO_ACK"] + 1) % 256;
+            // ReSharper disable once StringLiteralTypo
             string fmt = "<BBBIBBH" + cmdParam.Format();
 
             Command cmd = new Command();
@@ -543,9 +550,10 @@ namespace BebopFlying
 
         #region Threades
 
+        // ReSharper disable once IdentifierTypo
         protected void PcmdThreadActive()
         {
-            _logger.Debug("Started command generator thread");
+            Logger.Debug("Started command generator thread");
             while (IsRunning)
             {
                 GenerateDroneCommand();
@@ -556,7 +564,7 @@ namespace BebopFlying
 
         protected void ThreadManager()
         {
-            _logger.Debug("Started Threadwatcher");
+            Logger.Debug("Started Threadwatcher");
             while (IsRunning)
             {
                 if (CommandGeneratorThread.IsAlive)
@@ -565,7 +573,7 @@ namespace BebopFlying
                 }
                 else
                 {
-                    _logger.Fatal("Bebop command thread is not alive, initializing emergency procedure!");
+                    Logger.Fatal("Bebop command thread is not alive, initializing emergency procedure!");
                     Land();
                 }
             }
@@ -596,7 +604,6 @@ namespace BebopFlying
                 int yaw = Clamp(FlyVector.Yaw, VectorMin, VectorMax);
                 int gaz = Clamp(FlyVector.Gaz, VectorMin, VectorMax);
 
-                // fmt = BbbbbI
                 CommandParam cmdParam = new CommandParam();
 
                 cmdParam.AddData((byte) 1);
