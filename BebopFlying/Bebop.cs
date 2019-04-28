@@ -460,7 +460,7 @@ namespace BebopFlying
             return SendCommandAck(cmd.Export(fmt), SequenceCounter["SEND_WITH_ACK"]);
         }
 
-        protected bool SendParam(CommandTuple cmdTuple, CommandParam cmdParam, bool ack = true)
+        protected bool? SendParam(CommandTuple cmdTuple, CommandParam cmdParam, bool ack = true)
         {
             // ReSharper disable once InconsistentNaming
             string ACK = (ack) ? "SEND_WITH_ACK" : "SEND_NO_ACK";
@@ -482,7 +482,8 @@ namespace BebopFlying
 
             if (ack)
                 return SendCommandAck(cmd.Export(fmt), SequenceCounter["SEND_WITH_ACK"]);
-            return SendCommandNoAck(cmd.Export(fmt));
+            SendCommandNoAck(cmd.Export(fmt));
+            return null;
         }
 
         // ReSharper disable once IdentifierTypo
@@ -520,9 +521,9 @@ namespace BebopFlying
             return CommandReceiver.IsCommandReceived("SEND_WITH_ACK", sequenceId);
         }
 
-        private bool SendCommandNoAck(byte[] packet)
+        private void SendCommandNoAck(byte[] packet)
         {
-            return SafeSend(packet);
+            SafeSend(packet);
         }
 
 
