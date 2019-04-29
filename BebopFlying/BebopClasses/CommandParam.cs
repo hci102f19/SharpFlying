@@ -10,20 +10,11 @@ namespace BebopFlying.BebopClasses
     {
         public List<object> Parameters { get; protected set; } = new List<object>();
 
-        public void AddData(byte data)
+        public void AddData<T>(T data)
         {
             Parameters.Add(data);
         }
 
-        public void AddData(uint data)
-        {
-            Parameters.Add(data);
-        }
-
-        public void AddData(sbyte data)
-        {
-            Parameters.Add(data);
-        }
 
         public string Format()
         {
