@@ -7,6 +7,7 @@ using EdgyLib;
 using Emgu.CV;
 using Emgu.CV.Structure;
 using Flight.Enums;
+using FlightLib;
 using ServiceLib;
 using UltraSonicLib;
 using VidBuffLib;
@@ -28,22 +29,11 @@ namespace SharpFlying
                     bebop.SmartSleep(1000);
 
                     if (i == 1)
-                    {
-                        Console.WriteLine("Flat Trim");
-                        bebop.FlatTrim(5000);
-                    }
-
-                    if (i == 2)
-                    {
-                        Console.WriteLine("STARTING VIDEO");
-                        bebop.StartVideo();
-                    }
-
+                        bebop.TakeOff();
+                    else if (i > 1 && i < 9)
+                        bebop.Move(new Vector(pitch: 10));
                     if (i == 9)
-                    {
-                        Console.WriteLine("STOPPING VIDEO");
-                        bebop.StopVideo();
-                    }
+                        bebop.Land();
 
                     i++;
                 }

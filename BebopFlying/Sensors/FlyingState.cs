@@ -33,7 +33,6 @@ namespace BebopFlying.Sensors
 
         public override void Parse(byte[] sensorData)
         {
-            Console.WriteLine("Updating FlyingState");
             iState = (byte) sensorData[0];
         }
 

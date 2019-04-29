@@ -17,7 +17,6 @@ namespace BebopFlying.Sensors
         public override void Parse(byte[] sensorData)
         {
             Value = BitConverter.ToDouble(sensorData, 0);
-            Console.WriteLine("Updating Altitude: {0}m", Value);
         }
     }
 }

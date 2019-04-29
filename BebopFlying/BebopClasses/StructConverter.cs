@@ -26,7 +26,8 @@ namespace BebopFlying.BebopClasses
             if (o is ulong) return BitConverter.GetBytes((ulong) o);
             if (o is short) return BitConverter.GetBytes((short) o);
             if (o is ushort) return BitConverter.GetBytes((ushort) o);
-            if (o is byte || o is sbyte) return new byte[] {(byte) o};
+            if (o is sbyte) return new byte[] {(byte) ((sbyte) o)};
+            if (o is byte) return new byte[] {(byte) o};
             throw new ArgumentException("Unsupported object type found");
         }
 
