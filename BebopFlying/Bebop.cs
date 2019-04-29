@@ -7,6 +7,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using BebopFlying.BebopClasses;
+using BebopFlying.Exceptions;
 using BebopFlying.Sensors;
 using FlightLib;
 using FlightLib.Enums;
@@ -125,7 +126,7 @@ namespace BebopFlying
                 if (!DoHandshake())
                     return ConnectionStatus.Failed;
             }
-            catch (SocketException ex)
+            catch (DroneException ex)
             {
                 Logger.Fatal(ex.Message);
                 throw;
@@ -147,34 +148,41 @@ namespace BebopFlying
 
         protected bool DoHandshake()
         {
-            //make handshake with TCP_client, and the port is set to be 4444
-            TcpClient tcpClient = new TcpClient(CommandSet.Ip, CommandSet.DISCOVERY_PORT);
-
-            //Initialize the network stream for the handshake
-            NetworkStream stream = new NetworkStream(tcpClient.Client);
-
-            //initialize reader and writer
-            StreamWriter streamWriter = new StreamWriter(stream);
-            StreamReader streamReader = new StreamReader(stream);
-
-            //when the drone receive the message below, it will return the confirmation
-            streamWriter.WriteLine(CommandSet.HandshakeMessage);
-            streamWriter.Flush();
-
-            string droneHandshakeResponse = streamReader.ReadLine();
-
-            if (droneHandshakeResponse == null)
+            try
             {
-                Logger.Fatal("Connection failed");
-                return false;
+                //make handshake with TCP_client, and the port is set to be 4444
+                TcpClient tcpClient = new TcpClient(CommandSet.Ip, CommandSet.DISCOVERY_PORT);
+
+                //Initialize the network stream for the handshake
+                NetworkStream stream = new NetworkStream(tcpClient.Client) {ReadTimeout = 4000};
+
+                //initialize reader and writer
+                StreamWriter streamWriter = new StreamWriter(stream);
+                StreamReader streamReader = new StreamReader(stream);
+
+                //when the drone receive the message below, it will return the confirmation
+                streamWriter.WriteLine(CommandSet.HandshakeMessage);
+                streamWriter.Flush();
+
+                string droneHandshakeResponse = streamReader.ReadLine();
+
+                if (droneHandshakeResponse == null)
+                {
+                    Logger.Fatal("Connection failed");
+                    return false;
+                }
+
+                streamWriter.Close();
+                streamReader.Close();
+                stream.Close();
+                tcpClient.Close();
+
+                return true;
             }
-
-            streamWriter.Close();
-            streamReader.Close();
-            stream.Close();
-            tcpClient.Close();
-
-            return true;
+            catch (SocketException)
+            {
+                throw new UnableToDetectDrone();
+            }
         }
 
         public void Disconnect()
@@ -277,7 +285,7 @@ namespace BebopFlying
         {
             lock (ThisLock)
             {
-                FlyVector = flightVector;
+                FlyVector = flightVector.Copy();
             }
         }
 

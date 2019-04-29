@@ -76,10 +76,10 @@ namespace FlightLib
 
         public Vector TimesConstant(double constant)
         {
-            Roll = (int)Math.Round(Roll * constant, 0);
-            Pitch = (int)Math.Round(Pitch * constant, 0);
-            Yaw = (int)Math.Round(Yaw * constant, 0);
-            Gaz = (int)Math.Round(Gaz * constant, 0);
+            Roll = (int) Math.Round(Roll * constant, 0);
+            Pitch = (int) Math.Round(Pitch * constant, 0);
+            Yaw = (int) Math.Round(Yaw * constant, 0);
+            Gaz = (int) Math.Round(Gaz * constant, 0);
 
             return this;
         }
@@ -90,6 +90,11 @@ namespace FlightLib
             Pitch = 0;
             Yaw = 0;
             Gaz = 0;
+        }
+
+        public Vector Copy()
+        {
+            return new Vector(Flag, Roll, Pitch, Yaw, Gaz);
         }
     }
 }

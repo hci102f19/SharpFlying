@@ -45,6 +45,9 @@
     <Compile Include="Bebop.cs" />
     <Compile Include="BebopClasses\CommandTuple.cs" />
     <Compile Include="BebopClasses\StructConverter.cs" />
+    <Compile Include="Exceptions\DroneException.cs" />
+    <Compile Include="Exceptions\UnableToConnect.cs" />
+    <Compile Include="Exceptions\UnableToDetectDrone.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Sensors\Altitude.cs" />
     <Compile Include="Sensors\Battery.cs" />
