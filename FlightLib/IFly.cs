@@ -1,4 +1,4 @@
-﻿using Flight.Enums;
+﻿using FlightLib.Enums;
 
 namespace FlightLib
 {

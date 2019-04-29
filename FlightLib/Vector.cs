@@ -18,7 +18,7 @@ namespace FlightLib
         ///     gaz speed percentage (calculated on the max vertical speed)(from -100 to 100). Negative values go
         ///     down, positive go up.
         /// </param>
-        public Vector(int flag = 0, int roll = 0, int pitch = 0, int yaw = 0, int gaz = 0)
+        public Vector(int flag = 1, int roll = 0, int pitch = 0, int yaw = 0, int gaz = 0)
         {
             Flag = flag;
             Roll = roll;

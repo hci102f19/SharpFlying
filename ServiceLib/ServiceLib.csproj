@@ -58,8 +58,8 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Flight\FlightLib.csproj">
-      <Project>{aeeb01c3-df18-440c-82b5-b3f7a7643901}</Project>
+    <ProjectReference Include="..\FlightLib\FlightLib.csproj">
+      <Project>{092B042D-1F6F-4241-BC45-1FE277BFEB9B}</Project>
       <Name>FlightLib</Name>
     </ProjectReference>
   </ItemGroup>

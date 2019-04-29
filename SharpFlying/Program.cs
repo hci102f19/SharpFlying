@@ -1,16 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using BebopFlying;
-using BebopFlying.BebopClasses;
-using EdgyLib;
-using Emgu.CV;
-using Emgu.CV.Structure;
-using Flight.Enums;
 using FlightLib;
-using ServiceLib;
-using UltraSonicLib;
-using VidBuffLib;
+using FlightLib.Enums;
 
 namespace SharpFlying
 {
@@ -31,7 +22,7 @@ namespace SharpFlying
                     if (i == 1)
                         bebop.TakeOff();
                     else if (i > 1 && i < 9)
-                        bebop.Move(new Vector(pitch: 10));
+                        bebop.Move(new Vector(yaw: 10));
                     if (i == 9)
                         bebop.Land();
 

@@ -15,8 +15,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Geometry", "Geometry\Geomet
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DBSCANLib", "DBSCAN\DBSCANLib.csproj", "{2EA4C8CF-0950-467F-983F-BC5AB2E00B13}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlightLib", "Flight\FlightLib.csproj", "{AEEB01C3-DF18-440C-82B5-B3F7A7643901}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BebopFlying", "BebopFlying\BebopFlying.csproj", "{8E56759D-04A4-4F62-B6BD-805A84C55A77}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RenderGeometry", "RenderGeometry\RenderGeometry.csproj", "{4F0A69CA-9EFE-4500-9D12-E27ABAF8E405}"
@@ -26,6 +24,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UltraSonicLib", "UltraSonicLib\UltraSonicLib.csproj", "{8CC2C5C8-F73D-4B4E-BF6B-BC018596287B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UDPBase", "UDPBase\UDPBase.csproj", "{B77AB0F7-7C4B-4528-B89B-B989E5D6A3F2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlightLib", "FlightLib\FlightLib.csproj", "{092B042D-1F6F-4241-BC45-1FE277BFEB9B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -57,10 +57,6 @@ Global
 		{2EA4C8CF-0950-467F-983F-BC5AB2E00B13}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2EA4C8CF-0950-467F-983F-BC5AB2E00B13}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2EA4C8CF-0950-467F-983F-BC5AB2E00B13}.Release|Any CPU.Build.0 = Release|Any CPU
-		{AEEB01C3-DF18-440C-82B5-B3F7A7643901}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{AEEB01C3-DF18-440C-82B5-B3F7A7643901}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{AEEB01C3-DF18-440C-82B5-B3F7A7643901}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{AEEB01C3-DF18-440C-82B5-B3F7A7643901}.Release|Any CPU.Build.0 = Release|Any CPU
 		{8E56759D-04A4-4F62-B6BD-805A84C55A77}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{8E56759D-04A4-4F62-B6BD-805A84C55A77}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8E56759D-04A4-4F62-B6BD-805A84C55A77}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -81,6 +77,10 @@ Global
 		{B77AB0F7-7C4B-4528-B89B-B989E5D6A3F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B77AB0F7-7C4B-4528-B89B-B989E5D6A3F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B77AB0F7-7C4B-4528-B89B-B989E5D6A3F2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{092B042D-1F6F-4241-BC45-1FE277BFEB9B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{092B042D-1F6F-4241-BC45-1FE277BFEB9B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{092B042D-1F6F-4241-BC45-1FE277BFEB9B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{092B042D-1F6F-4241-BC45-1FE277BFEB9B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

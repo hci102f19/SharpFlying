@@ -218,7 +218,7 @@ namespace BebopFlying.BebopClasses
         public static int PacketSize(string fmt)
         {
             int value = 0;
-            foreach (var c in fmt)
+            foreach (char c in fmt)
             {
                 if (formatedChars.ContainsKey(c))
                     value += formatedChars[c];
