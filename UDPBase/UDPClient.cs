@@ -3,7 +3,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using Newtonsoft.Json;
-using UDPBase.exceptions;
+using UDPBase.Exception;
 
 namespace UDPBase
 {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Geometry.Extended;
 
-namespace DBSCANLib
+namespace DBSCAN
 {
     public class ClusterSet
     {

@@ -5,7 +5,7 @@ using Emgu.CV.Structure;
 using FlightLib;
 using Geometry.Base;
 
-namespace EdgyLib.Containers
+namespace EdgyLib.Container
 {
     public class BoxContainer
     {

@@ -1,7 +1,7 @@
 ﻿using System;
 using ServiceLib;
 using UDPBase;
-using UDPBase.exceptions;
+using UDPBase.Exception;
 using WiFiLib.Data;
 
 namespace WiFiLib

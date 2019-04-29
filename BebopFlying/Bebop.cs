@@ -6,11 +6,11 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
-using BebopFlying.BebopClasses;
-using BebopFlying.Exceptions;
-using BebopFlying.Sensors;
+using BebopFlying.Exception;
+using BebopFlying.Model;
+using BebopFlying.Sensor;
 using FlightLib;
-using FlightLib.Enums;
+using FlightLib.Enum;
 using NLog;
 using NLog.Config;
 using NLog.Targets;
@@ -88,7 +88,7 @@ namespace BebopFlying
         public Altitude Altitude { get; protected set; } = new Altitude(1, 4, 8);
         protected FlatTrimChanged FlatTrimChanged = new FlatTrimChanged(1, 4, 0);
 
-        protected List<Sensor> Sensors;
+        protected List<Sensor.Sensor> Sensors;
 
         #endregion
 
@@ -106,7 +106,7 @@ namespace BebopFlying
             Logger = LogManager.GetCurrentClassLogger();
 
             // Set Bebop sensors
-            Sensors = new List<Sensor>()
+            Sensors = new List<Sensor.Sensor>()
             {
                 Battery,
                 FlyingState,
@@ -446,7 +446,7 @@ namespace BebopFlying
 
             int projectId = data[0], classId = data[1], cmdId = BitConverter.ToInt16(data, 2);
 
-            foreach (Sensor sensor in Sensors)
+            foreach (Sensor.Sensor sensor in Sensors)
                 if (sensor.Apply(projectId, classId, cmdId))
                     sensor.Parse(data.Skip(HandleOffset).ToArray());
 
@@ -597,7 +597,7 @@ namespace BebopFlying
                     DroneUdpClient.Send(packet, packet.Length);
                     packetSent = true;
                 }
-                catch (Exception)
+                catch (SocketException)
                 {
                     // TODO: Reconnect.
                     tryNum++;

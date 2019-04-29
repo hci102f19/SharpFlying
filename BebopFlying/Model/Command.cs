@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace BebopFlying.BebopClasses
+namespace BebopFlying.Model
 {
     public class Command
     {
@@ -49,7 +49,7 @@ namespace BebopFlying.BebopClasses
             byte[] bytes = StructConverter.Pack(Cmd.Cast<object>().ToArray(), true, out string internalFmt);
 
             if (internalFmt != fmt)
-                throw new Exception("FK");
+                throw new System.Exception("FK");
             return bytes;
         }
 

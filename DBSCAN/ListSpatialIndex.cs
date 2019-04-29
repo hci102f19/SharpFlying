@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Geometry.Base;
 
-namespace DBSCANLib
+namespace DBSCAN
 {
     public class ListSpatialIndex
     {

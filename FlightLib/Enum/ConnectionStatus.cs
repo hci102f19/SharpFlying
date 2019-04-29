@@ -1,4 +1,4 @@
-﻿namespace FlightLib.Enums
+﻿namespace FlightLib.Enum
 {
     public enum ConnectionStatus
     {

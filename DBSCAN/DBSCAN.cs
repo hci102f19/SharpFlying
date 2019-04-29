@@ -2,7 +2,7 @@
 using System.Linq;
 using Geometry.Extended;
 
-namespace DBSCANLib
+namespace DBSCAN
 {
     public static class DBSCAN
     {

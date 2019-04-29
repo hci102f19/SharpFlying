@@ -2,7 +2,7 @@
 using FlightLib;
 using ServiceLib;
 using UDPBase;
-using UDPBase.exceptions;
+using UDPBase.Exception;
 
 namespace UltraSonicLib
 {

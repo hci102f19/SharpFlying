@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using DBSCANLib;
-using EdgyLib.Containers;
+using DBSCAN;
+using EdgyLib.Container;
 using Emgu.CV;
 using Emgu.CV.Structure;
 using Emgu.CV.Util;
@@ -161,7 +161,7 @@ namespace EdgyLib
 
             if (intersections.Count > 0)
             {
-                ClusterSet clusters = DBSCAN.CalculateClusters(
+                ClusterSet clusters = DBSCAN.DBSCAN.CalculateClusters(
                     intersections.Select(p => new PointContainer(p)).ToList(),
                     20,
                     (int) Math.Round(0.1 * intersections.Count, 0)

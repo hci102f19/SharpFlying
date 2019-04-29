@@ -38,9 +38,9 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="exceptions\NoAcknowledgementException.cs" />
-    <Compile Include="exceptions\ServerStoppedRespondingException.cs" />
-    <Compile Include="exceptions\ServerStoppingException.cs" />
+    <Compile Include="Exception\NoAcknowledgementException.cs" />
+    <Compile Include="Exception\ServerStoppedRespondingException.cs" />
+    <Compile Include="Exception\ServerStoppingException.cs" />
     <Compile Include="UDPClient.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

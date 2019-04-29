@@ -1,4 +1,4 @@
-﻿namespace BebopFlying.BebopClasses
+﻿namespace BebopFlying.Model
 {
     public class CommandSet
     {

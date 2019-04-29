@@ -1,7 +1,7 @@
 ﻿using System;
 using BebopFlying;
 using FlightLib;
-using FlightLib.Enums;
+using FlightLib.Enum;
 
 namespace SharpFlying
 {
