@@ -14,27 +14,7 @@ namespace BebopFlying.BebopClasses
 
         #region Insert data into command sequence
 
-        public void InsertData(int data)
-        {
-            Cmd.Insert(CurIndex++, data);
-        }
-
-        public void InsertData(uint data)
-        {
-            Cmd.Insert(CurIndex++, data);
-        }
-
-        public void InsertData(ushort data)
-        {
-            Cmd.Insert(CurIndex++, data);
-        }
-
-        public void InsertData(byte data)
-        {
-            Cmd.Insert(CurIndex++, data);
-        }
-
-        protected void InsertData(object data)
+        public void InsertData<T>(T data)
         {
             Cmd.Insert(CurIndex++, data);
         }
