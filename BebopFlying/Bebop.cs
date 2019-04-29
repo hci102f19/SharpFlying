@@ -203,6 +203,8 @@ namespace BebopFlying
 
             if (FlyingState.GetState() == FlyingState.State.Landed || FlyingState.GetState() == FlyingState.State.UnKn0wn)
                 SendNoParam(cmdTuple);
+            else
+                return;
 
             Stopwatch sw = new Stopwatch();
             sw.Start();
@@ -218,10 +220,32 @@ namespace BebopFlying
 
         public void Land()
         {
-            Logger.Debug("Landing...");
-            CommandTuple cmdTuple = new CommandTuple(1, 0, 3);
+            Land(10000);
+        }
 
-            SendNoParam(cmdTuple);
+        public void Land(int timeout)
+        {
+            // We do not want to fly while landing
+            lock (ThisLock)
+            {
+                FlyVector.ResetVector();
+
+                Logger.Debug("Landing...");
+                CommandTuple cmdTuple = new CommandTuple(1, 0, 3);
+
+                SendNoParam(cmdTuple);
+
+                Stopwatch sw = new Stopwatch();
+                sw.Start();
+                while (FlyingState.GetState() != FlyingState.State.Landed && sw.ElapsedMilliseconds < timeout)
+                {
+                    if (FlyingState.GetState() == FlyingState.State.Emergency)
+                        break;
+                    SmartSleep(100);
+                }
+
+                sw.Stop();
+            }
         }
 
         public void FlatTrim()
