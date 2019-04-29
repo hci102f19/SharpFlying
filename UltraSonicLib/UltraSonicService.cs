@@ -65,15 +65,15 @@ namespace UltraSonicLib
             }
         }
 
-        protected int Difference(float f1, float f2)
+        protected int Difference(double f1, double f2)
         {
             if (Math.Abs(f1 - f2) < 0.01)
             {
                 return 0;
             }
 
-            float max = Math.Max(f1, f2);
-            float min = Math.Min(f1, f2);
+            double max = Math.Max(f1, f2);
+            double min = Math.Min(f1, f2);
 
             return (int) ((max - min) / min * 100);
         }

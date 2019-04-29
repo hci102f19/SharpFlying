@@ -74,7 +74,7 @@ namespace FlightLib
             return this;
         }
 
-        public Vector TimesConstant(float constant)
+        public Vector TimesConstant(double constant)
         {
             Roll = (int)Math.Round(Roll * constant, 0);
             Pitch = (int)Math.Round(Pitch * constant, 0);

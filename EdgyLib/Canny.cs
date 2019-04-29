@@ -21,7 +21,7 @@ namespace EdgyLib
         protected BoxContainer BoxContainer;
         protected int CannyThreshold = 55;
         protected int CannyThresholdModifier = 3;
-        protected float Confidence;
+        protected double Confidence;
 
         protected Image<Bgr, byte> CurrentFrame;
 
@@ -96,10 +96,10 @@ namespace EdgyLib
 
         protected void CalculateTheta(int lines)
         {
-            float modifier = 1;
+            double modifier = 1;
             if (LastFrameCount != null)
             {
-                modifier = (float) LastFrameCount / lines * 2;
+                modifier = (double) LastFrameCount / lines * 2;
 
                 if (modifier <= 1)
                 {

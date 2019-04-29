@@ -27,6 +27,12 @@ namespace SharpFlying
                 {
                     bebop.SmartSleep(1000);
 
+                    if (i == 1)
+                    {
+                        Console.WriteLine("Flat Trim");
+                        bebop.FlatTrim(5000);
+                    }
+
                     if (i == 2)
                     {
                         Console.WriteLine("STARTING VIDEO");

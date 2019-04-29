@@ -16,6 +16,7 @@ namespace BebopFlying.Sensors
 
         public override void Parse(byte[] sensorData)
         {
+            Console.WriteLine("Updating Battery");
             Percentage = (byte) sensorData[0];
         }
     }

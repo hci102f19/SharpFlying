@@ -32,7 +32,6 @@ namespace BebopFlying
         protected const int VectorMin = -100, VectorMax = 100;
 
 
-
         //Dictionary for storing sequence counter
         protected readonly Dictionary<string, int> SequenceCounter = new Dictionary<string, int>
         {
@@ -86,6 +85,7 @@ namespace BebopFlying
         public Battery Battery { get; protected set; } = new Battery(0, 5, 1);
         public FlyingState FlyingState { get; protected set; } = new FlyingState(1, 4, 1);
         public Altitude Altitude { get; protected set; } = new Altitude(1, 4, 8);
+        protected FlatTrimChanged FlatTrimChanged = new FlatTrimChanged(1, 4, 0);
 
         protected List<Sensor> Sensors;
 
@@ -109,7 +109,8 @@ namespace BebopFlying
             {
                 Battery,
                 FlyingState,
-                Altitude
+                Altitude,
+                FlatTrimChanged
             };
         }
 
@@ -221,6 +222,31 @@ namespace BebopFlying
             CommandTuple cmdTuple = new CommandTuple(1, 0, 3);
 
             SendNoParam(cmdTuple);
+        }
+
+        public void FlatTrim()
+        {
+            FlatTrim(0);
+        }
+
+        public void FlatTrim(int duration)
+        {
+            if (duration > 0)
+                FlatTrimChanged.Reset();
+
+            CommandTuple cmdTuple = new CommandTuple(1, 0, 0);
+            SendNoParam(cmdTuple);
+
+            // Wait for FlatTrimChanged  or duration
+            if (duration > 0)
+            {
+                Stopwatch sw = new Stopwatch();
+                sw.Start();
+                while (!FlatTrimChanged.Updated && sw.ElapsedMilliseconds < duration)
+                    SmartSleep(100);
+
+                sw.Stop();
+            }
         }
 
         public void Move(Vector flightVector)
@@ -515,7 +541,7 @@ namespace BebopFlying
             {
                 SafeSend(packet);
                 tryNum++;
-                SmartSleep(500);
+                SmartSleep(250);
             }
 
             return CommandReceiver.IsCommandReceived("SEND_WITH_ACK", sequenceId);

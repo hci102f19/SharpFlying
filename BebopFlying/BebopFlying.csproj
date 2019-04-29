@@ -48,6 +48,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Sensors\Altitude.cs" />
     <Compile Include="Sensors\Battery.cs" />
+    <Compile Include="Sensors\FlatTrimChanged.cs" />
     <Compile Include="Sensors\FlyingState.cs" />
     <Compile Include="Sensors\Sensor.cs" />
   </ItemGroup>

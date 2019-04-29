@@ -16,7 +16,7 @@ namespace Geometry.Base
         }
 
 
-        public Line(float rho, float theta)
+        public Line(double rho, double theta)
         {
             double a = Math.Cos(theta);
             double b = Math.Sin(theta);
