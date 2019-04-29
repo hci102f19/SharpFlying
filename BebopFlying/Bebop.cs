@@ -635,7 +635,7 @@ namespace BebopFlying
 
                 CommandParam cmdParam = new CommandParam();
 
-                cmdParam.AddData((byte) 1);
+                cmdParam.AddData((byte) FlyVector.Flag);
                 cmdParam.AddData((sbyte) roll);
                 cmdParam.AddData((sbyte) pitch);
                 cmdParam.AddData((sbyte) yaw);
