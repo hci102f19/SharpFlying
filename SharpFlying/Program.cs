@@ -20,7 +20,7 @@ namespace SharpFlying
 
         private static void Main(string[] args)
         {
-            const int width = 640, height = 480;
+            const int width = 640, height = 360;
 
             Bebop bebop = new Bebop();
             if (bebop.Connect() == ConnectionStatus.Success)
@@ -44,16 +44,18 @@ namespace SharpFlying
                     if (frame != null)
                     {
                         buffer.TransmitFrame(frame);
+                        Vector v = new Vector();
 
                         foreach (Service service in buffer.Services)
                         {
                             Response r = service.GetLatestResult();
                             if (r != null && r.IsValid)
                             {
-                                Console.WriteLine(r.Confidence);
+                                v.Add(r.Vector);
                             }
                         }
 
+                        Console.WriteLine(v.ToString());
                         CvInvoke.Imshow("frame", frame);
                         CvInvoke.WaitKey(1);
                     }
@@ -75,48 +77,5 @@ namespace SharpFlying
                 return;
             }
         }
-
-        //        private static void Main(string[] args)
-        //        {
-        //            const int width = 640, height = 480;
-        //
-        //            VideoCapture capture = new VideoCapture(@"./bebop.sdp");
-        //
-        //            Bebop bebop = new Bebop(30);
-        //
-        //            if (bebop.Connect() == ConnectionStatus.Success)
-        //            {
-        //                StreamBuffer buffer = new StreamBuffer(capture, width, height);
-        //
-        //                buffer.AddService(new Canny(width, height, true));
-        //                buffer.AddService(new UltraSonicService());
-        //                // buffer.AddService(new WiFiService());
-        //
-        //                buffer.Start();
-        //
-        //                while (buffer.IsRunning)
-        //                {
-        //                    Image<Bgr, byte> frame = buffer.PopLastFrame();
-        //                    if (frame != null)
-        //                    {
-        //                        buffer.TransmitFrame(frame);
-        //
-        //                        Console.WriteLine(buffer.CalculateMovement());
-        //
-        //                        foreach (Service service in buffer.Services)
-        //                        {
-        //                            Response r = service.GetLatestResult();
-        //                            if (r != null && r.IsValid)
-        //                            {
-        //                                Console.WriteLine(r.Vector);
-        //                            }
-        //                        }
-        //
-        //                        //CvInvoke.Imshow("frame", frame);
-        //                        //CvInvoke.WaitKey(1);
-        //                    }
-        //                }
-        //            }
-        //        }
     }
 }

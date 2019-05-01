@@ -168,9 +168,9 @@ namespace EdgyLib
                 {
                     if (Filtering.Add(clusters.GetBestCluster().GetMean()))
                     {
-                        if (Confidence < 1)
+                        if (Confidence < 100)
                         {
-                            Confidence = Confidence >= 100 ? 100 : Confidence + 0.25f;
+                            Confidence = Confidence >= 100 ? 100 : Confidence + 1f;
                         }
                     }
                     else

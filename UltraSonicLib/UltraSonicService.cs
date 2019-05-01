@@ -85,35 +85,32 @@ namespace UltraSonicLib
             foreach (Tuple<UltrasonicSensor, Vector> sensor in Sensors.GetSensors)
             {
                 if (sensor.Item1.Value < 0)
-                {
                     continue;
-                }
 
-                if (sensor.Item1.Value < MinDistanceToWall)
+                if (sensor.Item1.Distance < MinDistanceToWall)
                 {
                     movement.Add(sensor.Item2.TimesConstant(-1));
                 }
             }
 
             if (!movement.IsNull())
-            {
                 return movement;
-            }
 
             // Calculate side-to-side movements
 
             int diff = Difference(Sensors.Left.Value, Sensors.Right.Value);
-
+            Console.WriteLine(diff);
             if (diff > 10)
             {
-                if (Sensors.Left.Value > Sensors.Right.Value)
+                int movementValue = (int) ((Math.Abs(Sensors.Left.Distance - Sensors.Right.Distance) / 200) * 100);
+                if (Sensors.Left.Distance > Sensors.Right.Distance)
                 {
-                    movement.Roll = -diff;
+                    movement.Roll = -movementValue;
                 }
 
-                if (Sensors.Left.Value < Sensors.Right.Value)
+                if (Sensors.Left.Distance < Sensors.Right.Distance)
                 {
-                    movement.Roll = diff;
+                    movement.Roll = movementValue;
                 }
             }
 

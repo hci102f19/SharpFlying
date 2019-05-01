@@ -206,6 +206,7 @@ namespace BebopFlying
 
         public void TakeOff(int timeout)
         {
+            return;
             Logger.Debug("Performing takeoff...");
             CommandTuple cmdTuple = new CommandTuple(1, 0, 1);
 
