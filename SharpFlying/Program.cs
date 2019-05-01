@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net.NetworkInformation;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using BebopFlying;
 using EdgyLib;
@@ -17,6 +18,7 @@ namespace SharpFlying
     internal class Program
     {
         public static Thread AbortThread;
+        public static int Forward = 0;
 
         private static void Main(string[] args)
         {
@@ -44,7 +46,7 @@ namespace SharpFlying
                     if (frame != null)
                     {
                         buffer.TransmitFrame(frame);
-                        Vector v = new Vector();
+                        Vector v = new Vector(pitch: Forward);
 
                         foreach (Service service in buffer.Services)
                         {
@@ -55,6 +57,7 @@ namespace SharpFlying
                             }
                         }
 
+                        //bebop.Move(v);
                         Console.WriteLine(v.ToString());
                         CvInvoke.Imshow("frame", frame);
                         CvInvoke.WaitKey(1);
@@ -72,9 +75,17 @@ namespace SharpFlying
         {
             while (true)
             {
-                Console.ReadLine();
-                Console.WriteLine("ABORTING");
-                return;
+                ConsoleKeyInfo test = Console.ReadKey();
+                if (test.KeyChar == 'W' || test.KeyChar == 'w')
+                {
+                    Forward = (Forward == 0) ? 15 : 0;
+                }
+                else if (test.KeyChar == 'Q' || test.KeyChar == 'q')
+                {
+                    return;
+                }
+
+                Thread.Sleep(150);
             }
         }
     }
