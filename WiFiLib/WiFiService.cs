@@ -27,9 +27,7 @@ namespace WiFiLib
                 {
                     Network data = Client.ReceiveData<Network>();
                     if (data == null)
-                    {
                         continue;
-                    }
 
                     Network = data;
                 }

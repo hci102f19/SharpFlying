@@ -35,13 +35,5 @@ namespace EdgyLib.Container
 
             return vector;
         }
-
-        public void Render(Image<Bgr, byte> frame)
-        {
-            foreach (IHit hitBox in HitBoxes)
-            {
-                hitBox.Render(frame);
-            }
-        }
     }
 }

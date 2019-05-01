@@ -25,7 +25,6 @@ namespace EdgyLib
 
         protected Image<Bgr, byte> CurrentFrame;
 
-        protected bool Debug;
         protected SFiltering Filtering;
 
         protected int HoughLinesTheta = 150;
@@ -39,12 +38,10 @@ namespace EdgyLib
         protected int ThetaModifier = 5;
         protected int UpperLineThreshold = 75;
 
-        public Canny(int width, int height, bool debug = false)
+        public Canny(int width, int height)
         {
             BoxContainer = new BoxContainer(width, height);
             Filtering = new SFiltering(width, height);
-
-            Debug = debug;
         }
 
         public override void Input(Image<Bgr, byte> frame)
@@ -187,14 +184,6 @@ namespace EdgyLib
                 LatestResponse = !vector.IsNull()
                     ? new Response(true, BoxContainer.Hit(Filtering.GetMean()), Confidence)
                     : new Response(false, null);
-
-
-                ((RenderPoint) Filtering.GetMean()).Render(frame);
-                BoxContainer.Render(frame);
-
-
-                CvInvoke.Imshow("Canny", frame);
-                CvInvoke.WaitKey(1);
             }
         }
 
