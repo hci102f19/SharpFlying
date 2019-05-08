@@ -3,6 +3,7 @@ using FlightLib;
 using ServiceLib;
 using UDPBase;
 using UDPBase.Exception;
+using BebopFlying;
 
 namespace UltraSonicLib
 {
@@ -13,7 +14,7 @@ namespace UltraSonicLib
         protected Response Response;
         protected Sensors Sensors;
 
-        public UltraSonicService()
+        public UltraSonicService(int lastKnownDistanceUsedForCalcRight)
         {
             IgnoreInput = true;
         }
@@ -78,6 +79,9 @@ namespace UltraSonicLib
             return (int) ((max - min) / min * 100);
         }
 
+        private double _lastKnownDistanceUsedForCalcLeft = 0;
+        private double _lastKnownDistanceUsedForCalcRight = 0;
+
         private Vector CalculatePosition()
         {
             Vector movement = new Vector();
@@ -97,22 +101,104 @@ namespace UltraSonicLib
                 return movement;
 
             // Calculate side-to-side movements
-
             int diff = Difference(Sensors.Left.Value, Sensors.Right.Value);
+
             if (diff > 10)
             {
+                //Calc default val
                 int movementValue = (int) ((Math.Abs(Sensors.Left.Distance - Sensors.Right.Distance) / 200) * 100);
+                //Vi skal til venstre!
                 if (Sensors.Left.Distance > Sensors.Right.Distance)
                 {
+                    //Er det første gang vi flyver til venstre?
+                    if (Math.Abs(_lastKnownDistanceUsedForCalcLeft) < 0.01)
+                    {
+                        //"Standard movement"
+                        movement.Roll = movementValue;
+                        //Gem sidste distance
+                        _lastKnownDistanceUsedForCalcLeft = Sensors.Left.Distance;
+                        return movement;
+                    }
+
+                    //Er vi længere væk end sidst?
+                    if (Sensors.Left.Distance < _lastKnownDistanceUsedForCalcLeft)
+                    {
+                        //Udregner forskellen i procent af total distance
+                        var diffTotal = Difference(Sensors.Left.Distance, Sensors.Left.Distance + Sensors.Right.Distance) / (Sensors.Left.Distance + Sensors.Right.Distance);
+                        //Hvis vi er over 15% til den ene side skal vi begynde at rette op (0.5 i midten)
+                        if (diffTotal < 0.35)
+                        {
+                            var deg = Bebop.AttitudeChanged.RollChanged;
+                            //Venstre -> Negativ
+                            if (deg > 3)
+                            {
+                                //Vi skal rette op! -20 ---> test værdi!
+                                movement.Roll = -20;
+                                _lastKnownDistanceUsedForCalcLeft = Sensors.Left.Distance;
+                                return movement;
+                            }
+                        }
+                        else
+                        {
+                            // Vi er relativt langt væk fra midten; Lav alm movement
+                            movement.Roll = movementValue;
+                            //Gem sidste distance
+                            _lastKnownDistanceUsedForCalcLeft = Sensors.Left.Distance;
+                            return movement;
+                        }
+                    }
+
                     movement.Roll = -movementValue;
+                    _lastKnownDistanceUsedForCalcLeft = Sensors.Left.Distance;
+                    return movement;
                 }
 
-                if (Sensors.Left.Distance < Sensors.Right.Distance)
+                //Vi skal til højre!
+                if (Sensors.Right.Distance > Sensors.Left.Distance)
                 {
+                    //Er det første gang vi flyver til venstre?
+                    if (Math.Abs(_lastKnownDistanceUsedForCalcRight) < 0.01)
+                    {
+                        //"Standard movement"
+                        movement.Roll = movementValue;
+                        //Gem sidste distance
+                        _lastKnownDistanceUsedForCalcRight = Sensors.Left.Distance;
+                        return movement;
+                    }
+
+                    //Er vi længere væk end sidst?
+                    if (Sensors.Left.Distance < _lastKnownDistanceUsedForCalcRight)
+                    {
+                        //Udregner forskellen i procent af total distance
+                        var diffTotal = Difference(Sensors.Right.Distance, Sensors.Left.Distance + Sensors.Right.Distance) / (Sensors.Left.Distance + Sensors.Right.Distance);
+                        //Hvis vi er over 15% til den ene side skal vi begynde at rette op (0.5 i midten)
+                        if (diffTotal < 0.35)
+                        {
+                            var deg = Bebop.AttitudeChanged.RollChanged;
+                            //Venstre -> Negativ
+                            if (deg > 3)
+                            {
+                                //Vi skal rette op! -20 ---> test værdi!
+                                movement.Roll = +20;
+                                _lastKnownDistanceUsedForCalcRight = Sensors.Right.Distance;
+                                return movement;
+                            }
+                        }
+                        else
+                        {
+                            // Vi er relativt langt væk fra midten; Lav alm movement
+                            movement.Roll = -movementValue;
+                            //Gem sidste distance
+                            _lastKnownDistanceUsedForCalcRight = Sensors.Right.Distance;
+                            return movement;
+                        }
+                    }
+
                     movement.Roll = movementValue;
+                    _lastKnownDistanceUsedForCalcRight = Sensors.Right.Distance;
+                    return movement;
                 }
             }
-
             return movement;
         }
 
