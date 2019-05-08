@@ -44,6 +44,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\BebopFlying\BebopFlying.csproj">
+      <Project>{8E56759D-04A4-4F62-B6BD-805A84C55A77}</Project>
+      <Name>BebopFlying</Name>
+    </ProjectReference>
     <ProjectReference Include="..\FlightLib\FlightLib.csproj">
       <Project>{092B042D-1F6F-4241-BC45-1FE277BFEB9B}</Project>
       <Name>FlightLib</Name>

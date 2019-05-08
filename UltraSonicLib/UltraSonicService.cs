@@ -14,7 +14,7 @@ namespace UltraSonicLib
         protected Response Response;
         protected Sensors Sensors;
 
-        public UltraSonicService(int lastKnownDistanceUsedForCalcRight)
+        public UltraSonicService()
         {
             IgnoreInput = true;
         }
