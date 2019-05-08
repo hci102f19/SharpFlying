@@ -68,15 +68,10 @@ namespace UltraSonicLib
 
         protected int Difference(double f1, double f2)
         {
-            if (Math.Abs(f1 - f2) < 0.01)
-            {
-                return 0;
-            }
+            double totalDistance = f1 + f2;
+            double sideValue = totalDistance / 2;
 
-            double max = Math.Max(f1, f2);
-            double min = Math.Min(f1, f2);
-
-            return (int) ((max - min) / min * 100);
+            return (int) ((f1 > f2) ? (f2 - sideValue) : (f1 - sideValue));
         }
 
         private double _lastKnownDistanceUsedForCalcLeft = 0;
@@ -199,6 +194,7 @@ namespace UltraSonicLib
                     return movement;
                 }
             }
+
             return movement;
         }
 
