@@ -99,7 +99,6 @@ namespace UltraSonicLib
             // Calculate side-to-side movements
 
             int diff = Difference(Sensors.Left.Value, Sensors.Right.Value);
-            Console.WriteLine(diff);
             if (diff > 10)
             {
                 int movementValue = (int) ((Math.Abs(Sensors.Left.Distance - Sensors.Right.Distance) / 200) * 100);

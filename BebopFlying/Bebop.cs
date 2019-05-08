@@ -206,7 +206,6 @@ namespace BebopFlying
 
         public void TakeOff(int timeout)
         {
-            return;
             Logger.Debug("Performing takeoff...");
             CommandTuple cmdTuple = new CommandTuple(1, 0, 1);
 
@@ -660,15 +659,18 @@ namespace BebopFlying
                     return;
 
                 CommandTuple cmdTuple = new CommandTuple(1, 0, 2);
-
                 int roll = Clamp(FlyVector.Roll, VectorMin, VectorMax);
                 int pitch = Clamp(FlyVector.Pitch, VectorMin, VectorMax);
                 int yaw = Clamp(FlyVector.Yaw, VectorMin, VectorMax);
                 int gaz = Clamp(FlyVector.Gaz, VectorMin, VectorMax);
 
+                Console.WriteLine("{0}, {1}, {2}", FlyVector.ToString(), roll, FlyVector.Flag);
+
+
                 CommandParam cmdParam = new CommandParam();
 
-                cmdParam.AddData((byte) FlyVector.Flag);
+                // cmdParam.AddData((byte) FlyVector.Flag);
+                cmdParam.AddData((byte) 1);
                 cmdParam.AddData((sbyte) roll);
                 cmdParam.AddData((sbyte) pitch);
                 cmdParam.AddData((sbyte) yaw);
@@ -676,6 +678,8 @@ namespace BebopFlying
                 cmdParam.AddData((uint) 0);
 
                 SendSinglePcmd(cmdTuple, cmdParam);
+
+                Thread.Sleep(100);
             }
         }
 

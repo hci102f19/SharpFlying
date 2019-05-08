@@ -1,10 +1,13 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Net.NetworkInformation;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using BebopFlying;
 using EdgyLib;
 using Emgu.CV;
+using Emgu.CV.CvEnum;
 using Emgu.CV.OCR;
 using Emgu.CV.Structure;
 using FlightLib;
@@ -18,7 +21,7 @@ namespace SharpFlying
     internal class Program
     {
         public static Thread AbortThread;
-        public static int Forward = 0;
+        public static bool Fly = true;
 
         private static void Main(string[] args)
         {
@@ -27,6 +30,7 @@ namespace SharpFlying
             Bebop bebop = new Bebop();
             if (bebop.Connect() == ConnectionStatus.Success)
             {
+                bebop.FlatTrim(2000);
                 AbortThread = new Thread(Run);
                 AbortThread.Start();
 
@@ -35,10 +39,12 @@ namespace SharpFlying
                 VideoCapture capture = new VideoCapture(@"./bebop.sdp");
                 StreamBuffer buffer = new StreamBuffer(capture, width, height);
 
-                buffer.AddService(new Canny(width, height));
+                // buffer.AddService(new Canny(width, height));
                 buffer.AddService(new UltraSonicService());
 
                 buffer.Start();
+
+                bebop.TakeOff();
 
                 while (AbortThread.IsAlive)
                 {
@@ -46,7 +52,7 @@ namespace SharpFlying
                     if (frame != null)
                     {
                         buffer.TransmitFrame(frame);
-                        Vector v = new Vector(pitch: Forward);
+                        Vector v = new Vector();
 
                         foreach (Service service in buffer.Services)
                         {
@@ -57,10 +63,9 @@ namespace SharpFlying
                             }
                         }
 
-                        //bebop.Move(v);
-                        Console.WriteLine(v.ToString());
-                        CvInvoke.Imshow("frame", frame);
-                        CvInvoke.WaitKey(1);
+                        if (Fly)
+                            bebop.Move(v);
+                        //Console.WriteLine(v.ToString());
                     }
                 }
 
@@ -69,6 +74,9 @@ namespace SharpFlying
                 bebop.StopVideo();
                 bebop.Disconnect();
             }
+
+
+            Console.ReadLine();
         }
 
         private static void Run()
@@ -76,9 +84,10 @@ namespace SharpFlying
             while (true)
             {
                 ConsoleKeyInfo test = Console.ReadKey();
-                if (test.KeyChar == 'W' || test.KeyChar == 'w')
+                if (test.KeyChar == 'E' || test.KeyChar == 'e')
                 {
-                    Forward = (Forward == 0) ? 15 : 0;
+                    Console.WriteLine("WE FLY BOIS");
+                    // Fly = !Fly;
                 }
                 else if (test.KeyChar == 'Q' || test.KeyChar == 'q')
                 {

@@ -12,7 +12,7 @@ namespace EdgyLib.HitBox
 
         protected HitBox(int? force)
         {
-            Force = force ?? 100;
+            Force = force ?? 0;
         }
 
         public int Force { get; protected set; }
