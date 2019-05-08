@@ -46,7 +46,7 @@ namespace FlightLib
         /// <returns>true if null, false otherwise</returns>
         public bool IsNull()
         {
-            return Flag == 0 && Roll == 0 && Pitch == 0 && Yaw == 0 && Gaz == 0;
+            return Roll == 0 && Pitch == 0 && Yaw == 0 && Gaz == 0;
         }
 
         public override string ToString()
