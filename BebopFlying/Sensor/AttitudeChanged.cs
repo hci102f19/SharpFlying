@@ -16,11 +16,19 @@ namespace BebopFlying.Sensor
         {
         }
 
+
+        protected double BytesToDegrees(byte[] bytes, int idx)
+        {
+            float radians = BitConverter.ToSingle(bytes, idx);
+
+            return (radians * 180) / Math.PI;
+        }
+
         public override void Parse(byte[] sensorData)
         {
-            RollChanged = BitConverter.ToSingle(sensorData, 0);
-            PitchChanged = BitConverter.ToSingle(sensorData, 4);
-            YawChanged = BitConverter.ToSingle(sensorData, 8);
+            RollChanged = BytesToDegrees(sensorData, 0);
+            PitchChanged = BytesToDegrees(sensorData, 4);
+            YawChanged = BytesToDegrees(sensorData, 8);
         }
     }
 }
