@@ -20,9 +20,6 @@ namespace SharpFlying
 {
     internal class Program
     {
-        public static Thread AbortThread;
-        public static bool Fly = true;
-
         private static void Main(string[] args)
         {
             const int width = 640, height = 360;
@@ -31,8 +28,8 @@ namespace SharpFlying
             if (bebop.Connect() == ConnectionStatus.Success)
             {
                 bebop.FlatTrim(2000);
-                AbortThread = new Thread(Run);
-                AbortThread.Start();
+                Thread abortThread = new Thread(Run);
+                abortThread.Start();
 
                 bebop.StartVideo();
 
@@ -46,7 +43,7 @@ namespace SharpFlying
 
                 bebop.TakeOff();
 
-                while (AbortThread.IsAlive)
+                while (abortThread.IsAlive)
                 {
                     Image<Bgr, byte> frame = buffer.PopLastFrame();
                     if (frame != null)
@@ -63,9 +60,7 @@ namespace SharpFlying
                             }
                         }
 
-                        if (Fly)
-                            bebop.Move(v);
-                        //Console.WriteLine(v.ToString());
+                        bebop.Move(v);
                     }
                 }
 
@@ -84,12 +79,7 @@ namespace SharpFlying
             while (true)
             {
                 ConsoleKeyInfo test = Console.ReadKey();
-                if (test.KeyChar == 'E' || test.KeyChar == 'e')
-                {
-                    Console.WriteLine("WE FLY BOIS");
-                    // Fly = !Fly;
-                }
-                else if (test.KeyChar == 'Q' || test.KeyChar == 'q')
+                if (test.KeyChar == 'Q' || test.KeyChar == 'q')
                 {
                     return;
                 }

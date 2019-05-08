@@ -34,7 +34,7 @@ namespace FlightLib
         {
         }
 
-        public int Flag { get; set; }
+        public int Flag { get; set; } = 1;
         public int Roll { get; set; }
         public int Pitch { get; set; }
         public int Yaw { get; set; }

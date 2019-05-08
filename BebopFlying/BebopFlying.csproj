@@ -50,6 +50,7 @@
     <Compile Include="Exception\UnableToDetectDrone.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Sensor\Altitude.cs" />
+    <Compile Include="Sensor\AttitudeChanged.cs" />
     <Compile Include="Sensor\Battery.cs" />
     <Compile Include="Sensor\FlatTrimChanged.cs" />
     <Compile Include="Sensor\FlyingState.cs" />

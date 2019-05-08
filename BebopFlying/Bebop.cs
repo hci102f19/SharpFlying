@@ -83,10 +83,11 @@ namespace BebopFlying
 
         public bool IsRunning { get; protected set; } = true;
 
-        public Battery Battery { get; protected set; } = new Battery(0, 5, 1);
-        public FlyingState FlyingState { get; protected set; } = new FlyingState(1, 4, 1);
-        public Altitude Altitude { get; protected set; } = new Altitude(1, 4, 8);
+        public static Battery Battery { get; protected set; } = new Battery(0, 5, 1);
+        public static FlyingState FlyingState { get; protected set; } = new FlyingState(1, 4, 1);
+        public static Altitude Altitude { get; protected set; } = new Altitude(1, 4, 8);
         protected FlatTrimChanged FlatTrimChanged = new FlatTrimChanged(1, 4, 0);
+        public static AttitudeChanged AttitudeChanged = new AttitudeChanged(1, 4, 6);
 
         protected List<Sensor.Sensor> Sensors;
 
@@ -111,7 +112,8 @@ namespace BebopFlying
                 Battery,
                 FlyingState,
                 Altitude,
-                FlatTrimChanged
+                FlatTrimChanged,
+                AttitudeChanged
             };
         }
 
@@ -445,10 +447,10 @@ namespace BebopFlying
             }
 
             int projectId = data[0], classId = data[1], cmdId = BitConverter.ToInt16(data, 2);
-
             foreach (Sensor.Sensor sensor in Sensors)
                 if (sensor.Apply(projectId, classId, cmdId))
                     sensor.Parse(data.Skip(HandleOffset).ToArray());
+
 
             if (ack)
                 AckPacket(bufferId, packetSeqId);
@@ -663,8 +665,6 @@ namespace BebopFlying
                 int pitch = Clamp(FlyVector.Pitch, VectorMin, VectorMax);
                 int yaw = Clamp(FlyVector.Yaw, VectorMin, VectorMax);
                 int gaz = Clamp(FlyVector.Gaz, VectorMin, VectorMax);
-
-                Console.WriteLine("{0}, {1}, {2}", FlyVector.ToString(), roll, FlyVector.Flag);
 
 
                 CommandParam cmdParam = new CommandParam();
