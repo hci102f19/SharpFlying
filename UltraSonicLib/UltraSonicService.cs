@@ -132,7 +132,7 @@ namespace UltraSonicLib
                     if (Sensors.Left.Distance < _lastKnownDistanceUsedForCalcLeft)
                     {
                         //Udregner forskellen i procent af total distance
-                        var diffTotal = Difference(Sensors.Left.Distance, Sensors.Left.Distance + Sensors.Right.Distance) / (Sensors.Left.Distance + Sensors.Right.Distance);
+                        var diffTotal = Math.Abs((Sensors.Left.Distance - (Sensors.Right.Distance + Sensors.Left.Distance)) / (Sensors.Left.Distance + Sensors.Right.Distance));
                         //Hvis vi er over 15% til den ene side skal vi begynde at rette op (0.5 i midten)
                         if (diffTotal < 0.35)
                         {
