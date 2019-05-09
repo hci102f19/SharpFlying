@@ -24,6 +24,16 @@ namespace SharpFlying
         {
             const int width = 640, height = 360;
 
+/*            var us = new UltraSonicService();
+            us.Start();
+            while (true)
+            {
+                if (us.GetLatestResult() != null)
+                {
+
+                    //Console.WriteLine(us.GetLatestResult().Vector.ToString());
+                }
+            }*/
             Bebop bebop = new Bebop();
             if (bebop.Connect() == ConnectionStatus.Success)
             {
@@ -36,7 +46,7 @@ namespace SharpFlying
                 VideoCapture capture = new VideoCapture(@"./bebop.sdp");
                 StreamBuffer buffer = new StreamBuffer(capture, width, height);
 
-                // buffer.AddService(new Canny(width, height));
+                buffer.AddService(new Canny(width, height));
                 buffer.AddService(new UltraSonicService());
 
                 buffer.Start();

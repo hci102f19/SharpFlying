@@ -9,7 +9,7 @@ namespace UltraSonicLib
 {
     public class UltraSonicService : Service
     {
-        protected const int MinDistanceToWall = 20;
+        protected const int MinDistanceToWall = 30;
         protected readonly UDPClient Client = new UDPClient("192.168.4.1", 20002);
         protected Response Response;
         protected Sensors Sensors;
@@ -70,8 +70,7 @@ namespace UltraSonicLib
         {
             double totalDistance = f1 + f2;
             double sideValue = totalDistance / 2;
-
-            return (int) ((f1 > f2) ? (f2 - sideValue) : (f1 - sideValue));
+            return (int) (Math.Max(f1, f2) - sideValue);
         }
 
         private double _lastKnownDistanceUsedForCalcLeft = 0;
@@ -80,6 +79,8 @@ namespace UltraSonicLib
         private Vector CalculatePosition()
         {
             Vector movement = new Vector();
+            //Console.WriteLine("Left: {0} Right: {1}", Sensors.Left.Distance, Sensors.Right.Distance);
+            //return new Vector();
 
             foreach (Tuple<UltrasonicSensor, Vector> sensor in Sensors.GetSensors)
             {
@@ -94,10 +95,8 @@ namespace UltraSonicLib
 
             if (!movement.IsNull())
                 return movement;
-
             // Calculate side-to-side movements
-            int diff = Difference(Sensors.Left.Value, Sensors.Right.Value);
-
+            int diff = Difference(Sensors.Left.Distance, Sensors.Right.Distance);
             if (diff > 10)
             {
                 //Calc default val
