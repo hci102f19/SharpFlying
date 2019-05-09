@@ -76,7 +76,7 @@ namespace UltraSonicLib
         private double _lastKnownDistanceUsedForCalcLeft = 0;
         private double _lastKnownDistanceUsedForCalcRight = 0;
 
-        private Vector CalculatePosition()
+        protected Vector CalculatePosition()
         {
             Vector movement = new Vector();
             //Console.WriteLine("Left: {0} Right: {1}", Sensors.Left.Distance, Sensors.Right.Distance);
@@ -93,14 +93,30 @@ namespace UltraSonicLib
                 }
             }
 
-            if (!movement.IsNull())
-                return movement;
+            return (movement.IsNull()) ? PostCalculatePosition() : movement;
+            return (movement.IsNull()) ? PostCalculatePosition2() : movement;
+        }
+
+        protected Vector PostCalculatePosition2()
+        {
+            Vector movement = new Vector();
+
+
+            return movement;
+        }
+
+        private Vector PostCalculatePosition()
+        {
+            Vector movement = new Vector();
+
             // Calculate side-to-side movements
             int diff = Difference(Sensors.Left.Distance, Sensors.Right.Distance);
+
             if (diff > 10)
             {
                 //Calc default val
                 int movementValue = (int) ((Math.Abs(Sensors.Left.Distance - Sensors.Right.Distance) / 200) * 100);
+
                 //Vi skal til venstre!
                 if (Sensors.Left.Distance > Sensors.Right.Distance)
                 {
@@ -170,10 +186,10 @@ namespace UltraSonicLib
                         {
                             var deg = Bebop.AttitudeChanged.RollChanged;
                             //Venstre -> Negativ
-                            if (deg > 3)
+                            if (deg < -3)
                             {
                                 //Vi skal rette op! -20 ---> test værdi!
-                                movement.Roll = +20;
+                                movement.Roll = 20;
                                 _lastKnownDistanceUsedForCalcRight = Sensors.Right.Distance;
                                 return movement;
                             }
