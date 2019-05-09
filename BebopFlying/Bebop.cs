@@ -666,7 +666,7 @@ namespace BebopFlying
                 int yaw = Clamp(FlyVector.Yaw, VectorMin, VectorMax);
                 int gaz = Clamp(FlyVector.Gaz, VectorMin, VectorMax);
 
-
+                Console.WriteLine(FlyVector.ToString());
                 CommandParam cmdParam = new CommandParam();
 
                 // cmdParam.AddData((byte) FlyVector.Flag);

@@ -21,9 +21,9 @@ namespace UltraSonicLib
 
         public List<Tuple<UltrasonicSensor, Vector>> GetSensors => new List<Tuple<UltrasonicSensor, Vector>>
         {
-            new Tuple<UltrasonicSensor, Vector>(Front, new Vector(pitch: 50)),
+            new Tuple<UltrasonicSensor, Vector>(Front, new Vector(pitch: 100)),
             new Tuple<UltrasonicSensor, Vector>(Right, new Vector()),
-            new Tuple<UltrasonicSensor, Vector>(Back, new Vector(pitch: -50)),
+            new Tuple<UltrasonicSensor, Vector>(Back, new Vector(pitch: -100)),
             new Tuple<UltrasonicSensor, Vector>(Left, new Vector())
         };
     }
