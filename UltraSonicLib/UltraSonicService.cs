@@ -77,7 +77,7 @@ namespace UltraSonicLib
         private double _lastKnownDistanceUsedForCalcLeft = 0;
         private double _lastKnownDistanceUsedForCalcRight = 0;
 
-        private Vector CalculatePosition()
+        protected Vector CalculatePosition()
         {
             Vector movement = new Vector();
 
@@ -92,8 +92,21 @@ namespace UltraSonicLib
                 }
             }
 
-            if (!movement.IsNull())
-                return movement;
+            return (movement.IsNull()) ? PostCalculatePosition() : movement;
+            return (movement.IsNull()) ? PostCalculatePosition2() : movement;
+        }
+
+        protected Vector PostCalculatePosition2()
+        {
+            Vector movement = new Vector();
+
+
+            return movement;
+        }
+
+        private Vector PostCalculatePosition()
+        {
+            Vector movement = new Vector();
 
             // Calculate side-to-side movements
             int diff = Difference(Sensors.Left.Value, Sensors.Right.Value);
