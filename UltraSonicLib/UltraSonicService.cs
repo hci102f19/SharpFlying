@@ -115,13 +115,13 @@ namespace UltraSonicLib
             if (diff > 10)
             {
                 //Calc default val
-                int movementValue = (int) ((Math.Abs(Sensors.Left.Distance - Sensors.Right.Distance) / 200) * 100);
+                int movementValue = Map(diff, 1, (float) (Sensors.Left.Distance + Sensors.Right.Distance), 1, 50);
 
                 //Vi skal til venstre!
                 if (Sensors.Left.Distance > Sensors.Right.Distance)
                 {
                     //Er det første gang vi flyver til venstre?
-                    if (Math.Abs(_lastKnownDistanceUsedForCalcLeft) < 0.01)
+                    if (_lastKnownDistanceUsedForCalcLeft == 0)
                     {
                         //"Standard movement"
                         movement.Roll = movementValue;
@@ -143,7 +143,7 @@ namespace UltraSonicLib
                             if (deg > 3)
                             {
                                 //Vi skal rette op! -20 ---> test værdi!
-                                movement.Roll = -20;
+                                movement.Roll = -10;
                                 _lastKnownDistanceUsedForCalcLeft = Sensors.Left.Distance;
                                 return movement;
                             }
@@ -167,7 +167,7 @@ namespace UltraSonicLib
                 if (Sensors.Right.Distance > Sensors.Left.Distance)
                 {
                     //Er det første gang vi flyver til venstre?
-                    if (Math.Abs(_lastKnownDistanceUsedForCalcRight) < 0.01)
+                    if (_lastKnownDistanceUsedForCalcRight == 0)
                     {
                         //"Standard movement"
                         movement.Roll = movementValue;
@@ -189,7 +189,7 @@ namespace UltraSonicLib
                             if (deg < -3)
                             {
                                 //Vi skal rette op! -20 ---> test værdi!
-                                movement.Roll = 20;
+                                movement.Roll = 10;
                                 _lastKnownDistanceUsedForCalcRight = Sensors.Right.Distance;
                                 return movement;
                             }
@@ -211,6 +211,21 @@ namespace UltraSonicLib
             }
 
             return movement;
+        }
+
+        /// <summary>
+        /// Accepts a value and a range of the value together with another range
+        /// Then it maps the value to the second range
+        /// </summary>
+        /// <param name="inputVal">Value to map to new range</param>
+        /// <param name="inputMin">Input range minimum</param>
+        /// <param name="inputMax">Input range maximum</param>
+        /// <param name="outputMin">Output range minimum</param>
+        /// <param name="outputMax">Output range maximum</param>
+        /// <returns></returns>
+        public static int Map(float inputVal, float inputMin, float inputMax, float outputMin, float outputMax)
+        {
+            return (int) ((inputVal - inputMin) * (outputMax - outputMin) / (inputMax - inputMin) + outputMin);
         }
 
         public override Response GetLatestResult()
