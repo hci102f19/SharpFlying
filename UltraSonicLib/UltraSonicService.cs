@@ -95,7 +95,6 @@ namespace UltraSonicLib
             }
 
             return (movement.IsNull()) ? PostCalculatePosition() : movement;
-            return (movement.IsNull()) ? PostCalculatePosition2() : movement;
         }
 
 
@@ -114,7 +113,7 @@ namespace UltraSonicLib
             // Should be 10 cm more to one side for us to react
             if (diff > 10)
             {
-                if (Sensors.Left.Value > Sensors.Right.Value)
+                if (Sensors.Left.Distance < Sensors.Right.Distance)
                 {
                     // 20 = 1 Deg
                     // Go right
