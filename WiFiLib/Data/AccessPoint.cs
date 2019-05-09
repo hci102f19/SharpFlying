@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using System;
+using Newtonsoft.Json;
 
 namespace WiFiLib.Data
 {
@@ -16,8 +17,20 @@ namespace WiFiLib.Data
         [JsonProperty("signal")]
         public double Signal { get; protected set; }
 
+        [JsonProperty("frequency")]
+        public int Frequency { get; protected set; }
+
         [JsonProperty("distance")]
         public double Distance { get; protected set; }
 
+        public double Radius()
+        {
+            return Math.Round(Math.Pow(10, (27.55 - (20 * Math.Log10(Frequency)) + Math.Abs(Signal)) / 20), 2);
+        }
+
+        public double Area()
+        {
+            return Math.PI * Radius() * 2;
+        }
     }
 }

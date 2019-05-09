@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using ServiceLib;
 using UDPBase;
 using UDPBase.Exception;
 using WiFiLib.Data;
+using WiFiLib.Persistence;
 
 namespace WiFiLib
 {
@@ -30,6 +33,7 @@ namespace WiFiLib
                         continue;
 
                     Network = data;
+                    CalculatePosition();
                 }
                 catch (ServerStoppedRespondingException)
                 {
@@ -63,7 +67,21 @@ namespace WiFiLib
 
         protected void CalculatePosition()
         {
-            Console.WriteLine("TEST");
+            List<Tuple<AccessPoint, Node>> ListAccessPoints = new List<Tuple<AccessPoint, Node>>();
+
+            foreach (AccessPoint accessPoint in Network.AccessPoints)
+            {
+                foreach (Node node in NetworkMap.Nodes)
+                {
+                    if (accessPoint.Mac == node.Mac)
+                        ListAccessPoints.Add(new Tuple<AccessPoint, Node>(accessPoint, node));
+                }
+            }
+
+
+            Tuple<AccessPoint, Node> NearestAP = ListAccessPoints.OrderBy(p => p.Item1.Area()).First();
+
+            // Do map stuff
         }
 
         public override Response GetLatestResult()
