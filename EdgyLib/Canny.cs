@@ -172,12 +172,12 @@ namespace EdgyLib
                     {
                         if (Confidence < 100)
                         {
-                            Confidence = Confidence >= 100 ? 100 : Confidence + 1f;
+                            Confidence = Confidence >= 100 ? 100 : Confidence + 5f;
                         }
                     }
                     else
                     {
-                        Confidence = 1;
+                        Confidence = 10;
                     }
                 }
 

@@ -11,6 +11,7 @@ namespace UltraSonicLib
     {
         protected const int MinDistanceToWall = 30;
         protected readonly UDPClient Client = new UDPClient("192.168.4.1", 20002);
+
         protected Response Response;
         protected Sensors Sensors;
 
@@ -87,11 +88,24 @@ namespace UltraSonicLib
 
                 if (sensor.Item1.Distance < MinDistanceToWall)
                 {
-                    movement.Add(sensor.Item2.TimesConstant(-1));
+                    Vector vec = sensor.Item2.Copy();
+                    movement.Add(vec.TimesConstant(-1));
                 }
             }
 
-            return movement.IsNull() ? PostCalculatePosition() : movement;
+            if (movement.IsNull())
+            {
+                Console.WriteLine("Left: {0} - Right {1}", Sensors.Left.Distance, Sensors.Right.Distance);
+                Console.WriteLine("Vi er null");
+                return PostCalculatePosition();
+            }
+            else
+            {
+                Console.WriteLine("Not null!");
+                return movement;
+            }
+
+            //return movement.IsNull() ? PostCalculatePosition() : movement;
         }
 
         protected double Left = 0, Right = 0;
@@ -99,7 +113,8 @@ namespace UltraSonicLib
         protected Vector PostCalculatePosition()
         {
             Vector movement = new Vector();
-
+            //double deg = Math.Abs(Bebop.AttitudeChanged.RollChanged);
+            //Console.WriteLine("Degree: {0} - Left: {1} - Right {2}",deg, Sensors.Left.Distance, Sensors.Right.Distance);
             // Calculate side-to-side movements
             int diff = Difference(Sensors.Left.Distance, Sensors.Right.Distance);
 
@@ -108,7 +123,7 @@ namespace UltraSonicLib
                 // Vi skal til venstre!
                 if (Sensors.Left.Distance > Sensors.Right.Distance)
                 {
-                    movement.Roll = CalculateDirection(diff, Sensors.Left.Distance, Sensors.Right.Distance, Sensors.Left.Distance < Left);
+                    movement.Roll = CalculateDirection(diff, Sensors.Left.Distance, Sensors.Right.Distance, Sensors.Left.Distance < Left, -0.4);
                     SetLastReading();
                     return movement;
                 }
@@ -116,7 +131,7 @@ namespace UltraSonicLib
                 // Vi skal til højre!
                 if (Sensors.Right.Distance > Sensors.Left.Distance)
                 {
-                    movement.Roll = -CalculateDirection(diff, Sensors.Right.Distance, Sensors.Left.Distance, Sensors.Right.Distance < Right);
+                    movement.Roll = -CalculateDirection(diff, Sensors.Right.Distance, Sensors.Left.Distance, Sensors.Right.Distance < Right, 0.4);
                     SetLastReading();
                     return movement;
                 }
@@ -131,30 +146,33 @@ namespace UltraSonicLib
             Right = Sensors.Right.Distance;
         }
 
-        protected int CalculateDirection(int diff, double f1, double f2, bool wrongWay)
+        protected int CalculateDirection(int diff, double f1, double f2, bool wrongWay, double maxDegree)
         {
             //Calc default val
-            int movementValue = Map(diff, 1, (float) (f1 + f2), 1, 50);
+            int movementValue = Map(diff, 10, (float) (f1 + f2), 50, 100);
 
             //Udregner forskellen i procent af total distance
             double diffTotal = Math.Abs((f1 - (f2 + f1)) / (f1 + f2));
 
             if (wrongWay)
             {
-                if (diffTotal < 0.35)
+                if (diffTotal < 0.25)
                 {
                     double deg = Bebop.AttitudeChanged.RollChanged;
-
-                    if (deg > 3)
+                    //Console.WriteLine("Hældning: {0} ",deg);
+                    if (deg > maxDegree)
                     {
                         //Vi skal rette op! -20 ---> test værdi!
-                        return -10;
+                        Console.WriteLine("Håndter angle");
+                        return -100;
                     }
                 }
 
+                //Console.WriteLine("Regular movement: {0}",movementValue);
                 return movementValue;
             }
 
+            //Console.WriteLine("Negative movement: {0}", -movementValue);
             return -movementValue;
         }
 

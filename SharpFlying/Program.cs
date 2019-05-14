@@ -78,9 +78,9 @@ namespace SharpFlying
                     }
                 }
                 sw.Stop();
+                Console.WriteLine("\n" + sw.ElapsedMilliseconds + "ms");
                 buffer.Stop();
                 bebop.Land();
-                Console.WriteLine("\n" + sw.ElapsedMilliseconds + "ms");
                 bebop.StopVideo();
                 bebop.Disconnect();
             }
