@@ -71,7 +71,7 @@ namespace UltraSonicLib
             double totalDistance = f1 + f2;
             double sideValue = totalDistance / 2;
 
-            return (int) (Math.Max(f1, f2) - sideValue);
+            return (int)(Math.Max(f1, f2) - sideValue);
         }
 
         private double _lastKnownDistanceUsedForCalcLeft = 0;
@@ -97,75 +97,6 @@ namespace UltraSonicLib
             return (movement.IsNull()) ? PostCalculatePosition() : movement;
         }
 
-
-        protected Vector PostCalculatePosition2()
-        {
-            Vector movement = new Vector();
-            int diff = Difference(Sensors.Left.Distance, Sensors.Right.Distance);
-
-            // - Goes towards Left
-            // + Goes towards Right
-            double roll = Bebop.AttitudeChanged.RollChanged;
-
-            int rollMax = 1, bebopMaxRoll = 5;
-            double rollTolerance = 0.15;
-
-            // Should be 10 cm more to one side for us to react
-            if (diff > 10)
-            {
-                if (Sensors.Left.Distance < Sensors.Right.Distance)
-                {
-                    // 20 = 1 Deg
-                    // Go right
-                    if (Math.Abs(roll - rollMax) < rollTolerance)
-                    {
-                        // Right power: 20
-                        movement.Roll = 20;
-                    }
-                    else if (roll < rollMax)
-                    {
-                        // Too little power: 100
-                        movement.Roll = 100;
-                    }
-                    else
-                    {
-                        // Too much power
-                        // 0 - -100
-                        double rollPower = -(((roll - rollMax) / (bebopMaxRoll - rollMax)) * 100);
-                        movement.Roll = (int) Math.Round(rollPower, 0);
-                    }
-
-                    Console.WriteLine("WE GO RIGHT: {0}", movement.Roll);
-                }
-                else
-                {
-                    // 20 = 1 Deg
-                    // Go left
-                    if (Math.Abs(roll - rollMax) < rollTolerance)
-                    {
-                        // Left power: -20
-                        movement.Roll = -20;
-                    }
-                    else if (roll > rollMax)
-                    {
-                        // Too little power: -100
-                        movement.Roll = -100;
-                    }
-                    else
-                    {
-                        // Too much power
-                        // 0 - 100
-                        double rollPower = (((roll - rollMax) / (bebopMaxRoll - rollMax)) * 100);
-                        movement.Roll = (int) Math.Round(rollPower, 0);
-                    }
-
-                    Console.WriteLine("WE GO LEFT: {0}", movement.Roll);
-                }
-            }
-
-            return movement;
-        }
-
         private Vector PostCalculatePosition()
         {
             Vector movement = new Vector();
@@ -176,7 +107,7 @@ namespace UltraSonicLib
             if (diff > 10)
             {
                 //Calc default val
-                int movementValue = Map(diff, 1, (float) (Sensors.Left.Distance + Sensors.Right.Distance), 1, 50);
+                int movementValue = Map(diff, 1, (float)(Sensors.Left.Distance + Sensors.Right.Distance), 1, 50);
 
                 //Vi skal til venstre!
                 if (Sensors.Left.Distance > Sensors.Right.Distance)
@@ -286,7 +217,7 @@ namespace UltraSonicLib
         /// <returns></returns>
         public static int Map(float inputVal, float inputMin, float inputMax, float outputMin, float outputMax)
         {
-            return (int) ((inputVal - inputMin) * (outputMax - outputMin) / (inputMax - inputMin) + outputMin);
+            return (int)((inputVal - inputMin) * (outputMax - outputMin) / (inputMax - inputMin) + outputMin);
         }
 
         public override Response GetLatestResult()

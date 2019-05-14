@@ -1,4 +1,4 @@
-﻿using Emgu.CV;
+using Emgu.CV;
 using Emgu.CV.Structure;
 using Geometry.Base;
 using SDPoint = System.Drawing.Point;

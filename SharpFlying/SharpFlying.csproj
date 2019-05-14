@@ -76,9 +76,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="License-LGPL.txt" />
-    <Content Include="video.v2.mp4">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
   <ItemGroup>
     <WCFMetadata Include="Connected Services\" />
@@ -107,6 +104,10 @@
     <ProjectReference Include="..\VidBuffLib\VidBuffLib.csproj">
       <Project>{129df76e-94fb-4098-809a-f2e58298c9c6}</Project>
       <Name>VidBuffLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\WiFiLib\WiFiLib.csproj">
+      <Project>{D26B14F4-8206-4476-A997-814D126D3DEF}</Project>
+      <Name>WiFiLib</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
