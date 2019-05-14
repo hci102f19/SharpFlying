@@ -182,10 +182,21 @@ namespace EdgyLib
                 }
 
                 Vector vector = BoxContainer.Hit(Filtering.GetMean());
+                try
+                {
+                    ((RenderPoint) Filtering.GetMean()).Render(frame);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("FAK FRAME");
+                }
 
                 LatestResponse = !vector.IsNull()
                     ? new Response(true, BoxContainer.Hit(Filtering.GetMean()), Confidence)
                     : new Response(false, null);
+
+                CvInvoke.Imshow("frame", frame);
+                CvInvoke.WaitKey(1);
             }
         }
 

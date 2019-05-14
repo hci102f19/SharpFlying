@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net.NetworkInformation;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -35,6 +36,7 @@ namespace SharpFlying
                 }
             }*/
             Bebop bebop = new Bebop();
+            Stopwatch sw = new Stopwatch();
             if (bebop.Connect() == ConnectionStatus.Success)
             {
                 bebop.FlatTrim(2000);
@@ -52,30 +54,33 @@ namespace SharpFlying
                 buffer.Start();
 
                 bebop.TakeOff();
-
+                sw.Start();
                 while (abortThread.IsAlive)
                 {
                     Image<Bgr, byte> frame = buffer.PopLastFrame();
                     if (frame != null)
                     {
                         buffer.TransmitFrame(frame);
-                        Vector v = new Vector();
-
+                        Vector v = new Vector {Pitch = 15};
                         foreach (Service service in buffer.Services)
                         {
                             Response r = service.GetLatestResult();
                             if (r != null && r.IsValid)
                             {
-                                v.Add(r.Vector);
+                                Vector vec = r.Vector.Copy();
+                                vec.TimesConstant(r.Confidence / 100);
+                                
+                                v.Add(vec);
                             }
                         }
 
                         bebop.Move(v);
                     }
                 }
-
+                sw.Stop();
                 buffer.Stop();
                 bebop.Land();
+                Console.WriteLine("\n" + sw.ElapsedMilliseconds + "ms");
                 bebop.StopVideo();
                 bebop.Disconnect();
             }

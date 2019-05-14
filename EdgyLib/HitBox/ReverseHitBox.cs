@@ -60,7 +60,7 @@ namespace EdgyLib.HitBox
             double center = (double) Width / 2;
             int force = (int) Math.Round((center - movement) / center * 100, 0);
 
-            return force.Clamp(-100, 100);
+            return -force.Clamp(-100, 100);
         }
     }
 }
