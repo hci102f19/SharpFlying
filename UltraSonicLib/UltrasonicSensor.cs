@@ -12,14 +12,14 @@ namespace UltraSonicLib
             else return val;
         }
 
-        protected double iDistance = 0;
+        protected double InternalDistance = 0;
 
         [JsonProperty("distance")]
         //TODO: Should we do this?
         public double Distance
         {
-            get => iDistance;
-            protected set => iDistance = Clamp(value, 0, 200);
+            get => InternalDistance;
+            protected set => InternalDistance = Clamp(value, 0, 200);
         }
 
         [JsonProperty("value")] public double Value { get; protected set; }

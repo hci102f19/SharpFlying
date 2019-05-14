@@ -71,22 +71,19 @@ namespace UltraSonicLib
             double totalDistance = f1 + f2;
             double sideValue = totalDistance / 2;
 
-            return (int)(Math.Max(f1, f2) - sideValue);
+            return (int) (Math.Max(f1, f2) - sideValue);
         }
-
-        private double _lastKnownDistanceUsedForCalcLeft = 0;
-        private double _lastKnownDistanceUsedForCalcRight = 0;
 
         protected Vector CalculatePosition()
         {
             Vector movement = new Vector();
-            //Console.WriteLine("Left: {0} Right: {1}", Sensors.Left.Distance, Sensors.Right.Distance);
-            //return new Vector();
 
             foreach (Tuple<UltrasonicSensor, Vector> sensor in Sensors.GetSensors)
             {
                 if (sensor.Item1.Value < 0)
+                {
                     continue;
+                }
 
                 if (sensor.Item1.Distance < MinDistanceToWall)
                 {
@@ -94,10 +91,12 @@ namespace UltraSonicLib
                 }
             }
 
-            return (movement.IsNull()) ? PostCalculatePosition() : movement;
+            return movement.IsNull() ? PostCalculatePosition() : movement;
         }
 
-        private Vector PostCalculatePosition()
+        protected double Left = 0, Right = 0;
+
+        protected Vector PostCalculatePosition()
         {
             Vector movement = new Vector();
 
@@ -106,103 +105,57 @@ namespace UltraSonicLib
 
             if (diff > 10)
             {
-                //Calc default val
-                int movementValue = Map(diff, 1, (float)(Sensors.Left.Distance + Sensors.Right.Distance), 1, 50);
-
-                //Vi skal til venstre!
+                // Vi skal til venstre!
                 if (Sensors.Left.Distance > Sensors.Right.Distance)
                 {
-                    //Er det første gang vi flyver til venstre?
-                    if (_lastKnownDistanceUsedForCalcLeft == 0)
-                    {
-                        //"Standard movement"
-                        movement.Roll = movementValue;
-                        //Gem sidste distance
-                        _lastKnownDistanceUsedForCalcLeft = Sensors.Left.Distance;
-                        return movement;
-                    }
-
-                    //Er vi længere væk end sidst?
-                    if (Sensors.Left.Distance < _lastKnownDistanceUsedForCalcLeft)
-                    {
-                        //Udregner forskellen i procent af total distance
-                        var diffTotal = Math.Abs((Sensors.Left.Distance - (Sensors.Right.Distance + Sensors.Left.Distance)) / (Sensors.Left.Distance + Sensors.Right.Distance));
-                        //Hvis vi er over 15% til den ene side skal vi begynde at rette op (0.5 i midten)
-                        if (diffTotal < 0.35)
-                        {
-                            var deg = Bebop.AttitudeChanged.RollChanged;
-                            //Venstre -> Negativ
-                            if (deg > 3)
-                            {
-                                //Vi skal rette op! -20 ---> test værdi!
-                                movement.Roll = -10;
-                                _lastKnownDistanceUsedForCalcLeft = Sensors.Left.Distance;
-                                return movement;
-                            }
-                        }
-                        else
-                        {
-                            // Vi er relativt langt væk fra midten; Lav alm movement
-                            movement.Roll = movementValue;
-                            //Gem sidste distance
-                            _lastKnownDistanceUsedForCalcLeft = Sensors.Left.Distance;
-                            return movement;
-                        }
-                    }
-
-                    movement.Roll = -movementValue;
-                    _lastKnownDistanceUsedForCalcLeft = Sensors.Left.Distance;
+                    movement.Roll = CalculateDirection(diff, Sensors.Left.Distance, Sensors.Right.Distance, Sensors.Left.Distance < Left);
+                    SetLastReading();
                     return movement;
                 }
 
-                //Vi skal til højre!
+                // Vi skal til højre!
                 if (Sensors.Right.Distance > Sensors.Left.Distance)
                 {
-                    //Er det første gang vi flyver til venstre?
-                    if (_lastKnownDistanceUsedForCalcRight == 0)
-                    {
-                        //"Standard movement"
-                        movement.Roll = movementValue;
-                        //Gem sidste distance
-                        _lastKnownDistanceUsedForCalcRight = Sensors.Left.Distance;
-                        return movement;
-                    }
-
-                    //Er vi længere væk end sidst?
-                    if (Sensors.Left.Distance < _lastKnownDistanceUsedForCalcRight)
-                    {
-                        //Udregner forskellen i procent af total distance
-                        var diffTotal = Difference(Sensors.Right.Distance, Sensors.Left.Distance + Sensors.Right.Distance) / (Sensors.Left.Distance + Sensors.Right.Distance);
-                        //Hvis vi er over 15% til den ene side skal vi begynde at rette op (0.5 i midten)
-                        if (diffTotal < 0.35)
-                        {
-                            var deg = Bebop.AttitudeChanged.RollChanged;
-                            //Venstre -> Negativ
-                            if (deg < -3)
-                            {
-                                //Vi skal rette op! -20 ---> test værdi!
-                                movement.Roll = 10;
-                                _lastKnownDistanceUsedForCalcRight = Sensors.Right.Distance;
-                                return movement;
-                            }
-                        }
-                        else
-                        {
-                            // Vi er relativt langt væk fra midten; Lav alm movement
-                            movement.Roll = -movementValue;
-                            //Gem sidste distance
-                            _lastKnownDistanceUsedForCalcRight = Sensors.Right.Distance;
-                            return movement;
-                        }
-                    }
-
-                    movement.Roll = movementValue;
-                    _lastKnownDistanceUsedForCalcRight = Sensors.Right.Distance;
+                    movement.Roll = -CalculateDirection(diff, Sensors.Right.Distance, Sensors.Left.Distance, Sensors.Right.Distance < Right);
+                    SetLastReading();
                     return movement;
                 }
             }
 
             return movement;
+        }
+
+        protected void SetLastReading()
+        {
+            Left = Sensors.Left.Distance;
+            Right = Sensors.Right.Distance;
+        }
+
+        protected int CalculateDirection(int diff, double f1, double f2, bool wrongWay)
+        {
+            //Calc default val
+            int movementValue = Map(diff, 1, (float) (f1 + f2), 1, 50);
+
+            //Udregner forskellen i procent af total distance
+            double diffTotal = Math.Abs((f1 - (f2 + f1)) / (f1 + f2));
+
+            if (wrongWay)
+            {
+                if (diffTotal < 0.35)
+                {
+                    double deg = Bebop.AttitudeChanged.RollChanged;
+
+                    if (deg > 3)
+                    {
+                        //Vi skal rette op! -20 ---> test værdi!
+                        return -10;
+                    }
+                }
+
+                return movementValue;
+            }
+
+            return -movementValue;
         }
 
         /// <summary>
@@ -217,7 +170,7 @@ namespace UltraSonicLib
         /// <returns></returns>
         public static int Map(float inputVal, float inputMin, float inputMax, float outputMin, float outputMax)
         {
-            return (int)((inputVal - inputMin) * (outputMax - outputMin) / (inputMax - inputMin) + outputMin);
+            return (int) ((inputVal - inputMin) * (outputMax - outputMin) / (inputMax - inputMin) + outputMin);
         }
 
         public override Response GetLatestResult()
