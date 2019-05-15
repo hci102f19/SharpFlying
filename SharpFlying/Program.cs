@@ -25,16 +25,6 @@ namespace SharpFlying
         {
             const int width = 640, height = 360;
 
-/*            var us = new UltraSonicService();
-            us.Start();
-            while (true)
-            {
-                if (us.GetLatestResult() != null)
-                {
-
-                    //Console.WriteLine(us.GetLatestResult().Vector.ToString());
-                }
-            }*/
             Bebop bebop = new Bebop();
             Stopwatch sw = new Stopwatch();
             if (bebop.Connect() == ConnectionStatus.Success)

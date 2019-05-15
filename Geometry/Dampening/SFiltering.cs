@@ -93,7 +93,6 @@ namespace Geometry.Dampening
 
                 if (RejectedPoints.Count >= HistorySize && !Deviate(RejectedPoints, point))
                 {
-                    Console.WriteLine("SETTING NEW POINTS LIST!");
                     CurrentPoints = RejectedPoints.CopyToList();
                     RejectedPoints.Clear();
                     return false;

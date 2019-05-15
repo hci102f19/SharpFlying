@@ -442,7 +442,8 @@ namespace BebopFlying
             Logger.Debug("Sensor update");
             if (data.Length == 0)
             {
-                Logger.Error("DATA IS NULL YOU FACKERS!");
+                Logger.Error("Invalid sensor data");
+                Logger.Debug($"dataType: {dataType}, bufferId: {bufferId}, packetSeqId: {packetSeqId}");
                 return;
             }
 
@@ -666,11 +667,9 @@ namespace BebopFlying
                 int yaw = Clamp(FlyVector.Yaw, VectorMin, VectorMax);
                 int gaz = Clamp(FlyVector.Gaz, VectorMin, VectorMax);
 
-                Console.WriteLine(FlyVector.ToString());
                 CommandParam cmdParam = new CommandParam();
 
-                // cmdParam.AddData((byte) FlyVector.Flag);
-                cmdParam.AddData((byte) 1);
+                cmdParam.AddData((byte) FlyVector.Flag);
                 cmdParam.AddData((sbyte) roll);
                 cmdParam.AddData((sbyte) pitch);
                 cmdParam.AddData((sbyte) yaw);

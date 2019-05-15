@@ -188,7 +188,6 @@ namespace EdgyLib
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine("FAK FRAME");
                 }
 
                 LatestResponse = !vector.IsNull()
