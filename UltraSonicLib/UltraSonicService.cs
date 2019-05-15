@@ -72,7 +72,7 @@ namespace UltraSonicLib
             double totalDistance = f1 + f2;
             double sideValue = totalDistance / 2;
 
-            return (int) (Math.Max(f1, f2) - sideValue);
+            return (int) ((Math.Max(f1, f2) - sideValue) * 2);
         }
 
         protected Vector CalculatePosition()
@@ -95,13 +95,13 @@ namespace UltraSonicLib
 
             if (movement.IsNull())
             {
-                Console.WriteLine("Left: {0} - Right {1}", Sensors.Left.Distance, Sensors.Right.Distance);
-                Console.WriteLine("Vi er null");
-                return PostCalculatePosition();
+                //Console.WriteLine("Left: {0} - Right {1}", Sensors.Left.Distance, Sensors.Right.Distance);
+                //Console.WriteLine("Vi er null");
+                return PostCalculatePosition2();
             }
             else
             {
-                Console.WriteLine("Not null!");
+                //Console.WriteLine("Not null!");
                 return movement;
             }
 
@@ -164,7 +164,11 @@ namespace UltraSonicLib
 
             // Await first reading
             if (Left == 0 && Right == 0)
+            {
+                SetLastReading();
                 return movement;
+            }
+                
 
             // We are trying to center us!
             if (CurrentDirection != Direction.Center || CurrentDirection != Direction.None)
@@ -189,10 +193,14 @@ namespace UltraSonicLib
                     }
                 }
             }
-
+           // Console.WriteLine("CTRL");
             if (!movement.IsNull())
+            {
+                SetLastReading();
                 return movement;
-
+            }
+               
+            
             int diff = Difference(Sensors.Left.Distance, Sensors.Right.Distance);
             if (diff > 10)
             {
@@ -239,9 +247,10 @@ namespace UltraSonicLib
             else
             {
                 Console.WriteLine("FUK YA, WE SENDER BOIS!");
+                Console.WriteLine("Diff: {0} - Left: {1} - Right {2}",diff, Sensors.Left.Distance, Sensors.Right.Distance);
                 CurrentDirection = Direction.Center;
             }
-
+            SetLastReading();
             return movement;
         }
 
