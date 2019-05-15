@@ -118,6 +118,7 @@ namespace UltraSonicLib
             // Calculate side-to-side movements
             int diff = Difference(Sensors.Left.Distance, Sensors.Right.Distance);
 
+
             if (diff > 10)
             {
                 // Vi skal til venstre!
@@ -144,6 +145,100 @@ namespace UltraSonicLib
         {
             Left = Sensors.Left.Distance;
             Right = Sensors.Right.Distance;
+        }
+
+        protected enum Direction
+        {
+            None,
+            Center,
+            Left,
+            Right
+        }
+
+        protected Direction CurrentDirection = Direction.None;
+
+        protected Vector PostCalculatePosition2()
+        {
+            Vector movement = new Vector();
+            const int flyValue = 50;
+
+            // Await first reading
+            if (Left == 0 && Right == 0)
+                return movement;
+
+            // We are trying to center us!
+            if (CurrentDirection != Direction.Center || CurrentDirection != Direction.None)
+            {
+                if (CurrentDirection == Direction.Left)
+                {
+                    if (Sensors.Left.Distance < Sensors.Right.Distance)
+                    {
+                        movement.Roll = flyValue;
+                    }
+                }
+
+                if (CurrentDirection == Direction.Right)
+                {
+                    if (Sensors.Right.Distance < Sensors.Left.Distance)
+                    {
+                        movement.Roll = -flyValue;
+                    }
+                }
+            }
+
+            if (!movement.IsNull())
+                return movement;
+
+            int diff = Difference(Sensors.Left.Distance, Sensors.Right.Distance);
+            if (diff > 10)
+            {
+                // Til venstre
+                if (Sensors.Left.Distance > Sensors.Right.Distance)
+                {
+                    // Har vi sendt den første pakke?
+                    if (CurrentDirection == Direction.Left)
+                    {
+                        // We are not moving left yet?
+                        if (Sensors.Left.Distance > Left)
+                        {
+                            movement.Roll = -flyValue;
+                        }
+                    }
+                    else
+                    {
+                        movement.Roll = -flyValue;
+                    }
+
+
+                    CurrentDirection = Direction.Left;
+                }
+                // Til højre
+                else
+                {
+                    // Har vi sendt den første pakke?
+                    if (CurrentDirection == Direction.Right)
+                    {
+                        // We are not moving left yet?
+                        if (Sensors.Right.Distance > Right)
+                        {
+                            movement.Roll = flyValue;
+                        }
+                    }
+                    else
+                    {
+                        movement.Roll = flyValue;
+                    }
+
+                    CurrentDirection = Direction.Right;
+                }
+            }
+            else
+            {
+                Console.WriteLine("FUK YA, WE SENDER BOIS!");
+                CurrentDirection = Direction.Center;
+            }
+
+            return movement;
         }
 
         protected int CalculateDirection(int diff, double f1, double f2, bool wrongWay, double maxDegree)
