@@ -248,10 +248,10 @@ namespace UltraSonicLib
             // If we did not move enough, give it a bit more
             else if (f1 - previousValue < MovementDistance)
             {
-                return -(FlyValue / 2);
+                //return -(FlyValue / 2);
             }
 
-            Console.WriteLine("FAK");
+            //Console.WriteLine("FAK");
             return 0;
         }
 

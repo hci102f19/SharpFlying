@@ -61,7 +61,7 @@ namespace SharpFlying
                     if (frame != null)
                     {
                         buffer.TransmitFrame(frame);
-                        Vector v = new Vector {Pitch = 15};
+                        Vector v = new Vector {Pitch = 1};
                         foreach (Service service in buffer.Services)
                         {
                             Response r = service.GetLatestResult();
