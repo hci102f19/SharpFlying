@@ -171,17 +171,21 @@ namespace UltraSonicLib
             {
                 if (CurrentDirection == Direction.Left)
                 {
+                    // We there bois!
                     if (Sensors.Left.Distance < Sensors.Right.Distance)
                     {
                         movement.Roll = flyValue;
+                        CurrentDirection = Direction.Center;
                     }
                 }
 
                 if (CurrentDirection == Direction.Right)
                 {
+                    // We there bois!
                     if (Sensors.Right.Distance < Sensors.Left.Distance)
                     {
                         movement.Roll = -flyValue;
+                        CurrentDirection = Direction.Center;
                     }
                 }
             }
