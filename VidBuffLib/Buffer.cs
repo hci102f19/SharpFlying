@@ -108,7 +108,6 @@ namespace VidBuffLib
 
             BufferThread = new Thread(Run);
             BufferThread.Start();
-            //Task.Factory.StartNew(Run);
         }
 
         protected virtual void Run()

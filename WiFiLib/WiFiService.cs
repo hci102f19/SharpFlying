@@ -84,8 +84,6 @@ namespace WiFiLib
 
 
             Tuple<AccessPoint, Node> NearestAP = ListAccessPoints.OrderBy(p => p.Item1.Area()).First();
-
-            // Do map stuff
         }
 
         public override Response GetLatestResult()
