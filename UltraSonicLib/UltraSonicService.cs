@@ -156,11 +156,12 @@ namespace UltraSonicLib
         }
 
         protected Direction CurrentDirection = Direction.None;
+        protected const int FlyValue = 50, MovementDistance = 1;
 
         protected Vector PostCalculatePosition2()
         {
             Vector movement = new Vector();
-            const int flyValue = 50;
+
 
             // Await first reading
             if (Left == 0 && Right == 0)
@@ -175,22 +176,12 @@ namespace UltraSonicLib
             {
                 if (CurrentDirection == Direction.Left)
                 {
-                    // We there bois!
-                    if (Sensors.Left.Distance < Sensors.Right.Distance)
-                    {
-                        movement.Roll = flyValue;
-                        CurrentDirection = Direction.Center;
-                    }
+                    movement.Roll = CorrectionValue(Sensors.Left.Distance, Sensors.Right.Distance, Left);
                 }
 
                 if (CurrentDirection == Direction.Right)
                 {
-                    // We there bois!
-                    if (Sensors.Right.Distance < Sensors.Left.Distance)
-                    {
-                        movement.Roll = -flyValue;
-                        CurrentDirection = Direction.Center;
-                    }
+                    movement.Roll = -CorrectionValue(Sensors.Right.Distance, Sensors.Left.Distance, Right);
                 }
             }
            // Console.WriteLine("CTRL");
@@ -207,40 +198,13 @@ namespace UltraSonicLib
                 // Til venstre
                 if (Sensors.Left.Distance > Sensors.Right.Distance)
                 {
-                    // Har vi sendt den første pakke?
-                    if (CurrentDirection == Direction.Left)
-                    {
-                        // We are not moving left yet?
-                        if (Sensors.Left.Distance > Left)
-                        {
-                            movement.Roll = -flyValue;
-                        }
-                    }
-                    else
-                    {
-                        movement.Roll = -flyValue;
-                    }
-
-
+                    movement.Roll = CalculateMovement(Direction.Left, Sensors.Left.Distance, Left);
                     CurrentDirection = Direction.Left;
                 }
                 // Til højre
                 else
                 {
-                    // Har vi sendt den første pakke?
-                    if (CurrentDirection == Direction.Right)
-                    {
-                        // We are not moving left yet?
-                        if (Sensors.Right.Distance > Right)
-                        {
-                            movement.Roll = flyValue;
-                        }
-                    }
-                    else
-                    {
-                        movement.Roll = flyValue;
-                    }
-
+                    movement.Roll = -CalculateMovement(Direction.Right, Sensors.Right.Distance, Right);
                     CurrentDirection = Direction.Right;
                 }
             }
@@ -252,6 +216,43 @@ namespace UltraSonicLib
             }
             SetLastReading();
             return movement;
+        }
+
+        protected int CalculateMovement(Direction currentDirection, double directionalValve, double previousValue)
+        {
+            // Har vi sendt den første pakke?
+            if (CurrentDirection == currentDirection)
+            {
+                // We are not moving left yet?
+                if (directionalValve > previousValue)
+                {
+                    return -FlyValue;
+                }
+            }
+            else
+            {
+                return -FlyValue;
+            }
+
+            return 0;
+        }
+
+        protected int CorrectionValue(double f1, double f2, double previousValue)
+        {
+            // We there bois!
+            if (f1 < f2)
+            {
+                CurrentDirection = Direction.Center;
+                return FlyValue;
+            }
+            // If we did not move enough, give it a bit more
+            else if (f1 - previousValue < MovementDistance)
+            {
+                return -(FlyValue / 2);
+            }
+
+            Console.WriteLine("FAK");
+            return 0;
         }
 
         protected int CalculateDirection(int diff, double f1, double f2, bool wrongWay, double maxDegree)
