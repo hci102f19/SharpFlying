@@ -16,12 +16,12 @@ namespace RenderGeometry.Base
 
         public SDPoint StartPoint()
         {
-            return new SDPoint((int)Line.StartPoint.X, (int)Line.StartPoint.Y);
+            return new SDPoint((int) Line.StartPoint.X, (int) Line.StartPoint.Y);
         }
 
         public SDPoint EndPoint()
         {
-            return new SDPoint((int)Line.EndPoint.X, (int)Line.EndPoint.Y);
+            return new SDPoint((int) Line.EndPoint.X, (int) Line.EndPoint.Y);
         }
 
         public void Render(Image<Bgr, byte> frame, MCvScalar color = default(MCvScalar))

@@ -1,15 +1,9 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Net.NetworkInformation;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using BebopFlying;
 using EdgyLib;
 using Emgu.CV;
-using Emgu.CV.CvEnum;
-using Emgu.CV.OCR;
 using Emgu.CV.Structure;
 using FlightLib;
 using FlightLib.Enum;
@@ -59,7 +53,7 @@ namespace SharpFlying
                             {
                                 Vector vec = r.Vector.Copy();
                                 vec.TimesConstant(r.Confidence / 100);
-                                
+
                                 v.Add(vec);
                             }
                         }
@@ -67,6 +61,7 @@ namespace SharpFlying
                         bebop.Move(v);
                     }
                 }
+
                 sw.Stop();
                 Console.WriteLine("\n" + sw.ElapsedMilliseconds + "ms");
                 buffer.Stop();

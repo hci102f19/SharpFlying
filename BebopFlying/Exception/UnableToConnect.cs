@@ -1,6 +1,6 @@
 ﻿namespace BebopFlying.Exception
 {
-    class UnableToConnect : DroneException
+    internal class UnableToConnect : DroneException
     {
     }
 }

@@ -3,7 +3,6 @@ using FlightLib;
 using ServiceLib;
 using UDPBase;
 using UDPBase.Exception;
-using BebopFlying;
 
 namespace UltraSonicLib
 {
@@ -11,9 +10,9 @@ namespace UltraSonicLib
     {
         protected const int MinDistanceToWall = 30, FlyValue = 50;
         protected readonly UDPClient Client = new UDPClient("192.168.4.1", 20002);
-
-        protected double? Left = null, Right = null;
         protected Direction CurrentDirection = Direction.None;
+
+        protected double? Left, Right;
 
         protected Response Response;
         protected Sensors Sensors;
@@ -108,14 +107,6 @@ namespace UltraSonicLib
             Right = Sensors.Right.Distance;
         }
 
-        protected enum Direction
-        {
-            None,
-            Center,
-            Left,
-            Right
-        }
-
 
         protected Vector PostCalculatePosition()
         {
@@ -124,7 +115,9 @@ namespace UltraSonicLib
 
             // Await first reading
             if (Left == null || Right == null)
+            {
                 return movement;
+            }
 
 
             // We are trying to center us!
@@ -142,7 +135,9 @@ namespace UltraSonicLib
             }
 
             if (!movement.IsNull())
+            {
                 return movement;
+            }
 
 
             int diff = Difference(Sensors.Left.Distance, Sensors.Right.Distance);
@@ -168,6 +163,7 @@ namespace UltraSonicLib
                 CurrentDirection = Direction.Center;
             }
 
+            Console.WriteLine("Left: {0}, Right: {1}", Sensors.Left.Distance, Sensors.Right.Distance);
             return movement;
         }
 
@@ -191,7 +187,6 @@ namespace UltraSonicLib
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="d1">First arbitrary double value</param>
         /// <param name="d2">Secondary arbitrary double value</param>
@@ -213,6 +208,14 @@ namespace UltraSonicLib
         public override Response GetLatestResult()
         {
             return Response;
+        }
+
+        protected enum Direction
+        {
+            None,
+            Center,
+            Left,
+            Right
         }
     }
 }

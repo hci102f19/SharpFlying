@@ -19,6 +19,60 @@ namespace BebopFlying
 {
     public class Bebop : IFly
     {
+        public Bebop()
+        {
+            LoggingConfiguration config = new LoggingConfiguration();
+            FileTarget logfile = new FileTarget("logfile") {FileName = "BebopFileLog.txt"};
+
+            ConsoleTarget consoleLog = new ConsoleTarget("logconsole");
+            config.AddRule(LogLevel.Info, LogLevel.Fatal, consoleLog);
+
+            config.AddRule(LogLevel.Debug, LogLevel.Fatal, logfile);
+
+            LogManager.Configuration = config;
+            Logger = LogManager.GetCurrentClassLogger();
+
+            // Set Bebop sensors
+            Sensors = new List<Sensor.Sensor>
+            {
+                Battery,
+                FlyingState,
+                Altitude,
+                FlatTrimChanged,
+                AttitudeChanged
+            };
+        }
+
+        #region Update Data
+
+        protected void UpdateSensorData(int dataType, int bufferId, int packetSeqId, byte[] data, bool ack)
+        {
+            Logger.Debug("Sensor update");
+            if (data.Length == 0)
+            {
+                Logger.Error("Invalid sensor data");
+                Logger.Debug($"dataType: {dataType}, bufferId: {bufferId}, packetSeqId: {packetSeqId}");
+                return;
+            }
+
+            int projectId = data[0], classId = data[1], cmdId = BitConverter.ToInt16(data, 2);
+            foreach (Sensor.Sensor sensor in Sensors)
+            {
+                if (sensor.Apply(projectId, classId, cmdId))
+                {
+                    sensor.Parse(data.Skip(HandleOffset).ToArray());
+                }
+            }
+
+
+            if (ack)
+            {
+                AckPacket(bufferId, packetSeqId);
+            }
+        }
+
+        #endregion
+
         #region Properties
 
         //Logger
@@ -46,7 +100,7 @@ namespace BebopFlying
             {"VIDEO_DATA", 0}
         };
 
-        protected readonly Dictionary<string, int> BufferIds = new Dictionary<string, int>()
+        protected readonly Dictionary<string, int> BufferIds = new Dictionary<string, int>
         {
             {"PING", 0},
             {"PONG", 1},
@@ -60,7 +114,7 @@ namespace BebopFlying
             {"ACK_FROM_SEND_WITH_ACK", 139}
         };
 
-        protected readonly Dictionary<string, int> DataTypesByName = new Dictionary<string, int>()
+        protected readonly Dictionary<string, int> DataTypesByName = new Dictionary<string, int>
         {
             {"ACK", 1},
             {"DATA_NO_ACK", 2},
@@ -93,30 +147,6 @@ namespace BebopFlying
 
         #endregion
 
-        public Bebop()
-        {
-            LoggingConfiguration config = new LoggingConfiguration();
-            FileTarget logfile = new FileTarget("logfile") {FileName = "BebopFileLog.txt"};
-
-            ConsoleTarget consoleLog = new ConsoleTarget("logconsole");
-            config.AddRule(LogLevel.Info, LogLevel.Fatal, consoleLog);
-
-            config.AddRule(LogLevel.Debug, LogLevel.Fatal, logfile);
-
-            LogManager.Configuration = config;
-            Logger = LogManager.GetCurrentClassLogger();
-
-            // Set Bebop sensors
-            Sensors = new List<Sensor.Sensor>()
-            {
-                Battery,
-                FlyingState,
-                Altitude,
-                FlatTrimChanged,
-                AttitudeChanged
-            };
-        }
-
         #region Connection
 
         public ConnectionStatus Connect()
@@ -126,7 +156,9 @@ namespace BebopFlying
                 Logger.Debug("Attempting to connect to drone...");
 
                 if (!DoHandshake())
+                {
                     return ConnectionStatus.Failed;
+                }
             }
             catch (DroneException ex)
             {
@@ -212,16 +244,23 @@ namespace BebopFlying
             CommandTuple cmdTuple = new CommandTuple(1, 0, 1);
 
             if (FlyingState.GetState() == FlyingState.State.Landed || FlyingState.GetState() == FlyingState.State.UnKn0wn)
+            {
                 SendNoParam(cmdTuple);
+            }
             else
+            {
                 return;
+            }
 
             Stopwatch sw = new Stopwatch();
             sw.Start();
             while (FlyingState.GetState() != FlyingState.State.Hovering && FlyingState.GetState() != FlyingState.State.Flying && sw.ElapsedMilliseconds < timeout)
             {
                 if (FlyingState.GetState() == FlyingState.State.Emergency)
+                {
                     break;
+                }
+
                 SmartSleep(100);
             }
 
@@ -250,7 +289,10 @@ namespace BebopFlying
                 while (FlyingState.GetState() != FlyingState.State.Landed && sw.ElapsedMilliseconds < timeout)
                 {
                     if (FlyingState.GetState() == FlyingState.State.Emergency)
+                    {
                         break;
+                    }
+
                     SmartSleep(100);
                 }
 
@@ -266,7 +308,9 @@ namespace BebopFlying
         public void FlatTrim(int duration)
         {
             if (duration > 0)
+            {
                 FlatTrimChanged.Reset();
+            }
 
             CommandTuple cmdTuple = new CommandTuple(1, 0, 0);
             SendNoParam(cmdTuple);
@@ -277,7 +321,9 @@ namespace BebopFlying
                 Stopwatch sw = new Stopwatch();
                 sw.Start();
                 while (!FlatTrimChanged.Updated && sw.ElapsedMilliseconds < duration)
+                {
                     SmartSleep(100);
+                }
 
                 sw.Stop();
             }
@@ -407,7 +453,10 @@ namespace BebopFlying
                 // Drone just sent us sensor data
                 case CommandSet.ARNETWORKAL_FRAME_TYPE_DATA:
                     if (bufferId == CommandSet.BD_NET_DC_NAVDATA_ID || bufferId == CommandSet.BD_NET_DC_EVENT_ID)
+                    {
                         UpdateSensorData(dataType, bufferId, packetSeqId, data, false);
+                    }
+
                     break;
 
                 case CommandSet.ARNETWORKAL_FRAME_TYPE_DATA_LOW_LATENCY:
@@ -416,7 +465,10 @@ namespace BebopFlying
 
                 case CommandSet.ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK:
                     if (bufferId == CommandSet.BD_NET_DC_NAVDATA_ID || bufferId == CommandSet.BD_NET_DC_EVENT_ID)
+                    {
                         UpdateSensorData(dataType, bufferId, packetSeqId, data, true);
+                    }
+
                     break;
 
                 case CommandSet.ARNETWORKAL_FRAME_TYPE_MAX:
@@ -431,30 +483,6 @@ namespace BebopFlying
                     Logger.Fatal("Unknown data type received from drone!");
                     break;
             }
-        }
-
-        #endregion
-
-        #region Update Data
-
-        protected void UpdateSensorData(int dataType, int bufferId, int packetSeqId, byte[] data, bool ack)
-        {
-            Logger.Debug("Sensor update");
-            if (data.Length == 0)
-            {
-                Logger.Error("Invalid sensor data");
-                Logger.Debug($"dataType: {dataType}, bufferId: {bufferId}, packetSeqId: {packetSeqId}");
-                return;
-            }
-
-            int projectId = data[0], classId = data[1], cmdId = BitConverter.ToInt16(data, 2);
-            foreach (Sensor.Sensor sensor in Sensors)
-                if (sensor.Apply(projectId, classId, cmdId))
-                    sensor.Parse(data.Skip(HandleOffset).ToArray());
-
-
-            if (ack)
-                AckPacket(bufferId, packetSeqId);
         }
 
         #endregion
@@ -524,9 +552,9 @@ namespace BebopFlying
         protected bool? SendParam(CommandTuple cmdTuple, CommandParam cmdParam, bool ack = true)
         {
             // ReSharper disable once InconsistentNaming
-            string ACK = (ack) ? "SEND_WITH_ACK" : "SEND_NO_ACK";
+            string ACK = ack ? "SEND_WITH_ACK" : "SEND_NO_ACK";
             // ReSharper disable once InconsistentNaming
-            string DataACK = (ack) ? "DATA_WITH_ACK" : "DATA_NO_ACK";
+            string DataACK = ack ? "DATA_WITH_ACK" : "DATA_NO_ACK";
             // ReSharper disable once StringLiteralTypo
             string fmt = "<BBBIBBH" + cmdParam.Format();
 
@@ -542,7 +570,10 @@ namespace BebopFlying
             cmd.InsertParam(cmdParam);
 
             if (ack)
+            {
                 return SendCommandAck(cmd.Export(fmt), SequenceCounter["SEND_WITH_ACK"]);
+            }
+
             SendCommandNoAck(cmd.Export(fmt));
             return null;
         }
@@ -649,9 +680,17 @@ namespace BebopFlying
 
         protected static T Clamp<T>(T val, T min, T max) where T : IComparable<T>
         {
-            if (val.CompareTo(min) < 0) return min;
-            else if (val.CompareTo(max) > 0) return max;
-            else return val;
+            if (val.CompareTo(min) < 0)
+            {
+                return min;
+            }
+
+            if (val.CompareTo(max) > 0)
+            {
+                return max;
+            }
+
+            return val;
         }
 
         protected void GenerateDroneCommand()
@@ -659,7 +698,9 @@ namespace BebopFlying
             lock (ThisLock)
             {
                 if (FlyVector.IsNull())
+                {
                     return;
+                }
 
                 CommandTuple cmdTuple = new CommandTuple(1, 0, 2);
                 int roll = Clamp(FlyVector.Roll, VectorMin, VectorMax);
@@ -691,7 +732,9 @@ namespace BebopFlying
             Stopwatch sw = new Stopwatch();
             sw.Start();
             while (sw.ElapsedMilliseconds < milliseconds)
+            {
                 Thread.Sleep(10);
+            }
 
             sw.Stop();
         }

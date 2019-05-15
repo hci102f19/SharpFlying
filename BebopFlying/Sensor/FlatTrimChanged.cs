@@ -2,11 +2,11 @@
 {
     public class FlatTrimChanged : Sensor
     {
-        public bool Updated { get; protected set; } = false;
-
         public FlatTrimChanged(int projectId, int classId, int cmdId) : base(projectId, classId, cmdId)
         {
         }
+
+        public bool Updated { get; protected set; }
 
         public override void Parse(byte[] sensorData)
         {

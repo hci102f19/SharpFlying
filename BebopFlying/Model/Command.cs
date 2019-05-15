@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 namespace BebopFlying.Model
@@ -26,8 +25,8 @@ namespace BebopFlying.Model
 
         public void InsertTuple(CommandTuple cmdTuple)
         {
-            InsertData((Byte) cmdTuple.ProjectId);
-            InsertData((Byte) cmdTuple.ClassId);
+            InsertData((byte) cmdTuple.ProjectId);
+            InsertData((byte) cmdTuple.ClassId);
             InsertData((ushort) cmdTuple.CmdId);
         }
 
@@ -49,7 +48,10 @@ namespace BebopFlying.Model
             byte[] bytes = StructConverter.Pack(Cmd.Cast<object>().ToArray(), true, out string internalFmt);
 
             if (internalFmt != fmt)
+            {
                 throw new System.Exception("FK");
+            }
+
             return bytes;
         }
 
@@ -59,14 +61,21 @@ namespace BebopFlying.Model
             {
                 SeqId = value;
                 if (Seq[value] == -1)
+                {
                     Seq[value] = 0;
+                }
                 else
+                {
                     Seq[value] = (Seq[value] + 1) % 256;
+                }
             }
             get
             {
                 if (SeqId == -1)
+                {
                     return -1;
+                }
+
                 return Seq[SeqId];
             }
         }

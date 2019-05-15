@@ -30,7 +30,9 @@ namespace WiFiLib
                 {
                     Network data = Client.ReceiveData<Network>();
                     if (data == null)
+                    {
                         continue;
+                    }
 
                     Network = data;
                     CalculatePosition();
@@ -74,7 +76,9 @@ namespace WiFiLib
                 foreach (Node node in NetworkMap.Nodes)
                 {
                     if (accessPoint.Mac == node.Mac)
+                    {
                         ListAccessPoints.Add(new Tuple<AccessPoint, Node>(accessPoint, node));
+                    }
                 }
             }
 

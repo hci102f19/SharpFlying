@@ -4,10 +4,6 @@ namespace BebopFlying.Sensor
 {
     public abstract class Sensor
     {
-        public int ProjectId { get; }
-        public int ClassId { get; }
-        public int CmdId { get; }
-
         protected Sensor(int projectId, int classId, int cmdId)
         {
             ProjectId = projectId;
@@ -15,9 +11,13 @@ namespace BebopFlying.Sensor
             CmdId = cmdId;
         }
 
+        public int ProjectId { get; }
+        public int ClassId { get; }
+        public int CmdId { get; }
+
         public bool Apply(int projectId, int classId, int cmdId)
         {
-            return projectId == this.ProjectId && classId == this.ClassId && cmdId == this.CmdId;
+            return projectId == ProjectId && classId == ClassId && cmdId == CmdId;
         }
 
         public virtual void Parse(byte[] sensorData)

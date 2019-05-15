@@ -51,7 +51,7 @@ namespace UDPBase
             Client.Connect(EndPoint);
             SendHELO();
         }
-            
+
         protected void SendHELO()
         {
             byte[] sendBuffer = Encoding.UTF8.GetBytes(HELOMessage);

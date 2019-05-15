@@ -91,7 +91,9 @@ namespace VidBuffLib
         public void Stop()
         {
             foreach (Service s in Services)
+            {
                 s.Stop();
+            }
 
             IsRunning = false;
         }

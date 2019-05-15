@@ -25,7 +25,7 @@ namespace WiFiLib.Data
 
         public double Radius()
         {
-            return Math.Round(Math.Pow(10, (27.55 - (20 * Math.Log10(Frequency)) + Math.Abs(Signal)) / 20), 2);
+            return Math.Round(Math.Pow(10, (27.55 - 20 * Math.Log10(Frequency) + Math.Abs(Signal)) / 20), 2);
         }
 
         public double Area()
