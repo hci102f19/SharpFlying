@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using DBSCAN;
@@ -37,9 +38,13 @@ namespace EdgyLib
         protected int LowerLineThreshold = 20;
         protected int ThetaModifier = 5;
         protected int UpperLineThreshold = 75;
+        protected int width, height;
 
         public Canny(int width, int height)
         {
+            this.width = width;
+            this.height = height;
+
             BoxContainer = new BoxContainer(width, height);
             Filtering = new SFiltering(width, height);
         }
@@ -51,6 +56,42 @@ namespace EdgyLib
                 CurrentFrame = frame;
             }
         }
+
+        public Image<Bgr, byte> ProcessFrame(Image<Bgr, byte> frame)
+        {
+            using (Mat edges = new Mat())
+            {
+                CvInvoke.Canny(frame, edges, CannyThreshold, CannyThreshold * CannyThresholdModifier, 3);
+                return edges.ToImage<Bgr, byte>();
+            }
+        }
+
+        public Image<Bgr, byte> HoughFrame(Image<Bgr, byte> frame, Image<Bgr, byte> rframe)
+        {
+            Image<Bgr, byte> renderImage = new Image<Bgr, byte>(this.width, this.height);
+            Mat edges = frame.Convert<Gray, byte>().Mat;
+
+            rframe.CopyTo(renderImage);
+            //frame.CopyTo(edges);
+
+            VectorOfPointF vector = new VectorOfPointF();
+            CvInvoke.HoughLines(edges, vector, 2, Math.PI / 180, HoughLinesTheta);
+
+            int lines = vector.Size;
+
+            if (lines > 0)
+            {
+                CalculateTheta(lines);
+
+                if (lines < LineMax)
+                {
+                    return Clustering(GetLines(vector), renderImage);
+                }
+            }
+
+            return renderImage;
+        }
+
 
         protected override void Run()
         {
@@ -135,7 +176,7 @@ namespace EdgyLib
             return lines;
         }
 
-        protected void Clustering(List<Line> lines, Image<Bgr, byte> frame)
+        protected Image<Bgr, byte> Clustering(List<Line> lines, Image<Bgr, byte> frame)
         {
             List<Point> intersections = new List<Point>();
 
@@ -157,7 +198,6 @@ namespace EdgyLib
                 }
             }
 
-
             if (intersections.Count > 0)
             {
                 ClusterSet clusters = DBSCAN.DBSCAN.CalculateClusters(
@@ -166,37 +206,27 @@ namespace EdgyLib
                     (int) Math.Round(0.1 * intersections.Count, 0)
                 );
 
-                if (clusters.IsValid())
+                foreach (Point p in intersections)
                 {
-                    if (Filtering.Add(clusters.GetBestCluster().GetMean()))
-                    {
-                        if (Confidence < 100)
-                        {
-                            Confidence = Confidence >= 100 ? 100 : Confidence + 5f;
-                        }
-                    }
-                    else
-                    {
-                        Confidence = 10;
-                    }
+                    ((RenderPoint) p).Render(frame, new MCvScalar(0, 0, 255), 2);
                 }
 
-                Vector vector = BoxContainer.Hit(Filtering.GetMean());
+                if (clusters.IsValid())
+                {
+                    Filtering.Add(clusters.GetBestCluster().GetMean());
+                }
+
                 try
                 {
-                    ((RenderPoint) Filtering.GetMean()).Render(frame);
+                    ((RenderPoint) Filtering.GetMean()).Render(frame, new MCvScalar(0, 0, 0), 7);
+                    ((RenderPoint) Filtering.GetMean()).Render(frame, new MCvScalar(80, 127, 255), 5);
                 }
                 catch (Exception e)
                 {
                 }
-
-                LatestResponse = !vector.IsNull()
-                    ? new Response(true, BoxContainer.Hit(Filtering.GetMean()), Confidence)
-                    : new Response(false, null);
-
-                CvInvoke.Imshow("frame", frame);
-                CvInvoke.WaitKey(1);
             }
+
+            return frame;
         }
 
         public override Response GetLatestResult()

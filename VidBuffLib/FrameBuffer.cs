@@ -26,6 +26,18 @@ namespace VidBuffLib
             }
         }
 
+        public Image<Bgr, byte> GetNextFrame()
+        {
+            Mat frame = Stream.QueryFrame();
+            if (frame == null)
+                return null;
+
+            using (frame = ProcessFrame(frame))
+            {
+                return frame.ToImage<Bgr, byte>();
+            }
+        }
+
         protected override void Run()
         {
             Mat frame = Stream.QueryFrame();

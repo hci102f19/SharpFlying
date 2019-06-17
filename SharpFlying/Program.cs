@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Drawing;
 using System.Threading;
 using BebopFlying;
 using EdgyLib;
@@ -17,75 +18,51 @@ namespace SharpFlying
     {
         private static void Main(string[] args)
         {
-            const int width = 640, height = 360;
-
-            Bebop bebop = new Bebop();
-            Stopwatch sw = new Stopwatch();
-            if (bebop.Connect() == ConnectionStatus.Success)
-            {
-                bebop.FlatTrim(2000);
-                Thread abortThread = new Thread(Run);
-                abortThread.Start();
-
-                bebop.StartVideo();
-
-                VideoCapture capture = new VideoCapture(@"./bebop.sdp");
-                StreamBuffer buffer = new StreamBuffer(capture, width, height);
-
-                buffer.AddService(new Canny(width, height));
-                buffer.AddService(new UltraSonicService());
-
-                buffer.Start();
-
-                bebop.TakeOff();
-                sw.Start();
-                while (abortThread.IsAlive)
-                {
-                    Image<Bgr, byte> frame = buffer.PopLastFrame();
-                    if (frame != null)
-                    {
-                        buffer.TransmitFrame(frame);
-                        Vector v = new Vector {Pitch = 1};
-                        foreach (Service service in buffer.Services)
-                        {
-                            Response r = service.GetLatestResult();
-                            if (r != null && r.IsValid)
-                            {
-                                Vector vec = r.Vector.Copy();
-                                vec.TimesConstant(r.Confidence / 100);
-
-                                v.Add(vec);
-                            }
-                        }
-
-                        bebop.Move(v);
-                    }
-                }
-
-                sw.Stop();
-                Console.WriteLine("\n" + sw.ElapsedMilliseconds + "ms");
-                buffer.Stop();
-                bebop.Land();
-                bebop.StopVideo();
-                bebop.Disconnect();
-            }
-
-
-            Console.ReadLine();
+            render("./Flight 1 edited.mp4", "Flight 1 post-algo.mp4");
+            render("./Flight 2 edited.mp4", "Flight 2 post-algo.mp4");
+            render("./Flight 3 edited.mp4", "Flight 3 post-algo.mp4");
+            render("./Flight 4 edited.mp4", "Flight 4 post-algo.mp4");
         }
 
-        private static void Run()
+        private static void render(string infile, string outfile)
         {
-            while (true)
+            Console.WriteLine($"Starting {outfile}");
+            //const int width = 960, height = 540;
+            const int width = 640, height = 360;
+
+            VideoCapture capture = new VideoCapture(infile);
+            FrameBuffer buffer = new FrameBuffer(capture, width, height);
+            Image<Bgr, byte> frame = buffer.GetNextFrame();
+
+            VideoWriter VideoWriter = new VideoWriter(outfile, -1, 24, new Size(width * 2, height * 2), true);
+
+            Canny c = new Canny(width, height);
+
+
+            while (frame != null)
             {
-                ConsoleKeyInfo test = Console.ReadKey();
-                if (test.KeyChar == 'Q' || test.KeyChar == 'q')
+                Bitmap bitmap = new Bitmap(width * 2, height * 2);
+
+                Image<Bgr, byte> canny = c.ProcessFrame(frame);
+                Image<Bgr, byte> clustering = c.HoughFrame(canny, frame);
+
+
+                using (Graphics g = Graphics.FromImage(bitmap))
                 {
-                    return;
+                    g.DrawImage(frame.Bitmap, 0, 0);
+                    g.DrawImage(canny.Bitmap, width, 0);
+
+                    g.DrawImage(clustering.Bitmap, width, height);
                 }
 
-                Thread.Sleep(150);
+                Image<Bgr, byte> imageResult = new Image<Bgr, byte>(bitmap);
+
+                VideoWriter.Write(imageResult.Mat);
+
+                frame = buffer.GetNextFrame();
             }
+
+            Console.WriteLine("DONE!");
         }
     }
 }

@@ -19,9 +19,9 @@ namespace RenderGeometry.Base
             return new SDPoint((int) Point.X, (int) Point.Y);
         }
 
-        public void Render(Image<Bgr, byte> frame, MCvScalar color = default(MCvScalar))
+        public void Render(Image<Bgr, byte> frame, MCvScalar color = default(MCvScalar), int size = 2)
         {
-            CvInvoke.Circle(frame, AsPoint(), 2, color, -1);
+            CvInvoke.Circle(frame, AsPoint(), size, color, -1);
         }
 
         public static explicit operator RenderPoint(Point v)
